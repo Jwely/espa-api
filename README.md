@@ -2,14 +2,12 @@
 Demo API for the ESPA ordering system.
 
 ## Assumptions
-1. The proposed API will be logically divided into a user facing API, system api and admin api.
+1. The proposed API will be logically divided into a user api, system api and admin api.
 
 2. All calls will be made over HTTPS only and will require HTTP Basic Authentication.
     * Users will be authenticated against the ERS (EROS Registration System).  Credentials used for EarthExplorer are used here.
 
 3. Each operation will be stateless.  Sessions, cookies, etc will not be used.
-
-4. 
 
 
 ## Proposed User API Operations
