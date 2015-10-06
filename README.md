@@ -6,8 +6,11 @@ Demo API for the ESPA ordering system.
 
 2. All calls will be made over HTTPS only and will require HTTP Basic Authentication.
     * Users will be authenticated against the ERS (EROS Registration System).  Credentials used for EarthExplorer are used here.
+    * The exception to this is the call to authenticate.  This call is needed so clients are able to determine if a user should even be allowed to perform operations.  This can later be modified to return roles.
 
 3. Each operation will be stateless.  Sessions, cookies, etc will not be used.
+
+4. 
 
 
 ## Proposed User API Operations
@@ -17,6 +20,9 @@ Demo API for the ESPA ordering system.
 
 ```GET /api/v0```
 * Lists available operations
+
+```POST /api/v0/authenticate```
+* Accepts a username/password and returns True/False.  Needed to support client development.
 
 ```GET /api/v0/user```
 * Information for authenticated user
