@@ -41,8 +41,8 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 5. **Requests for output customization are captured at the order (not the input observation) level.  These customizations are applied against every ESPA output product in the order.**  
   1. Users may request that their order is reprojected to sinusoidal, albers, UTM, geographic or polar stereographic.  Each projection requires its own set of parameters which must be validated.  
   2. Users may request their order is output in binary (envi), HDF EOS2, or GeoTiFF format.  
-  3. Users may request modification of the spatial output extents (spatial subsetting) of all output products in either projection coordinates or decimal degrees.  
-  4. Users may request pixel resizing of the output products in either meters or decimal degrees.
+  3. Users may request modification of the spatial output extents (spatial subsetting) of all output products in either projection coordinates or decimal degrees.  If geographic projection is requested, coordinates may only be provided in decimal degrees.
+  4. Users may request pixel resizing of the output products in either meters or decimal degrees, depending on the requested projection.  Geographic will accept only decimal degrees for the pixel size whereas all true projections (all others available) require meters.
   5. Where necessary, users may choose their desired resampling method.  
   6. Users may not perform spatial subsetting without first requested reprojection.  This is due to input observations arriving in varying projections, making projection coordinates meaningless.  
   
