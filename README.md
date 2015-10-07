@@ -86,6 +86,10 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 
 4. Any payloads for POST or PUT operations will be valid JSON.  GET responses will also be JSON.
 
+5. Traffic control (rates, locations, blacklists, etc) will be handled by an HTTP(S) proxy layer.
+
+6. Users are not currently limited in the amounts of imagery they may request.  Backend queuing ensures fair access.
+
 
 ## Proposed User API Operations
 
