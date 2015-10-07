@@ -16,6 +16,13 @@ espa-web currently captures user orders from two sources: The espa.cr.usgs.gov w
 #### espa-production
 espa-production is responsible for receiving production requests, validating the requests, locating and using any necessary auxillary data, transferring level 1 data to a working directory, executing the necessary science algorithms to produce the product, placing the finished product in a distribution location and finally notifying espa-web that the production request is complete.  espa-production is a stateless system, with each production run remaining isolated from any other.
 
+## Why create an API?
+As previously discussed above, the original system was built solely as a temporary incubation platform for science products.  The only original requirement was to produce 450 surface refectance (SR) corrections to level 1 data per day and make the outputs available to end users, and to (obviously) accomplish this work as quickly and cheaply as possible.  For context, ESPA now is capable of performing over 23,000 SR corrections per day (as of October 2015).  The capacity increases have been driven purely by demand.
+
+New requirements have emerged from the science community that detail the need to perform deep time series analysis against atmospherically corrected observations.  This body of work is being accompished as part of the Land Change Monitoring Assessment and Prediction (LCMAP) project.  LCMAP requires (or will in the near future) the full Landsat archive corrected to surface reflectance, first for the continental United States & Alaska, and later globally.  It also requires any new observations to be corrected so they can be incorporated into it's output products.
+
+The current system only provides access to order data via web interfaces (espa.cr.usgs.gov and earthexplorer.usgs.gov).  This is clearly inadequate to establish an automated pipeline for ongoing analysis: No human wants to manually order, track and transfer millions of scenes. The ESPA system must be modified to provide an application programming interface for downstream systems to gain access to its capabilities.
+
 ## Assumptions
 1. The proposed API will be logically divided into a user API, system API and admin API.  
     * The user api will accept orders and provide end user access to order/product status and links to download completed products.
