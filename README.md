@@ -38,6 +38,7 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
     3. Users may request modification of the spatial output extents (spatial subsetting) of all output products in either projection coordinates or decimal degrees.
     4. Users may request pixel resizing of the output products in either meters or decimal degrees.
     5. Where necessary, users may choose their desired resampling method.
+    6. Users may not perform spatial subsetting without first requested reprojection.  This is due to input observations arriving in varying projections, making projection coordinates meaningless.
 
 ## Assumptions
 1. The proposed API will be logically divided into a user API, system API and admin API.  
