@@ -17,7 +17,7 @@ espa-web currently captures user orders from two sources: The espa.cr.usgs.gov w
 espa-production is responsible for receiving production requests, validating the requests, locating and using any necessary auxillary data, transferring level 1 data to a working directory, executing the necessary science algorithms to produce the product, placing the finished product in a distribution location and finally notifying espa-web that the production request is complete.  espa-production is a stateless system, with each production run remaining isolated from any other.
 
 ## General Capabilities That May or May Not Be Properly Advertised
-Later in this document, there are a series of requirements and capabilities that do not seem to belong together in the same system.  For instance, there are a variety of datasets that ESPA cannot do anything with science-wise.  MODIS data is itself is never enhanced in any way by ESPA.  So why include it then if we can't run algorithms against it?  Here's why:
+Later in this document, there are a series of requirements and capabilities that do not seem to belong together in the same system.  For instance, there are a variety of datasets that ESPA cannot do anything with science-wise.  MODIS data itself is never enhanced by ESPA in any way.  So why include it then if we can't create derivative products?  The short answer is, 'we can'.  Here's how:
 
 * Dynamic Tile Genertion 
   * We can give you stacks of images lined up properly with one another.
