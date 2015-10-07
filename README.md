@@ -1,7 +1,7 @@
 # espa-api
 Demo API for the ESPA ordering & scheduling system.
 
-## Domain Description
+## Overview
 The ESPA project (EROS Science Processing Architecture) is a system for producing advanced science products from existing products. It was originally constructed to serve as a production platform for science algorithms under incubation but has since transitioned into a quasi-operational state within USGS EROS, due primarily to the popularity of it's products.
 
 ESPA operates on a scene by scene basis and was built to produce many products at once rather than a single product as quickly as possible (multiprocess vs multithreading).  Each product algorithm execution only has access to the spatial and temporal context of the observation in question, save any auxillary data needed such as ozone or water pressure measurements.  ESPA is therefore highly optimized for single-scene (observation) but is wholly unsuited for compositing, mosaicing, or time-series analysis, or any other operation that requires information from a separate observation.
@@ -23,6 +23,11 @@ New requirements have emerged from the science community that detail the need to
 
 ESPA currently provides access to order data via web interfaces only. (espa.cr.usgs.gov and earthexplorer.usgs.gov).  This is clearly inadequate to establish an automated pipeline for ongoing analysis: No human wants to manually order, track and transfer millions of scenes. The ESPA system must be modified to provide an application programming interface for downstream systems to gain access to its capabilities.
 
+## Domain Entities And Constraints
+1.  The system captures a user supplied list of input observations, desired output products and customizations and groups this as an order.
+    1. The user supplied list of input observations is a newline `\n` separated file with each line containing a Landsat scene id or MODIS tile id.  Landsat Thematic Mapper (TM), Enhanced Thematic Mapper + (ETM+), Operational Land Imager (OLI) ,Operational Land Imager/Thermal Infrared Sensor(OLI/TIRS), MODIS 09A1, MODIS 09GA, MODIS 09GQ, MODIS 09Q1, MODIS 13A1, MODIS 13A2, MODIS 13A3 and MODIS 13Q1 products may be supplied as inputs.
+2. The available output product list varies with each input type.
+    
 ## Assumptions
 1. The proposed API will be logically divided into a user API, system API and admin API.  
     * The user api will accept orders and provide end user access to order/product status and links to download completed products.
