@@ -169,7 +169,7 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 
 ### ESPA Spectral Indices
 |  | NDVI | EVI | SAVI | MSAVI | NDMI | NBR | NBR2 |
-|:------------- |:------------- |:------------- |:------------- |:------------- |:------------- |:------------- |
+|:------------- |:------------- |:------------- |:------------- |:------------- |:------------- |:------------- | :------------- |
 | Landsat 4 TM | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:| :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | Landsat 5 TM | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | Landsat 7 ETM+ | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:| :heavy_check_mark:| :heavy_check_mark: |
