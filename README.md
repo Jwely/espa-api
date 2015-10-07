@@ -115,7 +115,6 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 * 
 
 ## Abbreviations & Acronyms 
-| Abbreviation | Definition |
 |:------------- |:------------- |
 | API           | Application Programming Interface |
 | DDS           | Data Distribution Service |
