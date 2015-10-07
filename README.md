@@ -155,11 +155,11 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 | Landsat 4 TM | yes | yes |yes|
 | Landsat 5 TM | yes | yes |yes|
 | Landsat 7 ETM+ | yes | yes |yes|
-| Landsat 8 OLI | yes | **no** |**no**|
-| Landsat 8 TIRS | **no** | **no** |Available|
+| Landsat 8 OLI | yes | **__no__** |**__no__**|
+| Landsat 8 TIRS | **no** | **no** |yes|
 | Landsat 8 OLITIRS | yes | yes |yes|
-| MODIS 09A1  | **no** | **no** |**no**|
-| MODIS 09GA  | **no** | **no** |**no**|
+| MODIS 09A1  | **no** | **no** |**__no__**|
+| MODIS 09GA  | **no** | **no** |**__no__**|
 | MODIS 09GQ  | **no** | **no** |**no**|
 | MODIS 09Q1  | **no** | **no** |**no**|
 | MODIS 13A1  | **no** | **no** |**no**|
