@@ -135,27 +135,27 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 |  | Original Level 1 Data | Original Level 1 Metadata | Customized Level 1 Data |
 | ------------- |:-------------:| ------------- |:-------------:|
 | Landsat 4 TM | yes | yes |yes|
-| Landsat 5 TM | available | available |available|
-| Landsat 7 ETM+ | available | available |available|
-| Landsat 8 OLI | available | available |available|
-| Landsat 8 TIRS | available | available |available|
-| Landsat 8 OLITIRS | available | available |available|
-| MODIS 09A1  | available | available |available|
-| MODIS 09GA  | available | available |available|
-| MODIS 09GQ  | available | available |available|
-| MODIS 09Q1  | available | available |available|
-| MODIS 13A1  | available | available |available|
-| MODIS 13A2  | available | available |available|
-| MODIS 13A3  | available | available |available|
-| MODIS 13Q1  | available | available |available|
+| Landsat 5 TM | yes | yes |yes|
+| Landsat 7 ETM+ | yes | yes |yes|
+| Landsat 8 OLI | yes | yes |yes|
+| Landsat 8 TIRS | yes | yes |yes|
+| Landsat 8 OLITIRS | yes | yes |yes|
+| MODIS 09A1  | yes | yes |yes|
+| MODIS 09GA  | yes | yes |yes|
+| MODIS 09GQ  | yes | yes |yes|
+| MODIS 09Q1  | yes | yes |yes|
+| MODIS 13A1  | yes | yes |yes|
+| MODIS 13A2  | yes | yes |yes|
+| MODIS 13A3  | yes | yes |yes|
+| MODIS 13Q1  | yes | yes |yes|
 
 ### ESPA CDR Outputs
 |  | Top Of Atmosphere | Surface Reflectance | Brightness Temperature |
 | ------------- |:-------------:| ------------- |:-------------:|
-| Landsat 4 TM | Available | Available |Available|
-| Landsat 5 TM | Available | Available |Available|
-| Landsat 7 ETM+ | Available | Available |Available|
-| Landsat 8 OLI | Available | _Not Available_ |_Not Available_|
+| Landsat 4 TM | yes | yes |yes|
+| Landsat 5 TM | yes | yes |yes|
+| Landsat 7 ETM+ | yes | yes |yes|
+| Landsat 8 OLI | yes | *no* |*no*|
 | Landsat 8 TIRS | _Not Available_ | _Not Available_ |Available|
 | Landsat 8 OLITIRS | Available | Available |Available|
 | MODIS 09A1  | _Not Available_ | Available |Available|
