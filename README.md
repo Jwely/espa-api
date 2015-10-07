@@ -23,9 +23,11 @@ New requirements have emerged from the science community that detail the need to
 
 ESPA currently provides access to order data via web interfaces only. (espa.cr.usgs.gov and earthexplorer.usgs.gov).  This is clearly inadequate to establish an automated pipeline for ongoing analysis: No human wants to manually order, track and transfer millions of scenes. The ESPA system must be modified to provide an application programming interface for downstream systems to gain access to its capabilities.
 
-## Domain Entities, Constraints and Rules
+## Domain Entities, Constraints, Rules, Requirements
 1.  The system captures a user supplied list of input observations, desired output products and customizations and groups this as an order.
-    1. The user supplied list of input observations is a newline `\n` separated file with each line containing a Landsat scene id or MODIS tile id.  Landsat Thematic Mapper (TM), Enhanced Thematic Mapper + (ETM+), Operational Land Imager (OLI) ,Operational Land Imager/Thermal Infrared Sensor(OLI/TIRS), MODIS 09A1, MODIS 09GA, MODIS 09GQ, MODIS 09Q1, MODIS 13A1, MODIS 13A2, MODIS 13A3 and MODIS 13Q1 products may be supplied as inputs.
+    1. The user supplied list of input observations is a newline `\n` separated file with each line containing a Landsat scene id or MODIS tile id.
+    2. Landsat Thematic Mapper (TM), Enhanced Thematic Mapper + (ETM+), OLI ,Operational Land Imager/Thermal Infrared Sensor(OLI/TIRS), MODIS 09A1, MODIS 09GA, MODIS 09GQ, MODIS 09Q1, MODIS 13A1, MODIS 13A2, MODIS 13A3 and MODIS 13Q1 products may be supplied as inputs.
+    3. Input products must be available from an automated source such as LTA DDS or the LPDAAC Data Pool.
 2. The available output product list varies with each input type.
     1. Example: OLI & MODIS products cannot be corrected to surface reflectance.  OLI cannot due to not having thermal data available for cloud detection.  MODIS cannot as MODIS 09 products are _already_ at surface reflectance and MODIS 13 products are merely a vegetation index.
 3. The available output products list varies within each input type.
@@ -100,4 +102,12 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 
 
 ###### Version 0 Demo (October 2015)
-* Created to display url design for comment and review 
+* Created to display url design for comment and review
+* 
+
+## Terms & Definitions
+| Term          | Definition 
+| ------------- |:-------------:|
+| DDS           | Data Distribution Service |
+| LTA           | Long Term Archive      |
+| LPDAAC        | Land Process Distributed Active Archive |
