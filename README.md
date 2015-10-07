@@ -1,10 +1,10 @@
 # espa-api
-Demo API for the ESPA ordering system.
+Demo API for the ESPA ordering & scheduling system.
 
 ## Domain Description
 The ESPA project (EROS Science Processing Architecture) is a system for producing advanced science products from existing products. It was originally constructed to serve as a production platform for science algorithms under incubation but has since transitioned into a quasi-operational state within USGS EROS, due primarily to the popularity of it's products.
 
-ESPA operates on a scene by scene basis and is constructed to produce many products at once rather than a single product as quickly as possible (multiprocess vs multithreading).  Each product algorithm that runs only has access to the spatial and temporal context of the observation in question, save any auxillary data needed such as ozone or water pressure measurements.  Therefore, ESPA is highly optimized for single-scene or smaller operations but is wholly unsuited for compositing, mosaicing, or time-series analysis.
+ESPA operates on a scene by scene basis and was built to produce many products at once rather than a single product as quickly as possible (multiprocess vs multithreading).  Each product algorithm execution only has access to the spatial and temporal context of the observation in question, save any auxillary data needed such as ozone or water pressure measurements.  ESPA is therefore highly optimized for single-scene (observation) but is wholly unsuited for compositing, mosaicing, or time-series analysis, or any other operation that requires information from a separate observation.
 
 The system is composed of two major subsystems, espa-web and espa-production.
 
