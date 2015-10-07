@@ -118,7 +118,9 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 | Term | Definition |
 |:------------- |:------------- |
 | API           | Application Programming Interface |
+| BT            | Brightness Temperature |
 | DDS           | Data Distribution Service |
+| DSWE          | Dynamic Surface Water Extent |
 | EROS          | Earth Resources Observations and Science Center|
 | ERS           | EROS Registration System |
 | ESPA          | EROS Science Processing Architecture |
@@ -129,6 +131,7 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 | HTTPS         | Hyper Text Transfer Protocol Secure|
 | JSON          | Javascript Object Notation |
 | LCMAP         | Land Change Monitoring Assessment and Prediction|
+| LST           | Land Surface Temperature |
 | LTA           | Long Term Archive      |
 | LPDAAC        | Land Process Distributed Active Archive |
 | MODIS         | Moderate Resolution Imaging Spectroradiometer |
@@ -167,7 +170,7 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 | MODIS 13Q1  | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
 
 ### ESPA CDR/ECV Outputs
-|  | Top Of Atmosphere | Surface Reflectance | Brightness Temperature | Land Surface Temperature | DSWE |
+|  | TOA | SR | BT | LST | DSWE |
 |:------------- |:------------- |:------------- |:------------- |:------------- |:------------- |
 | Landsat 4 TM | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | Landsat 5 TM | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
