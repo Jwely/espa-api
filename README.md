@@ -1,5 +1,5 @@
 # espa-api
-Demo API for the ESPA ordering & scheduling system.
+Demo API for the ESPA ordering & scheduling system.  
 
 ## Overview
 The ESPA project is a system for producing advanced science products from existing products. It was originally constructed to serve as a production platform for science algorithms under incubation but has since transitioned into a quasi-operational state within USGS EROS, due primarily to the popularity of it's products.
