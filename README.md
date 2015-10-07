@@ -202,7 +202,7 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 | MODIS 13A3  | :x: | :x: | :x: | :x: | :x: | :x: | :x: |
 | MODIS 13Q1  | :x: | :x: | :x: | :x: | :x: | :x: | :x: |
 
-### ESPA Statistics and Plotting
+### Notes
 Statistics and plotting are available for all ESPA output products.
 
 MODIS products are not generally available for additional processing levels as they have already been processed to a level beyond level 1 by the datasource: MODIS 09 series is at surface reflectance and the 13 series is NDVI.
