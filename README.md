@@ -114,6 +114,7 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 | ERS           | EROS Registration System |
 | ESPA          | EROS Science Processing Architecture |
 | ETM+          | Enhanced Thematic Mapper +|
+| EVI           | Enhanced Vegetation Index |
 | HDF EOS2      | Hierarchical Data Format Earth Observation Systems 2|
 | HTTP          | Hyper Text Transfer Protocol |
 | HTTPS         | Hyper Text Transfer Protocol Secure|
@@ -122,8 +123,14 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 | LTA           | Long Term Archive      |
 | LPDAAC        | Land Process Distributed Active Archive |
 | MODIS         | Moderate Resolution Imaging Spectroradiometer |
+| MSAVI         | Modified Soil Adjusted Vegetation Index |
+| NBR           | Normalized Burn Ratio |
+| NBR2          | Normalized Burn Ratio 2 |
+| NDMI          | Normalized Difference Moisture Index |
+| NDVI          | Normalized Difference Vegetation Index |
 | OLI           | Operational Land Imager |
 | OLI/TIRS      | Operational Land Imager/Thermal Infrared Sensor |
+| SAVI          | Soil Adjusted Vegetation Index |
 | SR            | Surface Reflectance |
 | TIRS          | Thermal Infrared Sensor |
 | TM            | Thematic Mapper |
@@ -184,3 +191,5 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 | MODIS 13A2  | :x: | :x: | :x: | :x: | :x: | :x: | :x: |
 | MODIS 13A3  | :x: | :x: | :x: | :x: | :x: | :x: | :x: |
 | MODIS 13Q1  | :x: | :x: | :x: | :x: | :x: | :x: | :x: |
+
+MODIS products are not generally available for additional processing levels as they have already been processed to a level beyond level 1 by the datasource: MODIS 09 series is at surface reflectance and the 13 series is NDVI.
