@@ -16,6 +16,20 @@ espa-web currently captures user orders from two sources: The espa.cr.usgs.gov w
 #### espa-production
 espa-production is responsible for receiving production requests, validating the requests, locating and using any necessary auxillary data, transferring level 1 data to a working directory, executing the necessary science algorithms to produce the product, placing the finished product in a distribution location and finally notifying espa-web that the production request is complete.  espa-production is a stateless system, with each production run remaining isolated from any other.
 
+## General Capabilities That May or May Not Be Properly Advertised
+Later in this document, there are a series of requirements and capabilities that do not seem to belong together in the same system.  For instance, there are a variety of datasets that ESPA cannot do anything with science-wise.  MODIS data is itself is never enhanced in any way by ESPA.  So why include it then if we can't run algorithms against it?  Here's why:
+
+* Dynamic Tile Genertion 
+  * We can give you stacks of images lined up properly with one another.
+  * Specify projection with proper parameters
+  * Specify output extents in meters
+  * Specify pixel size
+  * Specify resampling method.
+  * The resulting output is proven to always align.
+
+* Sensor Intercomparison Via Statistics And Plotting
+  * By choosing coincident observations from different sensors (MODIS 09 + Landsat SR over the same place on the Earth and acquired close to the same time), users are able to plot and compare the performance of each sensor/algorithm in relation to one another.  This is particularly useful when user's would like to establish levels of confidence in a particular sensor, compare new sensors with old, or otherwise normalize reading they are seeing from a variety of sources.
+
 ## Why create an API?
 As previously discussed above, the original system was built solely as a temporary incubation platform for science products.  The only original requirement was to produce 450 SR corrections to level 1 data per day and make the outputs available to end users, and to (obviously) accomplish this work as quickly and cheaply as possible.  For context, ESPA now is capable of performing over 23,000 SR corrections per day (as of October 2015).  The capacity increases have been driven purely by demand.
 
