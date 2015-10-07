@@ -134,7 +134,7 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 ### Level 1 Data
 |  | Original Level 1 Data | Original Level 1 Metadata | Customized Level 1 Data |
 | ------------- |:-------------:| ------------- |:-------------:|
-| Landsat 4 TM | available | available |available|
+| Landsat 4 TM | yes | yes |yes|
 | Landsat 5 TM | available | available |available|
 | Landsat 7 ETM+ | available | available |available|
 | Landsat 8 OLI | available | available |available|
