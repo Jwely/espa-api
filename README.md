@@ -14,10 +14,13 @@ espa-web provides all the ordering & scheduling operations for the system, as we
 espa-web currently captures user orders from two sources: The espa.cr.usgs.gov website itself and also USGS Earth Explorer.  Orders are obtained from USGS EE via web services hosted by the Long Term Archive (LTA) project.
 
 #### espa-production
-espa-production is responsible for receiving production requests, validating the requests, locating and using any necessary auxillary data, executing the necessary science algorithms to produce the product, placing the finished product in a distribution location and finally notifying espa-web that the production request is complete.  espa-production is a stateless system, with each production run remaining isolated from any other 
+espa-production is responsible for receiving production requests, validating the requests, locating and using any necessary auxillary data, transferring level 1 data to a working directory, executing the necessary science algorithms to produce the product, placing the finished product in a distribution location and finally notifying espa-web that the production request is complete.  espa-production is a stateless system, with each production run remaining isolated from any other.
 
 ## Assumptions
-1. The proposed API will be logically divided into a user api, system api and admin api.
+1. The proposed API will be logically divided into a user API, system API and admin API.  
+    * The user api will accept orders and provide end user access to order/product status and links to download completed products.
+    * The system API serves functionality to espa-production, mainly for obtaining production requests and capturing production status.  
+    * The admin API will allow operations & maintenance staff to monitor and manipulate the system as needed.
 
 2. All calls will be made over HTTPS only and will require HTTP Basic Authentication.
     * Users will be authenticated against the ERS (EROS Registration System).  Credentials used for EarthExplorer are used here.
