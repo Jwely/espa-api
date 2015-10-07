@@ -134,23 +134,23 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 ### Level 1 Data
 |  | Original Level 1 Data | Original Level 1 Metadata | Customized Level 1 Data |
 | ------------- |:-------------:| ------------- |:-------------:|
-| Landsat 4 TM | Available | Available |Available|
-| Landsat 5 TM | Available | Available |Available|
-| Landsat 7 ETM+ | Available | Available |Available|
-| Landsat 8 OLI | Available | Available |Available|
-| Landsat 8 TIRS | Available | Available |Available|
-| Landsat 8 OLITIRS | Available | Available |Available|
-| MODIS 09A1  | Available | Available |Available|
-| MODIS 09GA  | Available | Available |Available|
-| MODIS 09GQ  | Available | Available |Available|
-| MODIS 09Q1  | Available | Available |Available|
-| MODIS 13A1  | Available | Available |Available|
-| MODIS 13A2  | Available | Available |Available|
-| MODIS 13A3  | Available | Available |Available|
-| MODIS 13Q1  | Available | Available |Available|
+| Landsat 4 TM | available | available |available|
+| Landsat 5 TM | available | available |available|
+| Landsat 7 ETM+ | available | available |available|
+| Landsat 8 OLI | available | available |available|
+| Landsat 8 TIRS | available | available |available|
+| Landsat 8 OLITIRS | available | available |available|
+| MODIS 09A1  | available | available |available|
+| MODIS 09GA  | available | available |available|
+| MODIS 09GQ  | available | available |available|
+| MODIS 09Q1  | available | available |available|
+| MODIS 13A1  | available | available |available|
+| MODIS 13A2  | available | available |available|
+| MODIS 13A3  | available | available |available|
+| MODIS 13Q1  | available | available |available|
 
 ### ESPA CDR Outputs
-| Output Product | Top Of Atmosphere | Surface Reflectance | Brightness Temperature |
+|  | Top Of Atmosphere | Surface Reflectance | Brightness Temperature |
 | ------------- |:-------------:| ------------- |:-------------:|
 | Landsat 4 TM | Available | Available |Available|
 | Landsat 5 TM | Available | Available |Available|
