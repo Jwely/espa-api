@@ -131,5 +131,20 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 | UTM           | Universal Transverse Mercator |
 
 ## Output Product Availability By Input Type
-|| Output Product | Original Level 1 Data | Original Level 1 Metadata | Customized Level 1 Data |
-| ------------- |:-------------:| ------------- |:-------------:| ------------- |
+| Output Product | Original Level 1 Data | Original Level 1 Metadata | Customized Level 1 Data |
+| ------------- |:-------------:| ------------- |:-------------:|
+| Landsat 4 TM | Available | Available |Available|
+| Landsat 5 TM | Available | Available |Available|
+| Landsat 7 ETM+ | Available | Available |Available|
+| Landsat 8 OLI | Available | Available |Available|
+| Landsat 8 TIRS | Available | Available |Available|
+| Landsat 8 OLITIRS | Available | Available |Available|
+| MODIS 09A1  | Available | Available |Available|
+| MODIS 09GA  | Available | Available |Available|
+| MODIS 09GQ  | Available | Available |Available|
+| MODIS 09Q1  | Available | Available |Available|
+| MODIS 13A1  | Available | Available |Available|
+| MODIS 13A2  | Available | Available |Available|
+| MODIS 13A3  | Available | Available |Available|
+| MODIS 13Q1  | Available | Available |Available|
+
