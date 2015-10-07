@@ -2,13 +2,19 @@
 Demo API for the ESPA ordering system.
 
 ## Domain Description
-The ESPA project (EROS Science Processing Architecture) is a system for producing advanced science products from existing products.  It operates on a scene by scene basis and is constructed to produce many products at once rather than a single product as quickly as possible (multiprocess vs multithreading).  Each product algorithm that runs only has access to the immediate observations spatial and temporal context, save any auxillary data needed such as ozone or water pressure measurements.
+The ESPA project (EROS Science Processing Architecture) is a system for producing advanced science products from existing products. It was originally constructed to serve as a production platform for science algorithms under incubation but has since transitioned into a quasi-operational state within USGS EROS, due primarily to the popularity of it's products.
 
-The system is composed of two major subsystems, ESPA ordering & scheduling and ESPA production.  
+ESPA operates on a scene by scene basis and is constructed to produce many products at once rather than a single product as quickly as possible (multiprocess vs multithreading).  Each product algorithm that runs only has access to the spatial and temporal context of the observation in question, save any auxillary data needed such as ozone or water pressure measurements.  Therefore, ESPA is highly optimized for single-scene or smaller operations but is wholly unsuited for compositing, mosaicing, or time-series analysis.
 
-#### ESPA Ordering & Scheduling
+The system is composed of two major subsystems, espa-web and espa-production.
 
-The espa-api is meant to provide access to all espa ordering & scheduling operations in a standardized way
+#### espa-web
+espa-web provides all the ordering & scheduling operations for the system, as well as the majority of the integration with the rest of USGS EROS ordering systems.  This means that espa-web knows how to capture user orders, validate parameters, determine order + product disposition (including placing & monitoring orders for level 1 data), notifying users of completed orders and providing access to download completed products.  It also provides services for espa-production to retrieve production requests and to capture production status updates.
+
+espa-web currently captures user orders from two sources: The espa.cr.usgs.gov website itself and also USGS Earth Explorer.  Orders are obtained from USGS EE via web services hosted by the Long Term Archive (LTA) project.
+
+#### espa-production
+espa-production is responsible for receiving production requests, validating the requests, locating and using any necessary auxillary data, executing the necessary science algorithms to produce the product, placing the finished product in a distribution location and finally notifying espa-web that the production request is complete.  espa-production is a stateless system, with each production run remaining isolated from any other 
 
 ## Assumptions
 1. The proposed API will be logically divided into a user api, system api and admin api.
