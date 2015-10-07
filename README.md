@@ -166,23 +166,23 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 | MODIS 13A3  | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
 | MODIS 13Q1  | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
 
-### ESPA CDR Outputs
-|  | Top Of Atmosphere | Surface Reflectance | Brightness Temperature |
+### ESPA CDR/ECV Outputs
+|  | Top Of Atmosphere | Surface Reflectance | Brightness Temperature | Land Surface Temperature | DSWE |
 |:------------- |:------------- |:------------- |:------------- |
-| Landsat 4 TM | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
-| Landsat 5 TM | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
-| Landsat 7 ETM+ | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
-| Landsat 8 OLI | :heavy_check_mark: | :x: |:x:|
-| Landsat 8 TIRS | :x: | :x: |:heavy_check_mark:|
-| Landsat 8 OLITIRS | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
-| MODIS 09A1  | :x: | :x: |:x:|
-| MODIS 09GA  | :x: | :x: |:x:|
-| MODIS 09GQ  | :x: | :x: |:x:|
-| MODIS 09Q1  | :x: | :x: |:x:|
-| MODIS 13A1  | :x: | :x: |:x:|
-| MODIS 13A2  | :x: | :x: |:x:|
-| MODIS 13A3  | :x: | :x: |:x:|
-| MODIS 13Q1  | :x: | :x: |:x:|
+| Landsat 4 TM | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:| :heavy_check_mark: |:heavy_check_mark:|
+| Landsat 5 TM | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:| :heavy_check_mark: |:heavy_check_mark:|
+| Landsat 7 ETM+ | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:| :heavy_check_mark: |:heavy_check_mark:|
+| Landsat 8 OLI | :heavy_check_mark: | :x: |:x:| :heavy_check_mark: |:heavy_check_mark:|
+| Landsat 8 TIRS | :x: | :x: |:heavy_check_mark:| :x: |:x:|
+| Landsat 8 OLITIRS | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:| :heavy_check_mark: |:heavy_check_mark:|
+| MODIS 09A1  |:x:|:x:|:x:|:x:|:x:|
+| MODIS 09GA  |:x:|:x:|:x:|:x:|:x:|
+| MODIS 09GQ  |:x:|:x:|:x:|:x:|:x:|
+| MODIS 09Q1  |:x:|:x:|:x:|:x:|:x:|
+| MODIS 13A1  |:x:|:x:|:x:|:x:|:x:|
+| MODIS 13A2  |:x:|:x:|:x:|:x:|:x:|
+| MODIS 13A3  |:x:|:x:|:x:|:x:|:x:|
+| MODIS 13Q1  |:x:|:x:|:x:|:x:|:x:|
 
 ### ESPA Spectral Indices
 |  | NDVI | EVI | SAVI | MSAVI | NDMI | NBR | NBR2 |
