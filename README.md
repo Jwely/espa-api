@@ -170,17 +170,17 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 ### ESPA Spectral Indices
 |  | NDVI | EVI | SAVI | MSAVI | NDMI | NBR | NBR2 |
 |:------------- |:------------- |:------------- |:------------- |:------------- |:------------- |:------------- |
-| Landsat 4 TM | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:| :heavy_check_mark: |:heavy_check_mark:| :heavy_check_mark:| :heavy_check_mark:|
-| Landsat 5 TM | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:| :heavy_check_mark: |:heavy_check_mark:| :heavy_check_mark:| :heavy_check_mark:|
-| Landsat 7 ETM+ | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:| :heavy_check_mark: |:heavy_check_mark:| :heavy_check_mark:| :heavy_check_mark:|
-| Landsat 8 OLI | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:| :heavy_check_mark: |:heavy_check_mark:| :heavy_check_mark:| :heavy_check_mark:|
-| Landsat 8 TIRS | :x: | :x: |:x:| :x: |:x:| :x:| :x: |
-| Landsat 8 OLITIRS | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:| :heavy_check_mark: |:heavy_check_mark:| :heavy_check_mark:| :heavy_check_mark:|
+| Landsat 4 TM | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:| :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| Landsat 5 TM | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| Landsat 7 ETM+ | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark:| :heavy_check_mark:| :heavy_check_mark: |
+| Landsat 8 OLI | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+| Landsat 8 TIRS | :x: | :x: | :x: | :x: | :x: | :x:| :x: |
+| Landsat 8 OLITIRS | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | MODIS 09A1 | :x: | :x: | :x: | :x: | :x: | :x: | :x: |
-| MODIS 09GA | :x: | :x: |:x:| :x: |:x:| :x: | :x: |
-| MODIS 09GQ | :x: | :x: |:x:| :x: |:x:| :x:| :x: |
-| MODIS 09Q1  | :x: | :x: |:x:| :x: |:x:| :x:| :x: |
-| MODIS 13A1  | :x: | :x: |:x:| :x: |:x:| :x:| :x: |
-| MODIS 13A2  | :x: | :x: |:x:| :x: |:x:| :x:| :x: |
-| MODIS 13A3  | :x: | :x: |:x:| :x: |:x:| :x:| :x: |
-| MODIS 13Q1  | :x: | :x: |:x:| :x: |:x:| :x:| :x: |
+| MODIS 09GA | :x: | :x: | :x: | :x: | :x: | :x: | :x: |
+| MODIS 09GQ | :x: | :x: | :x: | :x: | :x: | :x: | :x: |
+| MODIS 09Q1  | :x: | :x: | :x: | :x: | :x: | :x: | :x: |
+| MODIS 13A1  | :x: | :x: | :x: | :x: | :x: | :x: | :x: |
+| MODIS 13A2  | :x: | :x: | :x: | :x: | :x: | :x: | :x: |
+| MODIS 13A3  | :x: | :x: | :x: | :x: | :x: | :x: | :x: |
+| MODIS 13Q1  | :x: | :x: | :x: | :x: | :x: | :x: | :x: |
