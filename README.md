@@ -196,7 +196,7 @@ Statistics and plotting are available for all ESPA output products.
 MODIS products are not generally available for additional processing levels as they have already been processed to a level beyond level 1 by the datasource: MODIS 09 series is at surface reflectance and the 13 series is NDVI.
 
 ## Projections and Parameters
-### Albers Equal Area `(aea)`
+#### Albers Equal Area `(aea)`
 | Parameter  | Units | Minimum Value | Maximum Value |
 |:------------- |:------------- |:------------- |:------------- |
 | Latitude Of Origin  | decimal degrees | -90.0 | 90.0 |
@@ -208,20 +208,20 @@ MODIS products are not generally available for additional processing levels as t
 
 Datum is selectable from `WGS84` (default), `NAD27`, and `NAD83`
 
-### Universal Transverse Mercator `(utm)`
+#### Universal Transverse Mercator `(utm)`
 | Parameter  | Units | Minimum Value | Maximum Value |
 |:------------- |:------------- |:------------- |:------------- |
 | UTM Zone  | Integer | 1 | 60 |
 | UTM Zone North South| North or South |  |  |
 
-### Sinusoidal `(sinu)`
+#### Sinusoidal `(sinu)`
 | Parameter  | Units | Minimum Value | Maximum Value |
 |:------------- |:------------- |:------------- |:------------- |
 | Central Meridian | decimal degrees | -180.0 |180.0|
 | False Easting | floating point | any | any |
 | False Northing | floating point | any | any |
 
-### Polar Sterographic `(ps)`
+#### Polar Sterographic `(ps)`
 | Parameter  | Units | Minimum Value | Maximum Value |
 |:------------- |:------------- |:------------- |:------------- |
 | Longitudinal Pole | decimal degrees | -180.0 |180.0|
@@ -231,7 +231,7 @@ Datum is selectable from `WGS84` (default), `NAD27`, and `NAD83`
 
 Latitude True Scale must fall within the range of -90.0 to -60.0 OR 60.0 to 90.0
 
-### Geographic `(lonlat)`
+#### Geographic `(lonlat)`
 No parameters are required for Geographic.
 
 ## Spatial Subsetting
