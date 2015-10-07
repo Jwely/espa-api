@@ -23,14 +23,22 @@ New requirements have emerged from the science community that detail the need to
 
 ESPA currently provides access to order data via web interfaces only. (espa.cr.usgs.gov and earthexplorer.usgs.gov).  This is clearly inadequate to establish an automated pipeline for ongoing analysis: No human wants to manually order, track and transfer millions of scenes. The ESPA system must be modified to provide an application programming interface for downstream systems to gain access to its capabilities.
 
-## Domain Entities And Constraints
+## Domain Entities, Constraints and Rules
 1.  The system captures a user supplied list of input observations, desired output products and customizations and groups this as an order.
     1. The user supplied list of input observations is a newline `\n` separated file with each line containing a Landsat scene id or MODIS tile id.  Landsat Thematic Mapper (TM), Enhanced Thematic Mapper + (ETM+), Operational Land Imager (OLI) ,Operational Land Imager/Thermal Infrared Sensor(OLI/TIRS), MODIS 09A1, MODIS 09GA, MODIS 09GQ, MODIS 09Q1, MODIS 13A1, MODIS 13A2, MODIS 13A3 and MODIS 13Q1 products may be supplied as inputs.
 2. The available output product list varies with each input type.
     1. Example: OLI & MODIS products cannot be corrected to surface reflectance.  OLI cannot due to not having thermal data available for cloud detection.  MODIS cannot as MODIS 09 products are _already_ at surface reflectance and MODIS 13 products are merely a vegetation index.
 3. The available output products list varies within each input type.
     1. Example: Not all Landsat TM/ETM+/OLITIRS scenes can be corrected to surface reflectance, particularly nighttime observations.
-    
+4. The available output product list varies based on the spatial and temporal characterics of the input observations.
+    1. Example: Land Surface Temperature cannot currently be produced outside of certain geographic extents due to insufficient auxillary data.
+5. Requests for output customization are captured at the order (not the input observation) level.  These customizations are applied against every ESPA output product in the order.
+    1. Users may request that their order is reprojected to sinusoidal, albers, UTM, geographic or polar stereographic.  Each projection requires its own set of parameters which must be validated.
+    2. Users may request their order is output in binary (envi), HDF EOS2, or GeoTiFF format.
+    3. Users may request modification of the spatial output extents (spatial subsetting) of all output products in either projection coordinates or decimal degrees.
+    4. Users may request pixel resizing of the output products in either meters or decimal degrees.
+    5. Where necessary, users may choose their desired resampling method.
+
 ## Assumptions
 1. The proposed API will be logically divided into a user API, system API and admin API.  
     * The user api will accept orders and provide end user access to order/product status and links to download completed products.
