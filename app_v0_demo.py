@@ -7,7 +7,6 @@ from flask import url_for
 from flask import abort
 from flask import jsonify
 
-
 from functools import wraps
 
 DEBUG = True

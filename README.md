@@ -10,7 +10,7 @@ Demo API for the ESPA ordering system.
 
 3. Each operation will be stateless.  Sessions, cookies, etc will not be used.
 
-4. 
+4. Any payloads for POST or PUT operations will be valid JSON.  GET responses will also be JSON.
 
 
 ## Proposed User API Operations
