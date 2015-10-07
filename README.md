@@ -1,6 +1,15 @@
 # espa-api
 Demo API for the ESPA ordering system.
 
+## Domain Description
+The ESPA project (EROS Science Processing Architecture) is a system for producing advanced science products from existing products.  It operates on a scene by scene basis and is constructed to produce many products at once rather than a single product as quickly as possible (multiprocess vs multithreading).  Each product algorithm that runs only has access to the immediate observations spatial and temporal context, save any auxillary data needed such as ozone or water pressure measurements.
+
+The system is composed of two major subsystems, ESPA ordering & scheduling and ESPA production.  
+
+#### ESPA Ordering & Scheduling
+
+The espa-api is meant to provide access to all espa ordering & scheduling operations in a standardized way
+
 ## Assumptions
 1. The proposed API will be logically divided into a user api, system api and admin api.
 
@@ -37,11 +46,18 @@ Demo API for the ESPA ordering system.
 ```GET /api/v0/order/<ordernum>```
 * Retrieve details for the supplied order.
 
-```POST /api/v0/order/check```
-* Returns available processing for supplied items.  Needed to build intelligent clients.
+```POST /api/v0/order/template```
+* Returns order template for supplied items.  Needed to build intelligent clients.
 
 ```POST /api/v0/order```
-* Enter a new order 
+* Enter a new order, accepts a populated template as returned from /api/v0/order/template
+
+```GET /api/v0/projections```
+* Returns available projections
+
+```GET /api/v0/projections/<projection>```
+* Returns required projection parameters and ranges
+
 
 
 ## Proposed System API Operations
