@@ -2,7 +2,7 @@
 Demo API for the ESPA ordering & scheduling system.
 
 ## Overview
-The ESPA project (EROS Science Processing Architecture) is a system for producing advanced science products from existing products. It was originally constructed to serve as a production platform for science algorithms under incubation but has since transitioned into a quasi-operational state within USGS EROS, due primarily to the popularity of it's products.
+The ESPA project is a system for producing advanced science products from existing products. It was originally constructed to serve as a production platform for science algorithms under incubation but has since transitioned into a quasi-operational state within USGS EROS, due primarily to the popularity of it's products.
 
 ESPA operates on a scene by scene basis and was built to produce many products at once rather than a single product as quickly as possible (multiprocess vs multithreading).  Each product algorithm execution only has access to the spatial and temporal context of the observation in question, save any auxillary data needed such as ozone or water pressure measurements.  ESPA is therefore highly optimized for single-scene (observation) but is wholly unsuited for compositing, mosaicing, or time-series analysis, or any other operation that requires information from a separate observation.
 
@@ -26,7 +26,7 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 ## Domain Entities, Constraints, Rules, Requirements
 1.  The system captures a user supplied list of input observations, desired output products and customizations and groups this as an order.
     1. The user supplied list of input observations is a newline `\n` separated file with each line containing a Landsat scene id or MODIS tile id.
-    2. Landsat Thematic Mapper (TM), Enhanced Thematic Mapper + (ETM+), OLI ,Operational Land Imager/Thermal Infrared Sensor(OLI/TIRS), MODIS 09A1, MODIS 09GA, MODIS 09GQ, MODIS 09Q1, MODIS 13A1, MODIS 13A2, MODIS 13A3 and MODIS 13Q1 products may be supplied as inputs.
+    2.TM, ETM+, OLI , OLI/TIRS, MODIS 09A1, MODIS 09GA, MODIS 09GQ, MODIS 09Q1, MODIS 13A1, MODIS 13A2, MODIS 13A3 and MODIS 13Q1 products may be supplied as inputs.
     3. Input products must be available from an automated source such as LTA DDS or the LPDAAC Data Pool.
 2. The available output product list varies with each input type.
     1. Example: OLI & MODIS products cannot be corrected to surface reflectance.  OLI cannot due to not having thermal data available for cloud detection.  MODIS cannot as MODIS 09 products are _already_ at surface reflectance and MODIS 13 products are merely a vegetation index.
@@ -49,7 +49,7 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
     * The admin API will allow operations & maintenance staff to monitor and manipulate the system as needed.
 
 2. All calls will be made over HTTPS only and will require HTTP Basic Authentication.
-    * Users will be authenticated against the ERS (EROS Registration System).  Credentials used for EarthExplorer are used here.
+    * Users will be authenticated against the ERS.  Credentials used for EarthExplorer are used here.
     * The exception to this is the call to authenticate.  This call is needed so clients are able to determine if a user should even be allowed to perform operations.  This can later be modified to return roles.
 
 3. Each operation will be stateless.  Sessions, cookies, etc will not be used.
@@ -106,8 +106,21 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 * 
 
 ## Terms & Definitions
-| Term          | Definition 
-| ------------- |:-------------:|
-| DDS           | Data Distribution Service |
-| LTA           | Long Term Archive      |
-| LPDAAC        | Land Process Distributed Active Archive |
+| Term          | Definition | Note |
+| ------------- |:-------------:| ------------- |
+| API           | Application Programming Interface ||
+| DDS           | Data Distribution Service ||
+| EROS          | Earth Resources Observations and Science Center||
+| ERS           | EROS Registration System ||
+| ESPA          | EROS Science Processing Architecture ||
+| ETM+          | Enhanced Thematic Mapper +||
+| HDF EOS2      | Hierarchical Data Format Earth Observation Systems 2| Data Format |
+| JSON          | Javascript Object Notation ||
+| LTA           | Long Term Archive      ||
+| LPDAAC        | Land Process Distributed Active Archive ||
+| MODIS         | Moderate Resolution Imaging Spectroradiometer ||
+| OLI           | Operational Land Imager ||
+| OLI/TIRS      | Operational Land Imager/Thermal Infrared Sensor ||
+| TIRS          | Thermal Infrared Sensor ||
+| TM            | Thematic Mapper ||
+| USGS          | United States Geological Survey ||
