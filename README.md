@@ -248,8 +248,13 @@ Decimal degrees represent points on a sphere whereas projection coordinates are 
   2. The above operation *could* be performed without reprojection, but the image would have to be projected (deprojected) to geographic, the minbox operation performed, then reprojected back into the original projection.  ESPA cannot always determine what parameters were used in the original projection, plus the forced resampling is irreversibly altering the image data.  
   3. The only way to reliably produce images in a common frame (and ensure all the pertinent data is included) is to deal with the images in 2D projection space.  The geographic minbox operation will always result in an indeterminate (at warp time) output frame, thus the pixel at the upper left of the image will rarely be the same geographic location on the Earth.
 
+## Pixel Resizing
+ESPA can alter the pixel size (thus increasing or decreasing the overall resolution) of it's output products.  Values are supplied in meters unless the images are being deprojected into geographic, at which point they are then specified in decimal degrees.
 
+Meter based pixel sizes can be specified from `30.0` to `1000.0` meters inclusively.
+Decimal degree pixels may be set from `0.0002695` to `0.0089831`, which coorelate roughly to the meters based range (depending on the geographic location on the Earth).
 
+During any operation that requires resampling, the user may select from `Nearest Neighbor` (default), `Bilinear Interpolation`, and `Cubic Convolution`.
 
 ## Acronyms 
 | Term | Definition |
