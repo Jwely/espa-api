@@ -48,6 +48,9 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
   
 6. **The system approaches processing in an all or nothing fashion:  If a user requests SR and TOA and SR fails, the entire scene is marked as unavailable (even though TOA may have actually been available and must be produced prior to performing SR)**
 
+7. **Users may request statistics and plotting of statistics on any order** 
+
+
 ## Assumptions
 1. The proposed API will be logically divided into a user API, system API and admin API.  
     * The user api will accept orders and provide end user access to order/product status and links to download completed products.
@@ -111,8 +114,8 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 * Created to display url design for comment and review
 * 
 
-## Terms & Definitions
-| Term | Definition |
+## Abbreviations & Acronyms 
+| Abbreviation | Definition |
 |:------------- |:------------- |
 | API           | Application Programming Interface |
 | DDS           | Data Distribution Service |
@@ -198,5 +201,8 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 | MODIS 13A2  | :x: | :x: | :x: | :x: | :x: | :x: | :x: |
 | MODIS 13A3  | :x: | :x: | :x: | :x: | :x: | :x: | :x: |
 | MODIS 13Q1  | :x: | :x: | :x: | :x: | :x: | :x: | :x: |
+
+### ESPA Statistics and Plotting
+Statistics and plotting are available for all ESPA output products.
 
 MODIS products are not generally available for additional processing levels as they have already been processed to a level beyond level 1 by the datasource: MODIS 09 series is at surface reflectance and the 13 series is NDVI.
