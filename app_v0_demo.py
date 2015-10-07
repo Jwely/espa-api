@@ -94,11 +94,12 @@ def authenticate():
 @requires_auth
 def user_info():
     user = request.authorization.username
-    app.logger.info('User info for {0}'.format(user))
+    app.logger.debug('User info for {0}'.format(user))
     info = app.config['USERS'][user]
     return jsonify({'first_name':info['first_name'],
                     'last_name': info['last_name'],
                     'email': info['email'],
+                    'username': user,
                     'roles': info['roles']})
 
 
