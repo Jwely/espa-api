@@ -134,35 +134,35 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 ### Level 1 Data
 |  | Original Level 1 Data | Original Level 1 Metadata | Customized Level 1 Data |
 |:------------- |:------------- |:------------- |:------------- |
-| Landsat 4 TM | yes | yes |yes|
-| Landsat 5 TM | yes | yes |yes|
-| Landsat 7 ETM+ | yes | yes |yes|
-| Landsat 8 OLI | yes | yes |yes|
-| Landsat 8 TIRS | yes | yes |yes|
-| Landsat 8 OLITIRS | yes | yes |yes|
-| MODIS 09A1  | yes | yes |yes|
-| MODIS 09GA  | yes | yes |yes|
-| MODIS 09GQ  | yes | yes |yes|
-| MODIS 09Q1  | yes | yes |yes|
-| MODIS 13A1  | yes | yes |yes|
-| MODIS 13A2  | yes | yes |yes|
-| MODIS 13A3  | yes | yes |yes|
-| MODIS 13Q1  | yes | yes |yes|
+| Landsat 4 TM | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
+| Landsat 5 TM | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
+| Landsat 7 ETM+ | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
+| Landsat 8 OLI | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
+| Landsat 8 TIRS | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
+| Landsat 8 OLITIRS | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
+| MODIS 09A1  | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
+| MODIS 09GA  | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
+| MODIS 09GQ  | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
+| MODIS 09Q1  | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
+| MODIS 13A1  | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
+| MODIS 13A2  | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
+| MODIS 13A3  | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
+| MODIS 13Q1  | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
 
 ### ESPA CDR Outputs
 |  | Top Of Atmosphere | Surface Reflectance | Brightness Temperature |
 |:------------- |:------------- |:------------- |:------------- |
-| Landsat 4 TM | yes | yes |yes|
-| Landsat 5 TM | yes | yes |yes|
-| Landsat 7 ETM+ | yes | yes |yes|
-| Landsat 8 OLI | yes | **__no__** |**__no__**|
-| Landsat 8 TIRS | **no** | **no** |yes|
-| Landsat 8 OLITIRS | :heavy_check_mark: | yes |yes|
-| MODIS 09A1  | **_no_** | **_no_** |**_no_**|
-| MODIS 09GA  | **_no_** | **_no_** |**_no_**|
-| MODIS 09GQ  | **_no_** | **_no_** |**_no_**|
-| MODIS 09Q1  | **_no_** | **_no_** |**_no_**|
-| MODIS 13A1  | **_no_** | **_no_** |**_no_**|
-| MODIS 13A2  | **_no_** | **_no_** |**_no_**|
-| MODIS 13A3  | **_no_** | **_no_** |**_no_**|
-| MODIS 13Q1  | :X: | **_no_** |**_no_**|
+| Landsat 4 TM | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
+| Landsat 5 TM | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
+| Landsat 7 ETM+ | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
+| Landsat 8 OLI | :heavy_check_mark: | :x: |:x:|
+| Landsat 8 TIRS | :x: | :x: |:heavy_check_mark:|
+| Landsat 8 OLITIRS | :heavy_check_mark: | :heavy_check_mark: |:heavy_check_mark:|
+| MODIS 09A1  | :x: | :x: |:x:|
+| MODIS 09GA  | :x: | :x: |:x:|
+| MODIS 09GQ  | :x: | :x: |:x:|
+| MODIS 09Q1  | :x: | :x: |:x:|
+| MODIS 13A1  | :x: | :x: |:x:|
+| MODIS 13A2  | :x: | :x: |:x:|
+| MODIS 13A3  | :x: | :x: |:x:|
+| MODIS 13Q1  | :x: | :x: |:x:|
