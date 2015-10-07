@@ -107,7 +107,7 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 
 ## Terms & Definitions
 | Term          | Definition |
-| ------------- |:-------------:|
+|: ------------- |: ------------- |
 | API           | Application Programming Interface |
 | DDS           | Data Distribution Service |
 | EROS          | Earth Resources Observations and Science Center|
@@ -133,7 +133,7 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 ## Output Product Availability By Input Type
 ### Level 1 Data
 |  | Original Level 1 Data | Original Level 1 Metadata | Customized Level 1 Data |
-| ------------- |:-------------:| ------------- |:-------------:|
+|: ------------- |:-------------|: ------------- |:-------------|
 | Landsat 4 TM | yes | yes |yes|
 | Landsat 5 TM | yes | yes |yes|
 | Landsat 7 ETM+ | yes | yes |yes|
