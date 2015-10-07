@@ -129,3 +129,7 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 | TM            | Thematic Mapper |
 | USGS          | United States Geological Survey |
 | UTM           | Universal Transverse Mercator |
+
+## Output Product Availability By Input Type
+|| Output Product | Original Level 1 Data | Original Level 1 Metadata | Customized Level 1 Data |
+| ------------- |:-------------:| ------------- |:-------------:| ------------- |
