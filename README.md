@@ -124,7 +124,7 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 | MODIS         | Moderate Resolution Imaging Spectroradiometer |
 | OLI           | Operational Land Imager |
 | OLI/TIRS      | Operational Land Imager/Thermal Infrared Sensor |
-| SR            | Surface Reflectance \
+| SR            | Surface Reflectance |
 | TIRS          | Thermal Infrared Sensor |
 | TM            | Thematic Mapper |
 | USGS          | United States Geological Survey |
@@ -155,14 +155,14 @@ ESPA currently provides access to order data via web interfaces only. (espa.cr.u
 | Landsat 4 TM | yes | yes |yes|
 | Landsat 5 TM | yes | yes |yes|
 | Landsat 7 ETM+ | yes | yes |yes|
-| Landsat 8 OLI | yes | *no* |*no*|
-| Landsat 8 TIRS | _Not Available_ | _Not Available_ |Available|
-| Landsat 8 OLITIRS | Available | Available |Available|
-| MODIS 09A1  | _Not Available_ | Available |Available|
-| MODIS 09GA  | Available | Available |Available|
-| MODIS 09GQ  | Available | Available |Available|
-| MODIS 09Q1  | Available | Available |Available|
-| MODIS 13A1  | Available | Available |Available|
-| MODIS 13A2  | Available | Available |Available|
-| MODIS 13A3  | Available | Available |Available|
-| MODIS 13Q1  | Available | Available |Available|
+| Landsat 8 OLI | yes | **no** |**no**|
+| Landsat 8 TIRS | **no** | **no** |Available|
+| Landsat 8 OLITIRS | yes | yes |yes|
+| MODIS 09A1  | **no** | **no** |**no**|
+| MODIS 09GA  | **no** | **no** |**no**|
+| MODIS 09GQ  | **no** | **no** |**no**|
+| MODIS 09Q1  | **no** | **no** |**no**|
+| MODIS 13A1  | **no** | **no** |**no**|
+| MODIS 13A2  | **no** | **no** |**no**|
+| MODIS 13A3  | **no** | **no** |**no**|
+| MODIS 13Q1  | **no** | **no** |**no**|
