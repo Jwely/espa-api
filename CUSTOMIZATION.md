@@ -16,25 +16,15 @@ ESPA supported projections and the parameters necessary for each are captured be
 | Universal Transverse Mercator `(utm)` | | | |
 | | UTM Zone  | integer | 1 to 60 |
 | | UTM Zone North South | string | North or South |
-
-
-
-#### Sinusoidal `(sinu)`
-| Parameter  | Units | Minimum Value | Maximum Value |
-|:------------- |:------------- |:------------- |:------------- |
-| Central Meridian | decimal degrees | -180.0 |180.0|
-| False Easting | floating point | any | any |
-| False Northing | floating point | any | any |
-
-
-
-#### Polar Sterographic `(ps)`
-| Parameter  | Units | Minimum Value | Maximum Value |
-|:------------- |:------------- |:------------- |:------------- |
-| Longitudinal Pole | decimal degrees | -180.0 |180.0|
-| Latitude True Scale | decimal degrees | -90.0 or 60.0 | -60.0 or 90.0|
-| False Easting | floating point | any | any |
-| False Northing | floating point | any | any |
+| Sinusoidal `(sinu)` | | | |
+| | Central Meridian | decimal degrees | -180.0 to 180.0|
+| | False Easting | floating point | any float |
+| | False Northing | floating point | any float |
+| Polar Sterographic `(ps)` | | | |
+| | Longitudinal Pole | decimal degrees | -180.0 to 180.0|
+| | Latitude True Scale | decimal degrees | -90.0 to -60.0 or 60.0 to 90.0 |
+| | False Easting | floating point | any float |
+| | False Northing | floating point | any float |
 
 Latitude True Scale must fall within the range of -90.0 to -60.0 OR 60.0 to 90.0
 
