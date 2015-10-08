@@ -1,6 +1,8 @@
 # espa-api
 Demo API for the ESPA ordering & scheduling system.  
 
+## Related Pages
+[Abbreviations & Definitions](TERMS.md)
 
 
 ## Overview
