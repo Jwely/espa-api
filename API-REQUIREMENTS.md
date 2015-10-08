@@ -42,4 +42,4 @@
 
 5. Traffic control (rates, locations, blacklists, etc) will be handled by an HTTP(S) proxy layer.
 
-6. Users are not currently limited in the amounts of imagery they may request.  Backend queuing ensures fair access.
+6. Users are not limited in the quantity of imagery they request.  Backend queuing ensures fair access.
