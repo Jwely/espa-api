@@ -28,7 +28,7 @@ ESPA supported projections and the parameters necessary for each are captured be
 
 ---
 
-## Spatial Subsetting
+## Spatial Subsetting (Output Extents)
 Spatial subsetting may be accomplished once a user has selected a target projection.  There are several reasons for this.
 
 1. **The primary purpose of spatial subsetting is to establish a common frame for the resulting images.**  
