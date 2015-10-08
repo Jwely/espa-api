@@ -1,6 +1,8 @@
 # espa-api
 Demo API for the ESPA ordering & scheduling system.  
 
+
+
 ## Overview
 The ESPA project is a system for producing advanced science products from existing products. It was originally constructed to serve as a production platform for science algorithms under incubation but has since transitioned into a quasi-operational state within USGS EROS, due primarily to the popularity of it's products.
 
@@ -16,11 +18,13 @@ espa-web currently captures user orders from two sources: The espa.cr.usgs.gov w
 #### espa-production
 espa-production is responsible for receiving production requests, validating the requests, locating and using any necessary auxillary data, transferring level 1 data to a working directory, executing the necessary science algorithms to produce the product, placing the finished product in a distribution location and finally notifying espa-web that the production request is complete.  espa-production is a stateless system, with each production run remaining isolated from any other.
 
-## General Capabilities That May or May Not Be Properly Advertised
-Later in this document, there are a series of requirements and capabilities that do not seem to belong together in the same system.  For instance, there are a variety of datasets that ESPA cannot do anything with science-wise.  MODIS data itself is never enhanced by ESPA in any way.  So why include it then if we can't create derivative products?  The short answer is, 'we can'.  Here's how:
+---
 
-* Dynamic Tile Genertion 
-  * We can give you stacks of images lined up properly with one another.
+## General Capabilities That May or May Not Be Properly Advertised
+Later in this document, there are a series of requirements and capabilities that do not seem to belong together in the same system.  For instance, there are a variety of datasets that ESPA cannot do anything with science-wise:  MODIS data itself is never enhanced by ESPA in any way.  So why include it then if we can't create derivative products?  The short answer is we can and here's how:
+
+* Dynamic Tile Generation 
+  * ESPA can produce stacks of images lined up properly with one another.
   * Specify projection with proper parameters
   * Specify output extents in meters
   * Specify pixel size
