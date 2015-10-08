@@ -3,18 +3,16 @@ ESPA supported projections and the parameters necessary for each are captured be
 
 
 
-| Projection |Parameter  | Units | Minimum Value | Maximum Value |
-|:------------- |:------------- |:------------- |:------------- |:------------- |
-| Albers Equal Area `(aea)` |  | | | |
-| | Latitude Of Origin  | decimal degrees | -90.0 | 90.0 |
-| | Central Meridian | decimal degrees | -180.0 |180.0|
-| | 1st Standard Parallel | decimal degrees | -90.0 | 90.0 |
-| | 2nd Standard Parallel | decimal degrees | -90.0 | 90.0 |
-| | False Easting | floating point | any  | any |
-| | False Northing | floating point | any | any |
-
-Datum is selectable from `WGS84` (default), `NAD27`, and `NAD83`
-
+| Projection |Parameter  | Units | Values |
+|:------------- |:------------- |:------------- |:------------- |
+| Albers Equal Area `(aea)` |  | | |
+| | Latitude Of Origin  | decimal degrees | -90.0 to 90.0 |
+| | Central Meridian | decimal degrees | -180.0 to 180.0 |
+| | 1st Standard Parallel | decimal degrees | -90.0 to 90.0 |
+| | 2nd Standard Parallel | decimal degrees | -90.0 to 90.0 |
+| | False Easting | floating point | any float |
+| | False Northing | floating point | any float |
+| | Datum | string | `WGS84` (default, `NAD27`, or `NAD83`
 
 
 #### Universal Transverse Mercator `(utm)`
