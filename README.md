@@ -57,7 +57,7 @@ Later in this document, there are a series of requirements and capabilities that
   Users may alter the file format for output images. Current available formats are binary (envi), hdf-eos2 or geotiff.  Binary BIP (band interleaved by pixel) is in work.  ESPA format converters are pluggable modules so if other formats are desired they can easily be developed and hosted.
    
 * **Metadata**  
-  Landsat product level metadata (which differs from the bulk metadata that is accessible) is not available to end users without downloading the images as well.  ESPA can deliver only the level 1 metadata in it's original format if this is desired by requesting Original Input Metadata.  This was never a driving requirement but more of a no-cost capability as a result of performing additional processing of level 1 data.
+  Landsat product level metadata (which differs from the bulk metadata that is accessible) is not available to end users without downloading the images as well.  ESPA can deliver only the level 1 metadata in it's original format if this is desired by requesting Original Input Metadata.  This was never a driving requirement but more of a no-cost capability made possible by using level 1 data as an input to CDRs and ECVs.
 
   ESPA output product metadata (for anything other than Original Input Products/Original Input Metadata) is in a schema constrained XML format.  This means ESPA metadata files can be transformed with standardized tooling like XSLT stylesheets.
   
