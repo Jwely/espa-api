@@ -3,7 +3,7 @@ ESPA supported projections and the parameters necessary for each are captured be
 
 
 
-| Projection |Parameter  | Units | Values |
+| Projection | Parameter  | Units | Values |
 |:------------- |:------------- |:------------- |:------------- |
 | Albers Equal Area `(aea)` |  | | |
 | | Latitude Of Origin  | decimal degrees | -90.0 to 90.0 |
@@ -12,14 +12,10 @@ ESPA supported projections and the parameters necessary for each are captured be
 | | 2nd Standard Parallel | decimal degrees | -90.0 to 90.0 |
 | | False Easting | floating point | any float |
 | | False Northing | floating point | any float |
-| | Datum | string | `WGS84` (default), `NAD27`, or `NAD83`
-
-
-#### Universal Transverse Mercator `(utm)`
-| Parameter  | Units | Minimum Value | Maximum Value |
-|:------------- |:------------- |:------------- |:------------- |
-| UTM Zone  | Integer | 1 | 60 |
-| UTM Zone North South| North or South |  |  |
+| | Datum | string | `WGS84` (default), `NAD27`, or `NAD83` |
+| Universal Transverse Mercator `(utm)` | | | |
+| | UTM Zone  | integer | 1 to 60 |
+| | UTM Zone North South | string | North or South |
 
 
 
