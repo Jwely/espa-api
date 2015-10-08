@@ -6,7 +6,7 @@ Demo API for the ESPA ordering & scheduling system.
 * [Available Products](AVAILABLE_PRODUCTS.md)
 * [Abbreviations & Definitions](TERMS.md)
 * [ESPA Customizations](CUSTOMIZATION.md)
-* [Requirements & Assumptions](REQUIREMENTS.md)
+* [Requirements & Assumptions](API-REQUIREMENTS.md)
 
 
 ## Overview
