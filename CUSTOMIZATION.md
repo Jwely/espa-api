@@ -41,7 +41,7 @@ Inquiries have been made as to why ESPA forces the user to reproject before allo
 2. **ESPA input data is in multiple projections.**  
   MODIS data is sinusoidal, some Landsat is in UTM, other Landsat is in polar stereographic.  If a user specified meter based spatial extents without forcing all rasters into a common projection then each type would be subset differently, or not at all (fail to warp.)  It is not possible to determine which projection the user was thinking in when specifying coordinates without forcing a common geometry.  
 
-3. **Simply allowing geographic subset coordinates without specifying a target projection seems like it *should* work, but does not.**  
+3. **Simply using geographic subset coordinates without specifying a target projection seems like it *should* work, but does not.**  
   Decimal degrees represent points on a sphere whereas projection coordinates represent x & y on a flat 2 dimensional grid.  Performing a direct subset of the imagery using coordinates such as this results in data loss, as the delivered imagery is always a two dimensional representation of a spheroid.
 
   Users specifying a subset box in decimal degrees are really asking for all data inclusively within the geographic region.  In order to provide this a minbox operation must be performed to determine the real extents an image must be cropped to.  This is done by walking the edges of the image to find the maximum data extents and then adjusting the requested decimal degree coordinates accordingly.
