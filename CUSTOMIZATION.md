@@ -46,8 +46,9 @@ Inquiries have been made as to why ESPA forces the user to reproject before allo
 
   Users specifying a subset box in decimal degrees are really asking for all data inclusively within the geographic region.  In order to provide this a minbox operation must be performed to determine the real extents an image must be cropped to.  This is done by walking the edges of the image to find the maximum data extents and then adjusting the requested decimal degree coordinates accordingly.
 
-  The above operation *could* be performed without reprojection, but the image would have to be projected (deprojected) to geographic, the minbox operation performed, then reprojected back into the original projection.  ESPA cannot always determine what parameters were used in the original projection, plus the forced resampling is irreversibly altering the image data.  
-  The only way to reliably produce images in a common frame (and ensure all the pertinent data is included) is to deal with the images in 2D projection space.  The geographic minbox operation will always result in an indeterminate (at warp time) output frame, thus the pixel at the upper left of the image will rarely be the same geographic location on the Earth.
+  The above operation *could* be performed without a user specified target projection, but the image would have to be deprojected to geographic, the minbox operation performed, the subset performed, then an image warp back into the original projection.  ESPA cannot always determine what parameters were used in the original projection, plus the forced resampling is irreversibly altering the image data.
+  
+  The only way to reliably produce images in a common frame (and ensure all the pertinent measurements are included) is to deal with the images in a known 2D projection space.  The geographic minbox operation will always result in an indeterminate (at warp time) output frame, thus the pixel at the upper left of the image will rarely be the same geographic location on the Earth, resulting in pixel misalignment.
 
 ## Pixel Resizing
 ESPA can alter the pixel size (thus increasing or decreasing the overall resolution) of it's output products.  Values are supplied in meters unless the images are being deprojected into geographic, at which point they are then specified in decimal degrees.
