@@ -5,7 +5,7 @@ ESPA supported projections and the parameters necessary for each are captured be
 
 | Projection | Parameter  | Units | Values |
 |:------------- |:------------- |:------------- |:------------- |
-| Albers Equal Area `(aea)` |  | | |
+| **Albers Equal Area** `(aea)` |  | | |
 | | Latitude Of Origin  | decimal degrees | -90.0 to 90.0 |
 | | Central Meridian | decimal degrees | -180.0 to 180.0 |
 | | 1st Standard Parallel | decimal degrees | -90.0 to 90.0 |
@@ -13,25 +13,20 @@ ESPA supported projections and the parameters necessary for each are captured be
 | | False Easting | floating point | any float |
 | | False Northing | floating point | any float |
 | | Datum | string | `WGS84` (default), `NAD27`, or `NAD83` |
-| Universal Transverse Mercator `(utm)` | | | |
+| **UTM** `(utm)` | | | |
 | | UTM Zone  | integer | 1 to 60 |
 | | UTM Zone North South | string | North or South |
-| Sinusoidal `(sinu)` | | | |
+| **Sinusoidal** `(sinu)` | | | |
 | | Central Meridian | decimal degrees | -180.0 to 180.0|
 | | False Easting | floating point | any float |
 | | False Northing | floating point | any float |
-| Polar Sterographic `(ps)` | | | |
+| **Polar Sterographic** `(ps)` | | | |
 | | Longitudinal Pole | decimal degrees | -180.0 to 180.0|
 | | Latitude True Scale | decimal degrees | -90.0 to -60.0 or 60.0 to 90.0 |
 | | False Easting | floating point | any float |
 | | False Northing | floating point | any float |
-
-Latitude True Scale must fall within the range of -90.0 to -60.0 OR 60.0 to 90.0
-
-
-
-#### Geographic `(lonlat)`
-No parameters are required for Geographic.
+| **Geographic** `(lonlat)` | | | |
+| | None |  |  |
 
 ---
 
