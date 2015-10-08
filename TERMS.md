@@ -5,6 +5,7 @@
 | BT            | Brightness Temperature |
 | DDS           | Data Distribution Service |
 | DSWE          | Dynamic Surface Water Extent |
+| ECV           | Essential Climate Variable |
 | EROS          | Earth Resources Observations and Science Center|
 | ERS           | EROS Registration System |
 | ESPA          | EROS Science Processing Architecture |
