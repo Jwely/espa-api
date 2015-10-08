@@ -49,15 +49,15 @@ Later in this document, there are a series of requirements and capabilities that
 
   It's also worth noting that ESPA will deliver exactly what the request specified insofar as spatial extents are concerned.  It does not 'snap' to the nearest 30 meter pixel for example.
 
-* **Sensor Intercomparison Via Statistics And Plotting**
-  * By choosing coincident observations from different sensors (MODIS 09 + Landsat SR over the same place on the Earth and acquired close to the same time), users are able to plot and compare the performance of each sensor/algorithm in relation to one another.  This is particularly useful when users would like to establish levels of confidence in a particular sensor, compare new sensors with old, or otherwise normalize reading they are seeing from a variety of sources.
+* **Sensor Intercomparison Via Statistics And Plotting**  
+  By choosing coincident observations from different sensors (MODIS 09 + Landsat SR over the same place on the Earth and acquired close to the same time), users are able to plot and compare the performance of each sensor/algorithm in relation to one another.  This is particularly useful when users would like to establish levels of confidence in a particular sensor, compare new sensors with old, or otherwise normalize reading they are seeing from a variety of sources.
    
 * **Simple format conversion**
-  * Perhaps users need to acquire large quantities of imagery but they would like in binary (envi), hdf-eos2 or geotiff.  ESPA format converters are pluggable so if other formats are desired they can easily be developed and hosted.
+  Perhaps users need to acquire large quantities of imagery but they would like in binary (envi), hdf-eos2 or geotiff.  ESPA format converters are pluggable so if other formats are desired they can easily be developed and hosted.
    
 * **Metadata**
-  * Landsat product level metadata (which differs from the bulk metadata that is accessible) is not available to end users without downloading the images as well.  ESPA can do this by only requesting Original Input Metadata
-  * ESPA output product metadata (for anything other than Original Input Products/Original Input Metadata) is in a schema constrained XML format.  This means ESPA metadata files can be transformed with standardized tooling like XSLT stylesheets.  If end-users are validating the imagery they receive from ESPA with the publicly accessible XML schema, they can be 100% assured that their software is still compatible with ESPA output products.  In fact, ESPA itself uses schema validation internally before distributing products to ensure the integrity of our production pipeline.
+  Landsat product level metadata (which differs from the bulk metadata that is accessible) is not available to end users without downloading the images as well.  ESPA can do this by only requesting Original Input Metadata.  
+  ESPA output product metadata (for anything other than Original Input Products/Original Input Metadata) is in a schema constrained XML format.  This means ESPA metadata files can be transformed with standardized tooling like XSLT stylesheets.  If end-users are validating the imagery they receive from ESPA with the publicly accessible XML schema, they can be 100% assured that their software is still compatible with ESPA output products.  In fact, ESPA itself uses schema validation internally before distributing products to ensure the integrity of our production pipeline.
 
 ## Why create an API?
 As previously discussed above, the original system was built solely as a temporary incubation platform for science products.  The only original requirement was to produce 450 SR corrections to level 1 data per day and make the outputs available to end users, and to (obviously) accomplish this work as quickly and cheaply as possible.  For context, ESPA now is capable of performing over 23,000 SR corrections per day (as of October 2015).  The capacity increases have been driven purely by demand.
