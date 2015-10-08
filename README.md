@@ -30,7 +30,7 @@ espa-production is responsible for receiving production requests, validating the
 Later in this document, there are a series of requirements and capabilities that do not seem to belong together in the same system.  For instance, there are a variety of datasets that ESPA cannot do anything with science-wise:  MODIS data itself is never enhanced by ESPA in any way.  So why include it then if we can't create derivative products?  The short answer is we can.  Here are the system's overall capabilities.
 
 * **Climate Data Record & Essential Climate Variable Production**
-  * Landsat inputs only See. [available products](AVAILABLE_PRODUCTS.md)
+  * Landsat inputs only See [available products](AVAILABLE_PRODUCTS.md)
   * A scene is input
   * Additional science algorithms are applied
   * A derivative product is output
