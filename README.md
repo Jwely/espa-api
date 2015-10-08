@@ -33,7 +33,7 @@ Later in this document, there are a series of requirements and capabilities that
   * Landsat inputs only
   * A scene is input
   * Additional science algorithms are applied
-  * A new derivative product is output
+  * A derivative product is output
 
 * **Dynamic Tile Generation**  
   ESPA can produce stacks of images lined up properly with one another.  
