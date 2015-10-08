@@ -26,7 +26,7 @@ ESPA supported projections and the parameters necessary for each are captured be
 | | False Easting | floating point | any float |
 | | False Northing | floating point | any float |
 | **Geographic** `(lonlat)` | | | |
-| | None |  |  |
+| | None | None  | None  |
 
 ---
 
