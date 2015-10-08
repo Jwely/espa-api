@@ -54,7 +54,7 @@ Later in this document, there are a series of requirements and capabilities that
   This is particularly useful when users would like to establish levels of confidence in a particular sensor, compare new sensors with old, or otherwise normalize reading they are seeing from a variety of sources.
    
 * **Simple format conversion**  
-  Perhaps users need to acquire large quantities of imagery but they would like in binary (envi), hdf-eos2 or geotiff.  ESPA format converters are pluggable so if other formats are desired they can easily be developed and hosted.
+  Users may alter the file format for output images. Current available formats are binary (envi), hdf-eos2 or geotiff.  Binary BIP (band interleaved by pixel) is in work.  ESPA format converters are pluggable modules so if other formats are desired they can easily be developed and hosted.
    
 * **Metadata**  
   Landsat product level metadata (which differs from the bulk metadata that is accessible) is not available to end users without downloading the images as well.  ESPA can deliver only the level 1 metadata in it's original format if this is desired by requesting Original Input Metadata.  
