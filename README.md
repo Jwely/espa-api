@@ -35,17 +35,16 @@ Later in this document, there are a series of requirements and capabilities that
   * A new science product is output
 
 * Dynamic Tile Generation 
-  * ESPA can produce stacks of images lined up properly with one another.
+  ESPA can produce stacks of images lined up properly with one another.  
   1. Request scenes/tiles that contain data within the geographic region of interest (required)
   2. Select Customized Input Products (if MODIS or Landsat Level 1 products should be tiled) and/or CDR/ECV/SI products (required)
   3. Specify output projection with proper parameters (required)
   4. Specify output extents in meters (required)
   5. Specify pixel size (optional)
   6. Specify resampling method. (required)
-  7. The resulting output images are proven to align.
-  * The onus is on the user to maintain and track their grid and tile definitions.
-    * Projection with parameters, output extents, output pixel sizes
-  * Simply requesting scenes to be reprojected is not enough to line up the outputs.  A fixed set of output spatial extents must be provided to create a consistent output image frame.
+  7. The resulting output images are proven to align.  
+  
+  The onus is on the user to maintain and track their grid and tile definitions (projections with parameters & output extents).  Simply requesting scenes to be reprojected is not enough to line up the outputs.  A fixed set of output spatial extents must be provided to create a consistent output image frame.
 
 * Sensor Intercomparison Via Statistics And Plotting
   * By choosing coincident observations from different sensors (MODIS 09 + Landsat SR over the same place on the Earth and acquired close to the same time), users are able to plot and compare the performance of each sensor/algorithm in relation to one another.  This is particularly useful when users would like to establish levels of confidence in a particular sensor, compare new sensors with old, or otherwise normalize reading they are seeing from a variety of sources.
