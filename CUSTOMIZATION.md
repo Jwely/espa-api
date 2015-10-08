@@ -1,8 +1,6 @@
 ## Projections and Parameters
 ESPA supported projections and the parameters necessary for each are captured below.
 
-
-
 | Projection | Parameter  | Units | Values |
 |:------------- |:------------- |:------------- |:------------- |
 | **Albers Equal Area** `(aea)` |  | | |
@@ -12,7 +10,7 @@ ESPA supported projections and the parameters necessary for each are captured be
 | | 2nd Standard Parallel | decimal degrees | -90.0 to 90.0 |
 | | False Easting | floating point | any float |
 | | False Northing | floating point | any float |
-| | Datum | string | `WGS84` (default), `NAD27`, or `NAD83` |
+| | Datum | string | WGS84 (default), NAD27, or NAD83 |
 | **UTM** `(utm)` | | | |
 | | UTM Zone  | integer | 1 to 60 |
 | | UTM Zone North South | string | North or South |
