@@ -36,12 +36,12 @@ Later in this document, there are a series of requirements and capabilities that
 
 * **Dynamic Tile Generation**  
   ESPA can produce stacks of images lined up properly with one another.  
-  1. Request scenes/tiles that contain data within the geographic region of interest (required)
-  2. Select Customized Input Products (if MODIS or Landsat Level 1 products should be tiled) and/or CDR/ECV/SI products (required)
-  3. Specify output projection with proper parameters (required)
-  4. Specify output extents in meters (required)
-  5. Specify pixel size (optional)
-  6. Specify resampling method. (required)  
+  * Request scenes/tiles that contain data within the geographic region of interest (required)
+  * Select Customized Input Products (if MODIS or Landsat Level 1 products should be tiled) and/or CDR/ECV/SI products (required)
+  * Specify output projection with proper parameters (required)
+  * Specify output extents in meters (required)
+  * Specify pixel size (optional)
+  * Specify resampling method. (required)  
    
   ESPA output images from an order that has satisfied these items will be properly aligned & framed to one another. 
   The onus is on the user to maintain and track their grid and tile definitions (projections with parameters & output extents).  **_Simply requesting scenes to be reprojected is not enough to line up the outputs_**.  A fixed set of output spatial extents must be provided to create a consistent output image frame.
