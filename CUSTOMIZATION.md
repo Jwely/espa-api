@@ -1,4 +1,8 @@
 ## Projections and Parameters
+ESPA supported projections and the parameters necessary for each are captured below.
+
+---
+
 #### Albers Equal Area `(aea)`
 | Parameter  | Units | Minimum Value | Maximum Value |
 |:------------- |:------------- |:------------- |:------------- |
@@ -11,11 +15,15 @@
 
 Datum is selectable from `WGS84` (default), `NAD27`, and `NAD83`
 
+---
+
 #### Universal Transverse Mercator `(utm)`
 | Parameter  | Units | Minimum Value | Maximum Value |
 |:------------- |:------------- |:------------- |:------------- |
 | UTM Zone  | Integer | 1 | 60 |
 | UTM Zone North South| North or South |  |  |
+
+---
 
 #### Sinusoidal `(sinu)`
 | Parameter  | Units | Minimum Value | Maximum Value |
@@ -23,6 +31,8 @@ Datum is selectable from `WGS84` (default), `NAD27`, and `NAD83`
 | Central Meridian | decimal degrees | -180.0 |180.0|
 | False Easting | floating point | any | any |
 | False Northing | floating point | any | any |
+
+---
 
 #### Polar Sterographic `(ps)`
 | Parameter  | Units | Minimum Value | Maximum Value |
@@ -34,8 +44,11 @@ Datum is selectable from `WGS84` (default), `NAD27`, and `NAD83`
 
 Latitude True Scale must fall within the range of -90.0 to -60.0 OR 60.0 to 90.0
 
+---
+
 #### Geographic `(lonlat)`
 No parameters are required for Geographic.
+
 
 ## Spatial Subsetting
 Spatial subsetting may be accomplished once a user has selected a target projection.  There are several reasons for this.
