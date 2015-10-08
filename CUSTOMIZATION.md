@@ -12,7 +12,7 @@ ESPA supported projections and the parameters necessary for each are captured be
 | | 2nd Standard Parallel | decimal degrees | -90.0 to 90.0 |
 | | False Easting | floating point | any float |
 | | False Northing | floating point | any float |
-| | Datum | string | `WGS84` (default, `NAD27`, or `NAD83`
+| | Datum | string | `WGS84` (default), `NAD27`, or `NAD83`
 
 
 #### Universal Transverse Mercator `(utm)`
