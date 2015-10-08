@@ -43,9 +43,8 @@ Later in this document, there are a series of requirements and capabilities that
   5. Specify pixel size (optional)
   6. Specify resampling method. (required)  
    
-  When orders are submitted the resulting output images will be aligned.  
-  
-  The onus is on the user to maintain and track their grid and tile definitions (projections with parameters & output extents).  Simply requesting scenes to be reprojected is not enough to line up the outputs.  A fixed set of output spatial extents must be provided to create a consistent output image frame.
+  ESPA output images from an order that has satisfied these items will be properly aligned & framed to one another. 
+  The onus is on the user to maintain and track their grid and tile definitions (projections with parameters & output extents).  **_Simply requesting scenes to be reprojected is not enough to line up the outputs_**.  A fixed set of output spatial extents must be provided to create a consistent output image frame.
 
   It's also worth noting that ESPA will deliver exactly what the request specified insofar as spatial extents are concerned.  It does not 'snap' to the nearest 30 meter pixel for example.
 
