@@ -29,7 +29,11 @@ ESPA supported projections and the parameters necessary for each are captured be
 ---
 
 ## Spatial Subsetting (Output Extents)
-Spatial subsetting may be accomplished once a user has selected a target projection.  There are several reasons for this.
+Establishing fixed output extents for images may be accomplished by first selecting a target projection and then supplying the upper left x, upper left y, lower right x and lower right y values for the desired output frame.
+
+If the target projection is Geographic (lonlat), the supplied values must be in decimal degrees.  If any other projection is chosen, the coordinates are in meters (in projection space).
+
+Inquiries have been made as to why ESPA forces the user to reproject before allowing spatial subsetting.  There are several reasons for this.  
 
 1. **The primary purpose of spatial subsetting is to establish a common frame for the resulting images.**  
   Each image that is subset should be framed exactly the same as all others that have also been subset with the same parameters.  This goes without saying.  
