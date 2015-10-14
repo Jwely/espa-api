@@ -48,11 +48,23 @@
 * _possibly more to define_
 
 ## Admin API Operations
-```GET /admin-api/v0/orders?limit=#&order_by=fieldname&user=username&start_date=date&end_date=date```
+``` GET /admin-api/v0/orders```
+* Overview of orders & their status, order age, etc.
+
+```GET /admin-api/v0/orders?limit=#&order_by=<fieldname>&user=<username>&email=<email>&start_date=<date>&end_date=<date>```
 * Overview of order information
- 
+
+```PUT /admin-api/v0/order/cancel/<orderid>```
+* Cancels an order
+
 ```GET /admin-api/v0/products```
 * Overview of product information & status, # of products per status
+
+```GET /admin-api/v0/products?hadoop_job=<jobid>&status=<status>&processing_location=<location>&completed_date=<date>&user=<username>&email=<email>```
+* List products that meet the specified criteria
+
+```PUT /admin-api/v0/products/resubmit```
+* Resubmits the products supplied in the body
 
 #### General configuration items
 ```GET /admin-api/v0/configuration```
@@ -68,6 +80,13 @@
 * Update existing configuration item
 
 ```DELETE /admin-api/v0/configuration/<key>```
+
+#### Hadoop specific items
+```GET /admin-api/v0/hadoop/jobs```
+* List Hadoop jobs
+
+```DELETE /admin-api/v0/hadoop/jobs/<jobid>```
+* Kill Hadoop job
 
 #### System related operations
 ```GET /admin-api/v0/system```
