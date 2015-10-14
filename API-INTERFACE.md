@@ -42,6 +42,9 @@
 ```PUT /production-api/v0/<orderid>/<productid>```
 * Update product status, completed file locations, etc
 
+```GET /production-api/v0/configuration/<key>```
+* Lists information for specified configuration key  
+
 * possibly more to define
 
 ## Proposed Admin API Operations
@@ -54,7 +57,10 @@
 #### General configuration items
 ```GET /admin-api/v0/configuration```
 * Lists all configuration keys & values
- 
+
+```GET /admin-api/v0/configuration/<key>```
+* Lists information for specified key 
+
 ```POST /admin-api/v0/configuration/<key>```
 * Add new configuration item
  
