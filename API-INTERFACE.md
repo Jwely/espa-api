@@ -51,6 +51,37 @@
  
 ```GET /admin-api/v0/products```
 * Overview of product information & status, # of products per status
+
+#### General configuration items
+```GET /admin-api/v0/configuration```
+* Lists all configuration keys & values
  
+```POST /admin-api/v0/configuration/<key>```
+* Add new configuration item
+ 
+```PUT /admin-api/v0/configuration/<key>```
+* Update existing configuration item
+
+```DELETE /admin-api/v0/configuration/<key>```
+
+#### System related admin-api operations
+```GET /admin-api/v0/system```
+* Status of full processing system, on/off
+
+```PUT /admin-api/v0/system/disposition/<on|off>```
+* Switch order disposition subsystem on or off
+
+```PUT /admin-api/v0/system/load_external_orders/<on|off>```
+* Switch external order loading subsystem on or off
+
+```PUT /admin-api/v0/system/production/<on|off>```
+* Switch production subsystem on or off
+
+```PUT /admin-api/v0/system/hadoop/<on|off>```
+* Startup/shutdown Hadoop
+
+```PUT /admin-api/v0/system/website/<on|off>```
+* Allow normal order access or block access with system maintenance page
+
 * more to define
 
