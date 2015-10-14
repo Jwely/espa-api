@@ -37,7 +37,20 @@
 
 
 ## Proposed System API Operations
-* To be defined
+```GET /system-api/v0/products?priority=['high'|'normal'|'low']&user='username'&sensor=['modis'|'landsat'|'plot']```
+* Returns products ready for production
+
+```PUT /system-api/v0/<orderid>/<productid>```
+* Update product status, completed file locations, etc
+
+* possibly more to define
 
 ## Proposed Admin API Operations
-* To be defined
+```GET /admin-api/v0/orders?limit=#&order_by=fieldname&user=username&start_date=date&end_date=date```
+* Overview of order information
+ 
+```GET /admin-api/v0/products```
+* Overview of product information & status, # of products per status
+ 
+* more to define
+
