@@ -1,4 +1,4 @@
-## Proposed User API Operations
+## User API Operations
 
 ```GET /api```
 * List available versions
@@ -35,7 +35,7 @@
 * Returns required projection parameters and ranges
 
 
-## Proposed Production API Operations
+## Production API Operations
 ```GET /production-api/v0/products?priority=['high'|'normal'|'low']&user='username'&sensor=['modis'|'landsat'|'plot']```
 * Returns products ready for production
 
@@ -47,7 +47,7 @@
 
 * _possibly more to define_
 
-## Proposed Admin API Operations
+## Admin API Operations
 ```GET /admin-api/v0/orders?limit=#&order_by=fieldname&user=username&start_date=date&end_date=date```
 * Overview of order information
  
