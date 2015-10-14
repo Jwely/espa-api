@@ -12,6 +12,12 @@
 ```GET /api/v0/user```
 * Information for authenticated user
     * first name, last name, username, email, contactid
+   
+```GET /api/v0/available-products/<productid>```
+* Returns available output products for the input product specified in querystring.  Needed to build intelligent clients.
+
+```POST /api/v0/available-products```
+* Returns available output products for the input products specified in the body.  Needed to build intelligent clients.
 
 ```GET /api/v0/orders```
 * List all orders for the authenticated user
@@ -21,12 +27,6 @@
 
 ```GET /api/v0/order/<ordernum>```
 * Retrieve details for the supplied order.
-
-```GET /api/v0/available-products/<productid>```
-* Returns available output products for the input product specified in querystring.  Needed to build intelligent clients.
-
-```POST /api/v0/available-products```
-* Returns available output products for the input products specified in the body.  Needed to build intelligent clients.
 
 ```POST /api/v0/order/template```
 * Returns order template for supplied items.  Needed to build intelligent clients.
