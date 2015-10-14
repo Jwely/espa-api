@@ -110,5 +110,18 @@
 ```PUT /admin-api/v0/system/website/<on|off>```
 * Allow normal order access or block access with system maintenance page
 
+#### Online cache operations
+```GET /admin-api/v0/onlinecache```
+* Returns cache capacity and usage info
+ 
+```GET /admin-api/v0/onlinecache/<orderid>```
+* List files for orderid
+
+```DELETE /admin-api/v0/onlinecache/<orderid>```
+* Delete an order from disk
+
+```DELETE /admin-api/v0/onlinecache/<orderid>/<filename>```
+* Delete a file from disk for a specific order
+
 * _possibly more to define_
 
