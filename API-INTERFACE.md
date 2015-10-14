@@ -45,7 +45,7 @@
 ```GET /production-api/v0/configuration/<key>```
 * Lists information for specified configuration key  
 
-* possibly more to define
+* _possibly more to define_
 
 ## Proposed Admin API Operations
 ```GET /admin-api/v0/orders?limit=#&order_by=fieldname&user=username&start_date=date&end_date=date```
@@ -69,7 +69,7 @@
 
 ```DELETE /admin-api/v0/configuration/<key>```
 
-#### System related admin-api operations
+#### System related operations
 ```GET /admin-api/v0/system```
 * Status of full processing system, on/off
 
@@ -88,5 +88,5 @@
 ```PUT /admin-api/v0/system/website/<on|off>```
 * Allow normal order access or block access with system maintenance page
 
-* more to define
+* _possibly more to define_
 
