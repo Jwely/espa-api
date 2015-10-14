@@ -48,6 +48,9 @@
 * _possibly more to define_
 
 ## Admin API Operations
+``` GET /admin-api/v0/user?limit=<limit>&orderby=<orderbyfields>&email=<email>&username=<username>```
+* List users + their info
+
 ``` GET /admin-api/v0/orders```
 * Overview of orders & their status, order age, etc.
 
