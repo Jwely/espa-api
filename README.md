@@ -42,7 +42,7 @@ The ESPA system covers a series of requirements and capabilities that do not see
   * Specify output projection with proper parameters (required) [See projections](CUSTOMIZATION.md)  
   * Specify output extents in meters (required) [See output extents](CUSTOMIZATION.md)  
   * Specify pixel size (optional) [See pixel resizing](CUSTOMIZATION.md)  
-  * Specify resampling method. (required) [See resampleing](CUSTOMIZATION.md)  
+  * Specify resampling method. (required) [See resampling](CUSTOMIZATION.md)  
    
   Output images from an order that has satisfied these conditions will be properly aligned & framed to one another. 
   The onus is on the user to maintain and track their grid and tile definitions (projections with parameters & output extents).  **_Simply requesting scenes to be reprojected is not enough to line up the outputs_**.  A fixed set of output spatial extents must be provided to create a consistent output image frame.
