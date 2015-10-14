@@ -27,14 +27,16 @@
 
 
 ## Assumptions
-1. The proposed API will be logically divided into a user API, system API and admin API.  
+1. The proposed API will be logically divided into a user API, production API and admin API.  
     * The user api will accept orders and provide end user access to order/product status and links to download completed products.
-    * The system API serves functionality to espa-production, mainly for obtaining production requests and capturing production status.  
+    * The production API serves functionality to espa-production, mainly for obtaining production requests and capturing production status.  
     * The admin API will allow operations & maintenance staff to monitor and manipulate the system as needed.
 
 2. All calls will be made over HTTPS only and will require HTTP Basic Authentication.
     * Users will be authenticated against the ERS.  Credentials used for EarthExplorer are used here.
     * The exception to this is the call to authenticate.  This call is needed so clients are able to determine if a user should even be allowed to perform operations.  This can later be modified to return roles.
+    * espa-production will rely on a system level account not housed in ERS.
+    * Roles restricting access to the production and admin api will be kept within the ESPA system.
 
 3. Each operation will be stateless.  Sessions, cookies, etc will not be used.
 
