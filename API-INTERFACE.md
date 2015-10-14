@@ -35,12 +35,11 @@
 * Returns required projection parameters and ranges
 
 
-
-## Proposed System API Operations
-```GET /system-api/v0/products?priority=['high'|'normal'|'low']&user='username'&sensor=['modis'|'landsat'|'plot']```
+## Proposed Production API Operations
+```GET /production-api/v0/products?priority=['high'|'normal'|'low']&user='username'&sensor=['modis'|'landsat'|'plot']```
 * Returns products ready for production
 
-```PUT /system-api/v0/<orderid>/<productid>```
+```PUT /production-api/v0/<orderid>/<productid>```
 * Update product status, completed file locations, etc
 
 * possibly more to define
