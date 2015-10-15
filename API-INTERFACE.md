@@ -9,6 +9,9 @@ Users may also want to specify an output file naming scheme that could be provid
 
 ```GET /api```
 ```json
+Request: curl http://localhost:5000/api
+
+Response:
 {
   "version_0": {
     "description": "Demo URLS for development",
@@ -60,8 +63,11 @@ Response:
 ```POST /api/v0/authenticate```
 
 ```json
+
+Request:
 curl -d '{"username":"production", "password":"password"}' http://localhost:5000/api/v0/authenticate
 
+Response:
 {
   "result": true
 }
@@ -69,6 +75,10 @@ curl -d '{"username":"production", "password":"password"}' http://localhost:5000
 
 ```GET /api/v0/user```
 ```json
+Request:
+curl --user production:password http://localhost:5000/api/v0/user
+
+Response:
 {
   "email": "production@email.com",
   "first_name": "Production",
