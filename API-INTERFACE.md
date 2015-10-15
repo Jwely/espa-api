@@ -74,11 +74,25 @@ Response:
 ```
 
 ```GET /api/v0/user```
-```json
-Request:
-curl --user production:password http://localhost:5000/api/v0/user
-
-Response:
+```
+curl -v --user production:password http://localhost:5000/api/v0/user
+* Hostname was NOT found in DNS cache
+*   Trying 127.0.0.1...
+* Connected to localhost (127.0.0.1) port 5000 (#0)
+* Server auth using Basic with user 'production'
+> GET /api/v0/user HTTP/1.1
+> Authorization: Basic cHJvZHVjdGlvbjpwYXNzd29yZA==
+> User-Agent: curl/7.35.0
+> Host: localhost:5000
+> Accept: */*
+> 
+* HTTP 1.0, assume close after body
+< HTTP/1.0 200 OK
+< Content-Type: application/json
+< Content-Length: 167
+< Server: Werkzeug/0.9.4 Python/2.7.6
+< Date: Thu, 15 Oct 2015 20:08:33 GMT
+< 
 {
   "email": "production@email.com",
   "first_name": "Production",
@@ -88,6 +102,7 @@ Response:
     "production"
   ],
   "username": "production"
+* Closing connection 0
 }
 ```
    
