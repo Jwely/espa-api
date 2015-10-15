@@ -102,16 +102,11 @@ curl --user production:password http://localhost:5000/api/v0/user
 curl --user production:password http://localhost:5000/api/v0/orders
 
 {
-  "processing@email.com-101015143201-00132": {
-    "completion_date": "",
-    "order_date": "2015-10-10",
-    "status": "ordered"
-  },
-  "processing@email.com-101115143201-00132": {
-    "completion_date": "2015-10-11",
-    "order_date": "2015-10-11",
-    "status": "complete"
-  }
+  "orders": [
+    "processing@email.com-101015143201-00132",
+    "processing@email.com-101115143201-00132"
+  ]
+}
 ```
 
 ```GET /api/v0/orders/<email>```
