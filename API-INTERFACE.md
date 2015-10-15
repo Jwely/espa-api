@@ -51,6 +51,12 @@ Users may also want to specify an output file naming scheme that could be provid
 The Production API is intended to be used by the system or systems that are fulfilling the end user production requests.  As such, the API simply allows production systems to retrieve items to process and then update their status.  There is also a method for retrieving configuration data.
 
 ### Production API Operations
+```GET /production-api```
+* List available versions
+
+```GET /production-api/v0```
+* Lists available operations
+
 ```GET /production-api/v0/products?priority=['high'|'normal'|'low']&user='username'&sensor=['modis'|'landsat'|'plot']```
 * Returns products ready for production
 
@@ -66,6 +72,12 @@ The Production API is intended to be used by the system or systems that are fulf
 The admin API encompasses everything needed for day-to-day operation & maintenance of the system.  Ops staff will be able to start & stop each part of the system as necessary, manipulate the data stored on the distribution cache, view & manipulate user orders & products, etc.
 
 ### Admin API Operations
+```GET /admin-api```
+* List available versions
+
+```GET /admin-api/v0```
+* Lists available operations
+* 
 ``` GET /admin-api/v0/user?limit=<limit>&orderby=<orderbyfields>&email=<email>&username=<username>```
 * List users + their info
 
