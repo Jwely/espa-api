@@ -8,7 +8,14 @@ Users may also want to specify an output file naming scheme that could be provid
 ### User API Operations
 
 ```GET /api```
-* List available versions
+```json
+{
+  "version_0": {
+    "description": "Demo URLS for development",
+    "url": "/api/v0"
+  }
+}
+```
 
 ```GET /api/v0```
 ```json
