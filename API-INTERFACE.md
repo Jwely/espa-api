@@ -26,6 +26,12 @@ Users may also want to specify an output file naming scheme that could be provid
 ```POST /api/v0/available-products```
 * Returns available output products for the input products specified in the body.  Needed to build intelligent clients.
 
+```GET /api/v0/projections```
+* Returns available projections
+
+```GET /api/v0/projections/<projection>```
+* Returns required projection parameters and ranges
+
 ```GET /api/v0/orders```
 * List all orders for the authenticated user
 
@@ -35,17 +41,11 @@ Users may also want to specify an output file naming scheme that could be provid
 ```GET /api/v0/order/<ordernum>```
 * Retrieve details for the supplied order.
 
-```POST /api/v0/order/template```
-* Returns order template for supplied items.  Needed to build intelligent clients.
+```POST /api/v0/order/validate```
+* Validates a user order.  Can be used prior to POST'ing an order (same logic will be applied during order submission)
 
 ```POST /api/v0/order```
 * Enter a new order, accepts a populated template as returned from /api/v0/order/template
-
-```GET /api/v0/projections```
-* Returns available projections
-
-```GET /api/v0/projections/<projection>```
-* Returns required projection parameters and ranges
 
 ## Production API
 The Production API is intended to be used by the system or systems that are fulfilling the end user production requests.  As such, the API simply allows production systems to retrieve items to process and then update their status.  There is also a method for retrieving configuration data.
