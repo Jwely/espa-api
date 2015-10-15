@@ -19,8 +19,9 @@ Users may also want to specify an output file naming scheme that could be provid
 
 ```GET /api/v0```
 ```json
-_Request_: curl http://localhost:5000/api/v0
-_Response_:
+Request: curl http://localhost:5000/api/v0
+
+Response:
 {
   "/api": {
     "endpoint": "list_versions",
