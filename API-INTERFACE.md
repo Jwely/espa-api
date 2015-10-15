@@ -56,7 +56,9 @@ Users may also want to specify an output file naming scheme that could be provid
 
 ```POST /api/v0/authenticate```
 
-```curl --data '{"username":"production", "password":"password"}' http://localhost:5000/api/v0/authenticate```
+```bash
+curl --data '{"username":"production", "password":"password"}' http://localhost:5000/api/v0/authenticate
+```
 
 ```json
 {
