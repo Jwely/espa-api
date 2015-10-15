@@ -1,4 +1,11 @@
-## User API Operations
+## User API
+The User API is intended to be outward facing and available for anyone to code and interact with.  Version 0 provides the minimum functionality necessary to place orders, view orders, determine available products from a list of inputs and determine available projections with their associated parameters/value ranges.
+
+Additional functionality may be added in later releases.  Some of these items include allowing users to search rather than requiring a scene list as input, allowing users to search and/or clip to predefined grid & tile extents (example: find all scenes that have data in the extents defined by WELD CONUS Tile h01v03 where cloud cover is less than x% and the observation month is June, July or August), or caching/identifying ESPA outputs that could be reused in another order.
+
+Users may also want to specify an output file naming scheme that could be provided via templating and captured at order submission time.  None of these items are addressed in version 0.
+
+### User API Operations
 
 ```GET /api```
 * List available versions
@@ -40,8 +47,9 @@
 ```GET /api/v0/projections/<projection>```
 * Returns required projection parameters and ranges
 
+## The Production API is intended to be used by the system or systems that are fulfilling the end user production requests.  As such, the API simply allows production systems to retrieve items to process and then update their status.  There is also a method for retrieving configuration data.
 
-## Production API Operations
+### Production API Operations
 ```GET /production-api/v0/products?priority=['high'|'normal'|'low']&user='username'&sensor=['modis'|'landsat'|'plot']```
 * Returns products ready for production
 
@@ -53,7 +61,10 @@
 
 * _possibly more to define_
 
-## Admin API Operations
+## Admin API
+The admin API encompasses everything needed for day-to-day operation & maintenance of the system.  Ops staff will be able to start & stop each part of the system as necessary, manipulate the data stored on the distribution cache, view & manipulate user orders & products, etc.
+
+### Admin API Operations
 ``` GET /admin-api/v0/user?limit=<limit>&orderby=<orderbyfields>&email=<email>&username=<username>```
 * List users + their info
 
@@ -64,7 +75,7 @@
 * Overview of order information
 
 ```PUT /admin-api/v0/order/cancel/<orderid>```
-* Cancels an order
+* Cancels an order.  Admin only for now, later should be offered through the User API as well.
 
 ```GET /admin-api/v0/products```
 * Overview of product information & status, # of products per status
