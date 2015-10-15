@@ -100,6 +100,7 @@ curl --user production:password http://localhost:5000/api/v0/user
 ```GET /api/v0/orders```
 ```json
 curl --user production:password http://localhost:5000/api/v0/orders
+
 {
   "processing@email.com-101015143201-00132": {
     "completion_date": "",
