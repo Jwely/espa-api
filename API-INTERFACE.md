@@ -11,7 +11,7 @@ Users may also want to specify an output file naming scheme that could be provid
 * List available versions
 
 ```GET /api/v0```
-* Lists available operations
+* List available operations
 
 ```POST /api/v0/authenticate```
 * Accepts a username/password and returns True/False.  Needed to support client development.
@@ -55,7 +55,7 @@ The Production API is intended to be used by the system or systems that are fulf
 * List available versions
 
 ```GET /production-api/v0```
-* Lists available operations
+* List available operations
 
 ```GET /production-api/v0/products?priority=['high'|'normal'|'low']&user='username'&sensor=['modis'|'landsat'|'plot']```
 * Returns products ready for production
@@ -76,7 +76,7 @@ The admin API encompasses everything needed for day-to-day operation & maintenan
 * List available versions
 
 ```GET /admin-api/v0```
-* Lists available operations
+* List available operations
 * 
 ``` GET /admin-api/v0/user?limit=<limit>&orderby=<orderbyfields>&email=<email>&username=<username>```
 * List users + their info
