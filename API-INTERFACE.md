@@ -47,7 +47,8 @@ Users may also want to specify an output file naming scheme that could be provid
 ```GET /api/v0/projections/<projection>```
 * Returns required projection parameters and ranges
 
-## The Production API is intended to be used by the system or systems that are fulfilling the end user production requests.  As such, the API simply allows production systems to retrieve items to process and then update their status.  There is also a method for retrieving configuration data.
+## Production API
+The Production API is intended to be used by the system or systems that are fulfilling the end user production requests.  As such, the API simply allows production systems to retrieve items to process and then update their status.  There is also a method for retrieving configuration data.
 
 ### Production API Operations
 ```GET /production-api/v0/products?priority=['high'|'normal'|'low']&user='username'&sensor=['modis'|'landsat'|'plot']```
