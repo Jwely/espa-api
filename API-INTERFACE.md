@@ -11,7 +11,41 @@ Users may also want to specify an output file naming scheme that could be provid
 * List available versions
 
 ```GET /api/v0```
-* List available operations
+```json
+{
+  "/api": {
+    "endpoint": "list_versions",
+    "methods": [
+      "HEAD",
+      "OPTIONS",
+      "GET"
+    ]
+  },
+  "/api/v0": {
+    "endpoint": "list_operations",
+    "methods": [
+      "HEAD",
+      "OPTIONS",
+      "GET"
+    ]
+  },
+  "/api/v0/authenticate": {
+    "endpoint": "authenticate",
+    "methods": [
+      "POST",
+      "OPTIONS"
+    ]
+  },
+  "/api/v0/user": {
+    "endpoint": "user_info",
+    "methods": [
+      "HEAD",
+      "OPTIONS",
+      "GET"
+    ]
+  }
+}
+```
 
 ```POST /api/v0/authenticate```
 * Accepts a username/password and returns True/False.  Needed to support client development.
