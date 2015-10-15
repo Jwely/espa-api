@@ -38,9 +38,9 @@ The ESPA system covers a series of requirements and capabilities that do not see
 * **Non-composited Tile Generation**  
   ESPA can produce stacks of images lined up properly with one another in line/sample space.  When customization is requested for an order, it is applied to every output product whether that be customized input products (level 1), toa, sr or indices.  The only thing that will bypass customization are Original Input Products, which are delivered untouched exactly as they were received from the upstream system(s).
 
-No compositing or mosaicing is applied during these operations, thus the outputs from ESPA will be images that are projected and framed as specified but may be sparsely populated, depending on the spatial extent of the input and the requested output extent.
+  No compositing or mosaicing is applied during these operations, thus the outputs from ESPA will be images that are projected and framed as specified but may be sparsely populated, depending on the spatial extent of the input and the requested output extent.
 
-Users can create non-composited tiles by following these steps:
+  Users can create non-composited tiles by following these steps:
   * Request scenes/tiles that contain data within the geographic region of interest (required)
   * Select Customized Input Products (if MODIS or Landsat Level 1 products should be tiled) and/or CDR/ECV/SI products (required)
   * Specify output projection with proper parameters (required) [See projections](CUSTOMIZATION.md)  
