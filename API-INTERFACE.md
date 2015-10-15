@@ -77,6 +77,7 @@ The admin API encompasses everything needed for day-to-day operation & maintenan
 
 ```PUT /admin-api/v0/order/cancel/<orderid>```
 * Cancels an order.  Admin only for now, later should be offered through the User API as well.
+  * requires stopping hadoop jobs, deleting files from the cache and resetting the db status for all the other scenes that weren't cancelled but were grouped into the same jobs
 
 ```GET /admin-api/v0/products```
 * Overview of product information & status, # of products per status
@@ -110,7 +111,7 @@ The admin API encompasses everything needed for day-to-day operation & maintenan
 * Kill Hadoop job
 
 #### System related operations
-```GET /admin-api/v0/system```
+```GET /admin-api/v0/system/status```
 * Status of full processing system, on/off
 
 ```PUT /admin-api/v0/system/disposition/<on|off>```
@@ -129,10 +130,13 @@ The admin API encompasses everything needed for day-to-day operation & maintenan
 * Allow normal order access or block access with system maintenance page
 
 #### Online cache operations
-```GET /admin-api/v0/onlinecache```
-* Returns cache capacity and usage info
+```GET /admin-api/v0/onlinecache/stats```
+* Return usage stats for disk
+
+```GET /admin-api/v0/onlinecache/list```
+* List all orders on disk
  
-```GET /admin-api/v0/onlinecache/<orderid>```
+```GET /admin-api/v0/onlinecache/list/<orderid>```
 * List files for orderid
 
 ```DELETE /admin-api/v0/onlinecache/<orderid>```
