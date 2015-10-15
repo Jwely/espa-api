@@ -17,8 +17,18 @@ Users may also want to specify an output file naming scheme that could be provid
 * Accepts a username/password and returns True/False.  Needed to support client development.
 
 ```GET /api/v0/user```
-* Information for authenticated user
-    * first name, last name, username, email, contactid
+```json
+{
+  "email": "production@email.com",
+  "first_name": "Production",
+  "last_name": "Person",
+  "roles": [
+    "user",
+    "production"
+  ],
+  "username": "production"
+}
+```
    
 ```GET /api/v0/available-products/<productid>```
 * Returns available output products for the input product specified in querystring.  Needed to build intelligent clients.
