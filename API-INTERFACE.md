@@ -55,7 +55,12 @@ Users may also want to specify an output file naming scheme that could be provid
 ```
 
 ```POST /api/v0/authenticate```
-* Accepts a username/password and returns True/False.  Needed to support client development.
+```curl --data '{"username":"production", "password":"password"}' http://localhost:5000/api/v0/authenticate```
+```json
+{
+  "result": true
+}
+```
 
 ```GET /api/v0/user```
 ```json
