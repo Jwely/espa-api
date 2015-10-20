@@ -39,7 +39,7 @@ Inquiries have been made as to why ESPA forces the user to reproject before allo
   Each image that is subset should be framed exactly the same as all others that have also been subset with the same parameters.  This goes without saying.  
 
 2. **ESPA input data is in multiple projections.**  
-  MODIS data is sinusoidal, some Landsat is in UTM, other Landsat is in polar stereographic.  If a user specified meter based spatial extents without forcing all rasters into a common projection then each type would be subset differently, or not at all (fail to warp.)  It is not possible to determine which projection the user was thinking in when specifying coordinates without forcing a common geometry.  
+  MODIS data is sinusoidal, some Landsat is in UTM, other Landsat is in polar stereographic.  If a user specified meter based spatial extents without forcing all rasters into a common projection then each type would be subset differently, or not at all (fail to warp).  It is not possible to determine which projection the user was thinking in when specifying coordinates without forcing a common geometry.  
 
 3. **Simply using geographic subset coordinates without specifying a target projection seems like it *should* work, but does not.**  
   Decimal degrees represent points on a sphere whereas projection coordinates represent x & y on a flat 2 dimensional grid.  Performing a direct subset of the imagery using coordinates such as this results in data loss, as the delivered imagery is always a two dimensional representation of a spheroid.

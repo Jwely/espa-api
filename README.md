@@ -12,7 +12,7 @@ Demo API for the ESPA ordering & scheduling system.
 ## ESPA System Overview
 ESPA is a system for producing advanced science products from existing products. It was originally constructed to serve as a temporary production platform for science algorithms under incubation but has since transitioned into a quasi-operational state within USGS EROS, due primarily to the popularity of it's products.
 
-ESPA operates on a scene by scene basis and was built to produce many products at once rather than a single product as quickly as possible (multiprocess vs multithreading).  When a product algorithm executes, it only has access to the spatial and temporal context of the observation in question, save any auxillary data needed such as ozone or water pressure measurements.  The system is therefore highly optimized for single-scene processing but is wholly unsuited for compositing, mosaicing, time-series analysis or any other operation that requires information from a separate observation.
+ESPA operates on a scene by scene basis and was built to produce many products at once rather than a single product as quickly as possible (multiprocess vs multithreading).  When a product algorithm executes, it only has access to the spatial and temporal context of the observation in question, save any auxiliary data needed such as ozone or water pressure measurements.  The system is therefore highly optimized for single-scene processing but is wholly unsuited for compositing, mosaicing, time-series analysis or any other operation that requires information from a separate observation.
 
 The system is composed of two major subsystems, espa-web and espa-production.
 
@@ -22,7 +22,7 @@ espa-web provides all the ordering & scheduling operations for the system, as we
 espa-web currently captures user orders from two sources: The http://espa.cr.usgs.gov website and also USGS Earth Explorer.  Orders are obtained from USGS EE via web services hosted by the LTA project.
 
 #### espa-production
-espa-production is responsible for receiving production requests, validating the requests, locating and using any necessary auxillary data, transferring level 1 data to a working directory, executing the necessary science algorithms to produce the product, placing the finished product in a distribution location and finally notifying espa-web that the production request is complete.  espa-production is a stateless system, with each production run remaining isolated from any other.
+espa-production is responsible for receiving production requests, validating the requests, locating and using any necessary auxiliary data, transferring level 1 data to a working directory, executing the necessary science algorithms to produce the product, placing the finished product in a distribution location and finally notifying espa-web that the production request is complete.  espa-production is a stateless system, with each production run remaining isolated from any other.
 
 ---
 
@@ -56,13 +56,13 @@ The ESPA system covers a series of requirements and capabilities that do not see
 * **Sensor Intercomparison Via Statistics And Plotting**  
   By choosing coincident observations from different sensors (MODIS 09 + Landsat SR over the same place on the Earth and acquired close to the same time), users are able to plot and compare the performance of each sensor/algorithm in relation to one another.  
 
-  This is particularly useful when users would like to establish levels of confidence in a particular sensor, compare new sensors with old, or otherwise normalize reading they are seeing from a variety of sources.
+  This is particularly useful when users would like to establish levels of confidence in a particular sensor, compare new sensors with old, or normalize measurements obtained from a variety of sources.
    
 * **Simple format conversion**  
   Users may alter the file format for output images. Current available formats are binary (envi), hdf-eos2 or geotiff.  Binary BIP (band interleaved by pixel) is in work.  ESPA format converters are pluggable modules so if other formats are desired they can easily be developed and hosted.
    
 * **Metadata**  
-  Landsat product level metadata (which differs from the bulk metadata that is accessible) is not available to end users without downloading the images as well.  ESPA can deliver only the level 1 metadata in it's original format if this is desired by requesting Original Input Metadata.  This was never a driving requirement but more of a no-cost capability made possible by using level 1 data as an input to CDRs and ECVs.
+  Landsat product metadata (which differs from what's available via the Landsat Bulk Metadata Service) is not available to end users without downloading the images as well.  ESPA can deliver the level 1 product metadata without the accompanying rasters by requesting Original Input Metadata.  This was never a driving requirement but more of a no-cost capability made possible by using level 1 data as an input to CDRs and ECVs.
 
   ESPA output product metadata (for anything other than Original Input Products/Original Input Metadata) is in a schema constrained XML format.  This means ESPA metadata files can be transformed with standardized tooling like XSLT stylesheets.
   

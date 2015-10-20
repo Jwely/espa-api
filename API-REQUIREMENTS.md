@@ -10,8 +10,8 @@
 3. **The available output products list varies *within* each input type.**  
   1. Example: Not all Landsat TM/ETM+/OLITIRS scenes can be corrected to surface reflectance, particularly nighttime observations.  
   
-4. **The available output product list varies based on the spatial and temporal characterics of the input observations.**  
-  1. Example: Land Surface Temperature cannot currently be produced outside of certain geographic extents due to insufficient auxillary data.  
+4. **The available output product list varies based on the spatial and temporal characteristics of the input observations.**  
+  1. Example: Land Surface Temperature cannot currently be produced outside of certain geographic extents due to insufficient auxiliary data.  
   
 5. **Requests for output customization are captured at the order (not the input observation) level.  These customizations are applied against every ESPA output product in the order.**  
   1. Users may request that their order is reprojected to sinusoidal, albers, UTM, geographic or polar stereographic.  Each projection requires its own set of parameters which must be validated.  
@@ -19,7 +19,7 @@
   3. Users may request modification of the spatial output extents (spatial subsetting) of all output products in either projection coordinates or decimal degrees.  If geographic projection is requested, coordinates may only be provided in decimal degrees.
   4. Users may request pixel resizing of the output products in either meters or decimal degrees, depending on the requested projection.  Geographic will accept only decimal degrees for the pixel size whereas all true projections (all others available) require meters.
   5. Where necessary, users may choose their desired resampling method.  
-  6. Users may not perform spatial subsetting without first requested reprojection.  This is due to input observations arriving in varying projections, making projection coordinates meaningless.  
+  6. Users may not perform spatial subsetting without first requesting reprojection.  This is due to input observations arriving in varying projections, making projection coordinates meaningless.  
   
 6. **The system approaches processing in an all or nothing fashion:  If a user requests SR and TOA and SR fails, the entire scene is marked as unavailable (even though TOA may have actually been available and must be produced prior to performing SR)**
 
