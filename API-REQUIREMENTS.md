@@ -10,7 +10,7 @@
 3. **The available output products list varies *within* each input type.**  
   1. Example: Not all Landsat TM/ETM+/OLITIRS scenes can be corrected to surface reflectance, particularly nighttime observations.  
   
-4. **The available output product list varies based on the spatial and temporal characterics of the input observations.**  
+4. **The available output product list varies based on the spatial and temporal characteristics of the input observations.**  
   1. Example: Land Surface Temperature cannot currently be produced outside of certain geographic extents due to insufficient auxiliary data.  
   
 5. **Requests for output customization are captured at the order (not the input observation) level.  These customizations are applied against every ESPA output product in the order.**  
