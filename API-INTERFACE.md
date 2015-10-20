@@ -152,6 +152,7 @@ The admin API encompasses everything needed for day-to-day operation & maintenan
 ```GET /admin-api/v0```
 * List available operations
 * 
+
 ``` GET /admin-api/v0/user?limit=<limit>&orderby=<orderbyfields>&email=<email>&username=<username>```
 * List users + their info
 
