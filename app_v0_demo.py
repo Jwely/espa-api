@@ -109,7 +109,6 @@ ORDERS = {
      }   
 }
 
-
 class Storage(object):
 
     @staticmethod
@@ -126,9 +125,41 @@ class Storage(object):
         return [o for o in orders.keys()]
 
 
+class Configuration(object):
+
+    def __init__(self, use_cache=True):
+        self.use_cache = use_cache
+
+    def get(self, key):
+        raise NotImplementedError
+
+    def put(self, key, value):
+        raise NotImplementedError
+
+    def mget(self, keys):
+        raise NotImplementedError
+
+    def mput(self, kv_dict):
+        raise NotImplementedError
+
+    def mdelete(self, keys):
+        raise NotImplementedError   
+
+    def exists(self, key):
+        raise NotImplementedError
+
+    def load(self, config):
+        raise NotImplementedError
+
+    def dump(self, path):
+        raise NotImplementedError
+
+
 app = Flask(__name__)
 app.config.from_object(__name__)
+
 db = Storage()
+config = Configuration()
 
 def login_required():
     return Response('Not authenticated',
@@ -198,6 +229,12 @@ def list_orders():
     user = request.authorization.username
     orders = db.list_orders(user)
     return jsonify(orders=orders) 
+
+@app.route('/api/v0/available-products/<input_product_id>', methods=['GET'])
+@requires_auth
+def available_products(input_product_id):
+    pass
+
     
 
 if __name__ == '__main__':
