@@ -19,7 +19,7 @@
   3. Users may request modification of the spatial output extents (spatial subsetting) of all output products in either projection coordinates or decimal degrees.  If geographic projection is requested, coordinates may only be provided in decimal degrees.
   4. Users may request pixel resizing of the output products in either meters or decimal degrees, depending on the requested projection.  Geographic will accept only decimal degrees for the pixel size whereas all true projections (all others available) require meters.
   5. Where necessary, users may choose their desired resampling method.  
-  6. Users may not perform spatial subsetting without first requested reprojection.  This is due to input observations arriving in varying projections, making projection coordinates meaningless.  
+  6. Users may not perform spatial subsetting without first requesting reprojection.  This is due to input observations arriving in varying projections, making projection coordinates meaningless.  
   
 6. **The system approaches processing in an all or nothing fashion:  If a user requests SR and TOA and SR fails, the entire scene is marked as unavailable (even though TOA may have actually been available and must be produced prior to performing SR)**
 
