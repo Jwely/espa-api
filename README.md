@@ -2,11 +2,11 @@
 Demo API for the ESPA ordering & scheduling system.  
 
 ## Related Pages
-* [API Interface](API-INTERFACE.md)
-* [Available Products](AVAILABLE_PRODUCTS.md)
-* [Abbreviations & Definitions](TERMS.md)
-* [ESPA Customizations](CUSTOMIZATION.md)
-* [Requirements & Assumptions](API-REQUIREMENTS.md)
+* [API Interface](docs/API-INTERFACE.md)
+* [Available Products](docs/AVAILABLE_PRODUCTS.md)
+* [Abbreviations & Definitions](docs/TERMS.md)
+* [ESPA Customizations](docs/CUSTOMIZATION.md)
+* [Requirements & Assumptions](docs/API-REQUIREMENTS.md)
 
 
 ## ESPA System Overview
@@ -30,7 +30,7 @@ espa-production is responsible for receiving production requests, validating the
 The ESPA system covers a series of requirements and capabilities that do not seem to belong together at first glance.  For instance, there are a variety of datasets that ESPA cannot perform any additional science against:  MODIS data itself is never enhanced by ESPA in any way.  So why include it then if we can't create derivative products?  The short answer is it can.  Here are the system's overall capabilities.
 
 * **Climate Data Record & Essential Climate Variable Production**
-  * Landsat inputs only See [available products](AVAILABLE_PRODUCTS.md)
+  * Landsat inputs only See [available products](docs/AVAILABLE_PRODUCTS.md)
   * Scenes are input
   * Additional science algorithms are applied
   * Derivative products are output
@@ -43,7 +43,7 @@ The ESPA system covers a series of requirements and capabilities that do not see
   Users can create non-composited tiles by following these steps:
   * Request scenes/tiles that contain data within the geographic region of interest (required)
   * Select Customized Input Products (if MODIS or Landsat Level 1 products should be tiled) and/or CDR/ECV/SI products (required)
-  * Specify output projection with proper parameters (required) [See projections](CUSTOMIZATION.md)  
+  * Specify output projection with proper parameters (required) [See projections](docs/CUSTOMIZATION.md)  
   * Specify output extents in meters (required) [See output extents](CUSTOMIZATION.md)  
   * Specify pixel size (optional) [See pixel resizing](CUSTOMIZATION.md)  
   * Specify resampling method. (required) [See resampling](CUSTOMIZATION.md)  
