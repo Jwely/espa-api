@@ -7,8 +7,6 @@ Author: David V. Hill
 import re
 import logging
 
-from ordering.models.configuration import Configuration as config
-
 logger = logging.getLogger(__name__)
 
 
@@ -52,6 +50,49 @@ class SensorProduct(object):
 
     # this is a dictionary
     default_pixel_size = {}
+
+    config = {
+        'file.extension.landsat.input.filename': '.tar.gz',
+        'file.extension.modis.input.filename':'.hdf',
+        'pixel.size.dd.09A1': 0.00449155,
+        'pixel.size.dd.09GA': 0.00449155,
+        'pixel.size.dd.09GQ': 0.002245775,
+        'pixel.size.dd.09Q1': 0.002245775,
+        'pixel.size.dd.13A1': 0.0089831,
+        'pixel.size.dd.13A2': 0.0089831,
+        'pixel.size.dd.13A3': 0.0089831,
+        'pixel.size.dd.13Q1': 0.002245775,
+        'pixel.size.dd.LC8': 0.0002695,
+        'pixel.size.dd.LE7': 0.0002695,
+        'pixel.size.dd.LO8': 0.0002695,
+        'pixel.size.dd.LT4': 0.0002695,
+        'pixel.size.dd.LT5': 0.0002695,
+        'pixel.size.meters.09A1': 500,
+        'pixel.size.meters.09GA': 500,
+        'pixel.size.meters.09GQ': 250,
+        'pixel.size.meters.09Q1': 250,
+        'pixel.size.meters.13A1': 1000,
+        'pixel.size.meters.13A2': 1000,
+        'pixel.size.meters.13A3': 1000,
+        'pixel.size.meters.13Q1': 250,
+        'pixel.size.meters.LC8': 30,
+        'pixel.size.meters.LE7': 30,
+        'pixel.size.meters.LO8': 30,
+        'pixel.size.meters.LT4': 30,
+        'pixel.size.meters.LT5': 30,
+        'sensor.LC8.lta_name': 'LANDSAT_8',
+        'sensor.LC8.name': 'olitirs',
+        'sensor.LE7.lta_name': 'LANDSAT_ETM_PLUS',
+        'sensor.LE7.name': 'etm',
+        'sensor.LO8.lta_name': 'LANDSAT_8',
+        'sensor.LO8.name': 'oli',
+        'sensor.LT4.lta_name': 'LANDSAT_TM',
+        'sensor.LT4.name': 'tm',
+        'sensor.LT5.lta_name': 'LANDSAT_TM',
+        'sensor.LT5.name': 'tm',
+        'sensor.MOD.name': 'terra',
+        'sensor.MYD.name': 'aqua',
+    }
     
  
     def __init__(self, product_id):
@@ -70,11 +111,11 @@ class SensorProduct(object):
         self.sensor_code = product_id[0:3]
 
         __basekey = 'sensor.{0}'.format(self.sensor_code.upper())
-        self.sensor_name = config.get('{0}.name'.format(__basekey))
+        self.sensor_name = self.config.get('{0}.name'.format(__basekey))
         
         try:
-            self.lta_name = config.get('{0}.lta_name'.format(__basekey))
-        except config.DoesNotExist:
+            self.lta_name = self.config.get('{0}.lta_name'.format(__basekey))
+        except KeyError:
             logger.debug('{0}.lta_name not found in config'.format(__basekey))
 
 
@@ -109,9 +150,9 @@ class Modis(SensorProduct):
         # this comes out to 09A1, 09GA, 13A1, etc
         _product_code = self.short_name.split(self.sensor_code)[1]
 
-        _meters = config.get('pixel.size.meters.{0}'.format(_product_code))
+        _meters = self.config.get('pixel.size.meters.{0}'.format(_product_code))
 
-        _dd = config.get('pixel.size.dd.{0}'.format(_product_code))
+        _dd = self.config.get('pixel.size.dd.{0}'.format(_product_code))
 
         self.default_pixel_size = {'meters': _meters, 'dd': _dd}
 
@@ -228,10 +269,10 @@ class Landsat(SensorProduct):
         self.station = product_id[16:19]
         self.version = product_id[19:21]
 
-        _meters = config.get('pixel.size.meters.{0}'
+        _meters = self.config.get('pixel.size.meters.{0}'
             .format(self.sensor_code.upper()))
         
-        _dd = config.get('pixel.size.dd.{0}'
+        _dd = self.config.get('pixel.size.dd.{0}'
             .format(self.sensor_code.upper()))
 
         self.default_pixel_size = {'meters': _meters, 'dd': _dd}
@@ -278,8 +319,8 @@ def instance(product_id):
     # remove known file extensions before comparison
     # do not alter the case of the actual product_id!
     _id = product_id.lower().strip()
-    __modis_ext = config.get('file.extension.modis.input.filename')
-    __landsat_ext = config.get('file.extension.landsat.input.filename')
+    __modis_ext = SensorProduct.config.get('file.extension.modis.input.filename')
+    __landsat_ext = SensorProduct.config.get('file.extension.landsat.input.filename')
     
     if _id.endswith(__modis_ext):
         index = _id.index(__modis_ext)

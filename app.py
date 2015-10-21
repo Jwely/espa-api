@@ -109,6 +109,7 @@ ORDERS = {
      }   
 }
 
+
 class Storage(object):
 
     @staticmethod
@@ -229,6 +230,7 @@ def list_orders():
     user = request.authorization.username
     orders = db.list_orders(user)
     return jsonify(orders=orders) 
+
 
 @app.route('/api/v0/available-products/<input_product_id>', methods=['GET'])
 @requires_auth
