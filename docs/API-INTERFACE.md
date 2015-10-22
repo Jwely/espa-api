@@ -115,7 +115,10 @@ curl --user production:password http://localhost:5000/api/v0/available-products/
 ```POST /api/v0/available-products```
 ```json
 curl --user production:password 
--d '{"inputs":["LE70290302003123EDC00", "MOD09A1.A2000073.h12v11.005.2008238080250.hdf", "bad scene id"]}' http://localhost:5000/api/v0/available-products
+-d '{"inputs":["LE70290302003123EDC00",
+               "MOD09A1.A2000073.h12v11.005.2008238080250.hdf",
+               "bad scene id"]}'
+http://localhost:5000/api/v0/available-products
 
 {
   "etm": {
