@@ -150,7 +150,8 @@ curl --user production:password
       "source_metadata"
     ]
   }
-}```
+}
+```
 
 ```GET /api/v0/projections```
 * Returns available projections
