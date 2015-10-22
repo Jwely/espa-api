@@ -18,7 +18,6 @@ msg.system_message_updated_date=
 online_cache_orders_dir=/some/directory
 path.aqua_base_source=/MOLA
 path.terra_base_source=/MOLT
-
 policy.purge_orders_after=10
 retry.db_lock_timeout.retries=10
 retry.db_lock_timeout.timeout=300

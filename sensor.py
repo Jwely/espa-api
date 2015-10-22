@@ -7,8 +7,7 @@ Author: David V. Hill
 import re
 import logging
 
-logger = logging.getLogger(__name__)
-
+logger = logging.getLogger(__name__) 
 
 class ProductNotImplemented(NotImplementedError):
     '''Exception to be thrown when trying to instantiate an unsupported
@@ -82,16 +81,27 @@ class SensorProduct(object):
         'pixel.size.meters.LT5': 30,
         'sensor.LC8.lta_name': 'LANDSAT_8',
         'sensor.LC8.name': 'olitirs',
+        'sensor.LC8.products': ['olitirs_sr', 'olitirs_toa', 'olitirs_l1', 'olitirs_sr_ndvi', 'olitirs_sr_ndmi', 'olitirs_sr_evi',
+                                'olitirs_sr_savi', 'olitirs_sr_msavi', 'olitirs_sr_nbr', 'olitirs_sr_nbr2', 'source', 'source_metadata'],
         'sensor.LE7.lta_name': 'LANDSAT_ETM_PLUS',
         'sensor.LE7.name': 'etm',
+        'sensor.LE7.products': ['etm_sr', 'etm_toa', 'etm_l1', 'etm_sr_ndvi', 'etm_sr_ndmi', 'etm_sr_evi',
+                                'etm_sr_savi', 'etm_sr_msavi', 'etm_sr_nbr', 'etm_sr_nbr2', 'source', 'source_metadata'],
         'sensor.LO8.lta_name': 'LANDSAT_8',
         'sensor.LO8.name': 'oli',
+        'sensor.LO8.products': ['oli_toa', 'oli_l1', 'source', 'source_metadata'],
         'sensor.LT4.lta_name': 'LANDSAT_TM',
         'sensor.LT4.name': 'tm',
+        'sensor.LT4.products': ['tm_sr', 'tm_toa', 'tm_l1', 'tm_sr_ndvi', 'tm_sr_ndmi', 'tm_sr_evi',
+                                'tm_sr_savi', 'tm_sr_msavi', 'tm_sr_nbr', 'tm_sr_nbr2', 'source', 'source_metadata'],
         'sensor.LT5.lta_name': 'LANDSAT_TM',
         'sensor.LT5.name': 'tm',
+        'sensor.LT5.products': ['tm_sr', 'tm_toa', 'tm_l1', 'tm_sr_ndvi', 'tm_sr_ndmi', 'tm_sr_evi',
+                                'tm_sr_savi', 'tm_sr_msavi', 'tm_sr_nbr', 'tm_sr_nbr2', 'source', 'source_metadata'],
         'sensor.MOD.name': 'terra',
+        'sensor.MOD.products': ['mod_l1', 'source', 'source_metadata'],
         'sensor.MYD.name': 'aqua',
+        'sensor.MYD.products': ['myd_l1', 'source', 'source_metadata'],
     }
     
  
@@ -117,6 +127,15 @@ class SensorProduct(object):
             self.lta_name = self.config.get('{0}.lta_name'.format(__basekey))
         except KeyError:
             logger.debug('{0}.lta_name not found in config'.format(__basekey))
+
+    @staticmethod
+    def products():
+        result = {}
+        for key in SensorProduct.config.keys():
+            parts = key.split('.')
+            if parts[0] == ('sensor') and parts[len(parts) - 1] == 'products':
+                result[parts[1]] = SensorProduct.config[key]
+        return result
 
 
 class Modis(SensorProduct):
@@ -301,6 +320,8 @@ class LandsatOLI(Landsat):
     def __init__(self, product_id):
         super(LandsatOLI, self).__init__(product_id)
 
+
+products = SensorProduct.products()      
 
 def instance(product_id):
     '''
