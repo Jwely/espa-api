@@ -7,7 +7,7 @@ Users may also want to specify an output file naming scheme that could be provid
 
 ### User API Operations
 
-```GET /api```
+**GET /api**
 ```json
 curl http://localhost:5000/api
 
@@ -19,7 +19,7 @@ curl http://localhost:5000/api
 }
 ```
 
-```GET /api/v0```
+**GET /api/v0**
 ```json
 curl http://localhost:5000/api/v0
 
@@ -58,7 +58,7 @@ curl http://localhost:5000/api/v0
 }
 ```
 
-```POST /api/v0/authenticate```
+**POST /api/v0/authenticate**
 
 ```json
 curl -d '{"username":"production", "password":"password"}' http://localhost:5000/api/v0/authenticate
@@ -68,7 +68,7 @@ curl -d '{"username":"production", "password":"password"}' http://localhost:5000
 }
 ```
 
-```GET /api/v0/user```
+**GET /api/v0/user**
 
 ```json
 curl --user production:password http://localhost:5000/api/v0/user
@@ -85,7 +85,7 @@ curl --user production:password http://localhost:5000/api/v0/user
 }
 ```
    
-```GET /api/v0/available-products/<product_id>```
+**GET /api/v0/available-products/<product_id>**
 ```json
 curl --user production:password http://localhost:5000/api/v0/available-products/LE70290302003123EDC00
 
@@ -112,7 +112,7 @@ curl --user production:password http://localhost:5000/api/v0/available-products/
 }
 ```
 
-```POST /api/v0/available-products```
+**POST /api/v0/available-products**
 ```json
 curl --user production:password 
 -d '{"inputs":["LE70290302003123EDC00",
@@ -156,13 +156,13 @@ http://localhost:5000/api/v0/available-products
 }
 ```
 
-```GET /api/v0/projections```
+**GET /api/v0/projections**
 * Returns available projections
 
-```GET /api/v0/projections/<projection>```
+**GET /api/v0/projections/<projection>**
 * Returns required projection parameters and ranges
 
-```GET /api/v0/orders```
+**GET /api/v0/orders**
 ```json
 curl --user production:password http://localhost:5000/api/v0/orders
 
@@ -174,35 +174,35 @@ curl --user production:password http://localhost:5000/api/v0/orders
 }
 ```
 
-```GET /api/v0/orders/<email>```
+**GET /api/v0/orders/<email>**
 * List all orders for the supplied email 
 
-```GET /api/v0/order/<ordernum>```
+**GET /api/v0/order/<ordernum>**
 * Retrieve details for the supplied order.
 
-```POST /api/v0/order/validate```
+**POST /api/v0/order/validate**
 * Validates a user order.  Can be used prior to POST'ing an order (same logic will be applied during order submission)
 
-```POST /api/v0/order```
+**POST /api/v0/order**
 * Enter a new order, accepts a populated template as returned from /api/v0/order/template
 
 ## Production API
 The Production API is intended to be used by the system or systems that are fulfilling the end user production requests.  As such, the API simply allows production systems to retrieve items to process and then update their status.  There is also a method for retrieving configuration data.
 
 ### Production API Operations
-```GET /production-api```
+**GET /production-api**
 * List available versions
 
-```GET /production-api/v0```
+**GET /production-api/v0**
 * List available operations
 
-```GET /production-api/v0/products?priority=['high'|'normal'|'low']&user='username'&sensor=['modis'|'landsat'|'plot']```
+**GET /production-api/v0/products?priority=['high'|'normal'|'low']&user='username'&sensor=['modis'|'landsat'|'plot']**
 * Returns products ready for production
 
-```PUT /production-api/v0/<orderid>/<productid>```
+**PUT /production-api/v0/<orderid>/<productid>**
 * Update product status, completed file locations, etc
 
-```GET /production-api/v0/configuration/<key>```
+**GET /production-api/v0/configuration/<key>**
 * Lists information for specified configuration key  
 
 * _possibly more to define_
@@ -211,90 +211,90 @@ The Production API is intended to be used by the system or systems that are fulf
 The admin API encompasses everything needed for day-to-day operation & maintenance of the system.  Ops staff will be able to start & stop each part of the system as necessary, manipulate the data stored on the distribution cache, view & manipulate user orders & products, etc.
 
 ### Admin API Operations
-```GET /admin-api```
+**GET /admin-api**
 * List available versions
 
-```GET /admin-api/v0```
+**GET /admin-api/v0**
 * List available operations
 * 
 
-``` GET /admin-api/v0/user?limit=<limit>&orderby=<orderbyfields>&email=<email>&username=<username>```
+**GET /admin-api/v0/user?limit=<limit>&orderby=<orderbyfields>&email=<email>&username=<username>**
 * List users + their info
 
-``` GET /admin-api/v0/orders```
+**GET /admin-api/v0/orders**
 * Overview of orders & their status, order age, etc.
 
-```GET /admin-api/v0/orders?limit=#&order_by=<fieldname>&user=<username>&email=<email>&start_date=<date>&end_date=<date>```
+**GET /admin-api/v0/orders?limit=#&order_by=<fieldname>&user=<username>&email=<email>&start_date=<date>&end_date=<date>**
 * Overview of order information
 
-```PUT /admin-api/v0/order/cancel/<orderid>```
+**PUT /admin-api/v0/order/cancel/<orderid>**
 * Cancels an order.  Admin only for now, later should be offered through the User API as well.
   * requires stopping hadoop jobs, deleting files from the cache and resetting the db status for all the other scenes that weren't cancelled but were grouped into the same jobs
 
-```GET /admin-api/v0/products```
+**GET /admin-api/v0/products**
 * Overview of product information & status, # of products per status
 
-```GET /admin-api/v0/products?hadoop_job=<jobid>&status=<status>&processing_location=<location>&completed_date=<date>&user=<username>&email=<email>```
+**GET /admin-api/v0/products?hadoop_job=<jobid>&status=<status>&processing_location=<location>&completed_date=<date>&user=<username>&email=<email>**
 * List products that meet the specified criteria
 
-```PUT /admin-api/v0/products/resubmit```
+**PUT /admin-api/v0/products/resubmit**
 * Resubmits the products supplied in the body
 
 #### General configuration items
-```GET /admin-api/v0/configuration```
+**GET /admin-api/v0/configuration**
 * Lists all configuration keys & values
 
-```GET /admin-api/v0/configuration/<key>```
+**GET /admin-api/v0/configuration/<key>**
 * Lists information for specified key 
 
-```POST /admin-api/v0/configuration/<key>```
+**POST /admin-api/v0/configuration/<key>**
 * Add new configuration item
  
-```PUT /admin-api/v0/configuration/<key>```
+**PUT /admin-api/v0/configuration/<key>**
 * Update existing configuration item
 
-```DELETE /admin-api/v0/configuration/<key>```
+**DELETE /admin-api/v0/configuration/<key>**
 
 #### Hadoop specific items
-```GET /admin-api/v0/hadoop/jobs```
+**GET /admin-api/v0/hadoop/jobs**
 * List Hadoop jobs
 
-```DELETE /admin-api/v0/hadoop/jobs/<jobid>```
+**DELETE /admin-api/v0/hadoop/jobs/<jobid>**
 * Kill Hadoop job
 
 #### System related operations
-```GET /admin-api/v0/system/status```
+**GET /admin-api/v0/system/status**
 * Status of full processing system, on/off
 
-```PUT /admin-api/v0/system/disposition/<on|off>```
+**PUT /admin-api/v0/system/disposition/<on|off>**
 * Switch order disposition subsystem on or off
 
-```PUT /admin-api/v0/system/load_external_orders/<on|off>```
+**PUT /admin-api/v0/system/load_external_orders/<on|off>**
 * Switch external order loading subsystem on or off
 
-```PUT /admin-api/v0/system/production/<on|off>```
+**PUT /admin-api/v0/system/production/<on|off>**
 * Switch production subsystem on or off
 
-```PUT /admin-api/v0/system/hadoop/<on|off>```
+**PUT /admin-api/v0/system/hadoop/<on|off>**
 * Startup/shutdown Hadoop
 
-```PUT /admin-api/v0/system/website/<on|off>```
+**PUT /admin-api/v0/system/website/<on|off>**
 * Allow normal order access or block access with system maintenance page
 
 #### Online cache operations
-```GET /admin-api/v0/onlinecache/stats```
+**GET /admin-api/v0/onlinecache/stats**
 * Return usage stats for disk
 
-```GET /admin-api/v0/onlinecache/list```
+**GET /admin-api/v0/onlinecache/list**
 * List all orders on disk
  
-```GET /admin-api/v0/onlinecache/list/<orderid>```
+**GET /admin-api/v0/onlinecache/list/<orderid>**
 * List files for orderid
 
-```DELETE /admin-api/v0/onlinecache/<orderid>```
+**DELETE /admin-api/v0/onlinecache/<orderid>**
 * Delete an order from disk
 
-```DELETE /admin-api/v0/onlinecache/<orderid>/<filename>```
+**DELETE /admin-api/v0/onlinecache/<orderid>/<filename>**
 * Delete a file from disk for a specific order
 
 * _possibly more to define_
