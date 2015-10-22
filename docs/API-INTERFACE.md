@@ -180,6 +180,9 @@ curl --user production:password http://localhost:5000/api/v0/orders
 **GET /api/v0/order/\<ordernum\>**
 * Retrieve details for the supplied order.
 
+**GET /api/v0/order/request/\<ordernum\>**
+* Retrieve the order that was sent to the server.  Resubmittable to the order endpoint.
+
 **POST /api/v0/order/validate**
 * Validates a user order.  Can be used prior to POST'ing an order (same logic will be applied during order submission)
 
