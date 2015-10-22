@@ -85,8 +85,85 @@ curl --user production:password http://localhost:5000/api/v0/user
 }
 ```
    
-```GET /api/v0/available-products/<productid>```
-* Returns available output products for the input product specified in querystring.  Needed to build intelligent clients.
+```GET /api/v0/available-products```
+```json
+curl --user production:password http://localhost:5000/api/v0/available-products
+
+{
+  "LC8": [
+    "olitirs_sr",
+    "olitirs_toa",
+    "olitirs_l1",
+    "olitirs_sr_ndvi",
+    "olitirs_sr_ndmi",
+    "olitirs_sr_evi",
+    "olitirs_sr_savi",
+    "olitirs_sr_msavi",
+    "olitirs_sr_nbr",
+    "olitirs_sr_nbr2",
+    "source",
+    "source_metadata"
+  ],
+  "LE7": [
+    "etm_sr",
+    "etm_toa",
+    "etm_l1",
+    "etm_sr_ndvi",
+    "etm_sr_ndmi",
+    "etm_sr_evi",
+    "etm_sr_savi",
+    "etm_sr_msavi",
+    "etm_sr_nbr",
+    "etm_sr_nbr2",
+    "source",
+    "source_metadata"
+  ],
+  "LO8": [
+    "oli_toa",
+    "oli_l1",
+    "source",
+    "source_metadata"
+  ],
+  "LT4": [
+    "tm_sr",
+    "tm_toa",
+    "tm_l1",
+    "tm_sr_ndvi",
+    "tm_sr_ndmi",
+    "tm_sr_evi",
+    "tm_sr_savi",
+    "tm_sr_msavi",
+    "tm_sr_nbr",
+    "tm_sr_nbr2",
+    "source",
+    "source_metadata"
+  ],
+  "LT5": [
+    "tm_sr",
+    "tm_toa",
+    "tm_l1",
+    "tm_sr_ndvi",
+    "tm_sr_ndmi",
+    "tm_sr_evi",
+    "tm_sr_savi",
+    "tm_sr_msavi",
+    "tm_sr_nbr",
+    "tm_sr_nbr2",
+    "source",
+    "source_metadata"
+  ],
+  "MOD": [
+    "mod_l1",
+    "source",
+    "source_metadata"
+  ],
+  "MYD": [
+    "myd_l1",
+    "source",
+    "source_metadata"
+  ]
+}
+```
 
 ```POST /api/v0/available-products```
 * Returns available output products for the input products specified in the body.  Needed to build intelligent clients.
