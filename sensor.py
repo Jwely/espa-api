@@ -50,61 +50,6 @@ class SensorProduct(object):
     # this is a dictionary
     default_pixel_size = {}
 
-    config = {
-        'file.extension.landsat.input.filename': '.tar.gz',
-        'file.extension.modis.input.filename':'.hdf',
-        'pixel.size.dd.09A1': 0.00449155,
-        'pixel.size.dd.09GA': 0.00449155,
-        'pixel.size.dd.09GQ': 0.002245775,
-        'pixel.size.dd.09Q1': 0.002245775,
-        'pixel.size.dd.13A1': 0.0089831,
-        'pixel.size.dd.13A2': 0.0089831,
-        'pixel.size.dd.13A3': 0.0089831,
-        'pixel.size.dd.13Q1': 0.002245775,
-        'pixel.size.dd.LC8': 0.0002695,
-        'pixel.size.dd.LE7': 0.0002695,
-        'pixel.size.dd.LO8': 0.0002695,
-        'pixel.size.dd.LT4': 0.0002695,
-        'pixel.size.dd.LT5': 0.0002695,
-        'pixel.size.meters.09A1': 500,
-        'pixel.size.meters.09GA': 500,
-        'pixel.size.meters.09GQ': 250,
-        'pixel.size.meters.09Q1': 250,
-        'pixel.size.meters.13A1': 1000,
-        'pixel.size.meters.13A2': 1000,
-        'pixel.size.meters.13A3': 1000,
-        'pixel.size.meters.13Q1': 250,
-        'pixel.size.meters.LC8': 30,
-        'pixel.size.meters.LE7': 30,
-        'pixel.size.meters.LO8': 30,
-        'pixel.size.meters.LT4': 30,
-        'pixel.size.meters.LT5': 30,
-        'sensor.LC8.lta_name': 'LANDSAT_8',
-        'sensor.LC8.name': 'olitirs',
-        'sensor.LC8.products': ['olitirs_sr', 'olitirs_toa', 'olitirs_l1', 'olitirs_sr_ndvi', 'olitirs_sr_ndmi', 'olitirs_sr_evi',
-                                'olitirs_sr_savi', 'olitirs_sr_msavi', 'olitirs_sr_nbr', 'olitirs_sr_nbr2', 'source', 'source_metadata'],
-        'sensor.LE7.lta_name': 'LANDSAT_ETM_PLUS',
-        'sensor.LE7.name': 'etm',
-        'sensor.LE7.products': ['etm_sr', 'etm_toa', 'etm_l1', 'etm_sr_ndvi', 'etm_sr_ndmi', 'etm_sr_evi',
-                                'etm_sr_savi', 'etm_sr_msavi', 'etm_sr_nbr', 'etm_sr_nbr2', 'source', 'source_metadata'],
-        'sensor.LO8.lta_name': 'LANDSAT_8',
-        'sensor.LO8.name': 'oli',
-        'sensor.LO8.products': ['oli_toa', 'oli_l1', 'source', 'source_metadata'],
-        'sensor.LT4.lta_name': 'LANDSAT_TM',
-        'sensor.LT4.name': 'tm',
-        'sensor.LT4.products': ['tm_sr', 'tm_toa', 'tm_l1', 'tm_sr_ndvi', 'tm_sr_ndmi', 'tm_sr_evi',
-                                'tm_sr_savi', 'tm_sr_msavi', 'tm_sr_nbr', 'tm_sr_nbr2', 'source', 'source_metadata'],
-        'sensor.LT5.lta_name': 'LANDSAT_TM',
-        'sensor.LT5.name': 'tm',
-        'sensor.LT5.products': ['tm_sr', 'tm_toa', 'tm_l1', 'tm_sr_ndvi', 'tm_sr_ndmi', 'tm_sr_evi',
-                                'tm_sr_savi', 'tm_sr_msavi', 'tm_sr_nbr', 'tm_sr_nbr2', 'source', 'source_metadata'],
-        'sensor.MOD.name': 'terra',
-        'sensor.MOD.products': ['mod_l1', 'source', 'source_metadata'],
-        'sensor.MYD.name': 'aqua',
-        'sensor.MYD.products': ['myd_l1', 'source', 'source_metadata'],
-    }
-    
- 
     def __init__(self, product_id):
         '''Constructor for the SensorProduct base class
 
@@ -119,24 +64,9 @@ class SensorProduct(object):
 
         self.product_id = product_id
         self.sensor_code = product_id[0:3]
-
-        __basekey = 'sensor.{0}'.format(self.sensor_code.upper())
-        self.sensor_name = self.config.get('{0}.name'.format(__basekey))
+        self.sensor_name = None
+        self.lta_name = None
         
-        try:
-            self.lta_name = self.config.get('{0}.lta_name'.format(__basekey))
-        except KeyError:
-            logger.debug('{0}.lta_name not found in config'.format(__basekey))
-
-    @staticmethod
-    def products():
-        result = {}
-        for key in SensorProduct.config.keys():
-            parts = key.split('.')
-            if parts[0] == ('sensor') and parts[len(parts) - 1] == 'products':
-                result[parts[1]] = SensorProduct.config[key]
-        return result
-
 
 class Modis(SensorProduct):
     ''' Superclass for all Modis products '''
@@ -146,6 +76,7 @@ class Modis(SensorProduct):
     vertical = None
     date_acquired = None
     date_produced = None
+    input_filename_extension = '.hdf'
 
     def __init__(self, product_id):
 
@@ -167,103 +98,158 @@ class Modis(SensorProduct):
         # set the default pixel sizes
 
         # this comes out to 09A1, 09GA, 13A1, etc
-        _product_code = self.short_name.split(self.sensor_code)[1]
+        #_product_code = self.short_name.split(self.sensor_code)[1]
 
-        _meters = self.config.get('pixel.size.meters.{0}'.format(_product_code))
+        #_meters = self.config.get('pixel.size.meters.{0}'.format(_product_code))
 
-        _dd = self.config.get('pixel.size.dd.{0}'.format(_product_code))
+        #_dd = self.config.get('pixel.size.dd.{0}'.format(_product_code))
 
-        self.default_pixel_size = {'meters': _meters, 'dd': _dd}
+        #self.default_pixel_size = {'meters': _meters, 'dd': _dd}
 
 
 class Terra(Modis):
     ''' Superclass for Terra based Modis products '''
+        
     def __init__(self, product_id):
         super(Terra, self).__init__(product_id)
+        self.sensor_name = 'terra'
+        self.products = ['mod_l1', 'source', 'source_metadata']
+    
 
 
 class Aqua(Modis):
     ''' Superclass for Aqua based Modis products '''
+       
     def __init__(self, product_id):
         super(Aqua, self).__init__(product_id)
+        self.products = ['myd_l1', 'source', 'source_metadata']
+        self.sensor_name = 'aqua'
 
 
-class ModisTerra09A1(Terra):
+class Modis09A1(Modis):
+    def __init__(self, product_id):
+        super(Modis09A1, self).__init__(product_id)
+        self.default_pixel_size = {'meters': 500 , 'dd': 0.00449155 }
+
+
+class Modis09GA(Modis):
+    def __init__(self, product_id):
+        super(Modis09GA, self).__init__(product_id)
+        self.default_pixel_size = {'meters': 500 , 'dd': 0.00449155 }
+
+
+class Modis09GQ(Modis):
+    def __init__(self, product_id):
+        super(Modis09GQ, self).__init__(product_id)
+        self.default_pixel_size = {'meters': 250, 'dd': 0.002245775}
+
+
+class Modis09Q1(Modis):
+    def __init__(self, product_id):
+        super(Modis09Q1, self).__init__(product_id)
+        self.default_pixel_size = {'meters': 250 , 'dd': 0.002245775}
+
+   
+class Modis13A1(Modis):
+    def __init__(self, product_id):
+        super(Modis13A1, self).__init__(product_id)
+        self.default_pixel_size = {'meters': 1000 , 'dd': 0.0089831}
+   
+
+class Modis13A2(Modis):
+    def __init__(self, product_id):
+        super(Modis13A2, self).__init__(product_id)
+        self.default_pixel_size = {'meters': 1000 , 'dd': 0.0089831}
+
+
+class Modis13A3(Modis):
+    def __init__(self, product_id):
+        super(Modis13A3, self).__init__(product_id)
+        self.default_pixel_size = {'meters': 1000 , 'dd': 0.0089831}
+
+
+class Modis13Q1(Modis):
+    def __init__(self, product_id):
+        super(Modis13Q1, self).__init__(product_id)
+        self.default_pixel_size = {'meters': 250 , 'dd': 0.002245775}
+
+
+class ModisTerra09A1(Terra, Modis09A1):
     def __init__(self, product_id):
         super(ModisTerra09A1, self).__init__(product_id)
 
 
-class ModisTerra09GA(Terra):
+class ModisTerra09GA(Terra, Modis09GA):
     def __init__(self, product_id):
         super(ModisTerra09GA, self).__init__(product_id)
 
 
-class ModisTerra09GQ(Terra):
+class ModisTerra09GQ(Terra, Modis09GQ):
     def __init__(self, product_id):
         super(ModisTerra09GQ, self).__init__(product_id)
 
 
-class ModisTerra09Q1(Terra):
+class ModisTerra09Q1(Terra, Modis09Q1):
     def __init__(self, product_id):
         super(ModisTerra09Q1, self).__init__(product_id)
 
 
-class ModisTerra13A1(Terra):
+class ModisTerra13A1(Terra, Modis13A1):
     def __init__(self, product_id):
         super(ModisTerra13A1, self).__init__(product_id)
 
 
-class ModisTerra13A2(Terra):
+class ModisTerra13A2(Terra, Modis13A2):
     def __init__(self, product_id):
         super(ModisTerra13A2, self).__init__(product_id)
 
 
-class ModisTerra13A3(Terra):
+class ModisTerra13A3(Terra, Modis13A3):
     def __init__(self, product_id):
         super(ModisTerra13A3, self).__init__(product_id)
 
 
-class ModisTerra13Q1(Terra):
+class ModisTerra13Q1(Terra, Modis13Q1):
     def __init__(self, product_id):
         super(ModisTerra13Q1, self).__init__(product_id)
 
 
-class ModisAqua09A1(Aqua):
+class ModisAqua09A1(Aqua, Modis09A1):
     def __init__(self, product_id):
         super(ModisAqua09A1, self).__init__(product_id)
 
 
-class ModisAqua09GA(Aqua):
+class ModisAqua09GA(Aqua, Modis09GA):
     def __init__(self, product_id):
         super(ModisAqua09GA, self).__init__(product_id)
 
 
-class ModisAqua09GQ(Aqua):
+class ModisAqua09GQ(Aqua, Modis09GQ):
     def __init__(self, product_id):
         super(ModisAqua09GQ, self).__init__(product_id)
 
 
-class ModisAqua09Q1(Aqua):
+class ModisAqua09Q1(Aqua, Modis09Q1):
     def __init__(self, product_id):
         super(ModisAqua09Q1, self).__init__(product_id)
 
 
-class ModisAqua13A1(Aqua):
+class ModisAqua13A1(Aqua, Modis13A1):
     def __init__(self, product_id):
         super(ModisAqua13A1, self).__init__(product_id)
 
 
-class ModisAqua13A2(Aqua):
+class ModisAqua13A2(Aqua, Modis13A2):
     def __init__(self, product_id):
         super(ModisAqua13A2, self).__init__(product_id)
 
 
-class ModisAqua13A3(Aqua):
+class ModisAqua13A3(Aqua, Modis13A3):
     def __init__(self, product_id):
         super(ModisAqua13A3, self).__init__(product_id)
 
 
-class ModisAqua13Q1(Aqua):
+class ModisAqua13Q1(Aqua, Modis13Q1):
     def __init__(self, product_id):
         super(ModisAqua13Q1, self).__init__(product_id)
 
@@ -274,6 +260,8 @@ class Landsat(SensorProduct):
     row = None
     station = None
     lta_product_code = None
+    default_pixel_size = {'meters': 30, 'dd': 0.0002695}
+    input_filename_extension = '.tar.gz'
 
     def __init__(self, product_id):
 
@@ -288,13 +276,7 @@ class Landsat(SensorProduct):
         self.station = product_id[16:19]
         self.version = product_id[19:21]
 
-        _meters = self.config.get('pixel.size.meters.{0}'
-            .format(self.sensor_code.upper()))
         
-        _dd = self.config.get('pixel.size.dd.{0}'
-            .format(self.sensor_code.upper()))
-
-        self.default_pixel_size = {'meters': _meters, 'dd': _dd}
 
 
 class LandsatTM(Landsat):
@@ -302,11 +284,32 @@ class LandsatTM(Landsat):
     def __init__(self, product_id):
         super(LandsatTM, self).__init__(product_id)
 
+        self.products = ['tm_sr', 'tm_toa', 'tm_l1',
+                         'tm_sr_ndvi', 'tm_sr_ndmi', 'tm_sr_evi',
+                         'tm_sr_savi', 'tm_sr_msavi', 'tm_sr_nbr',
+                         'tm_sr_nbr2', 'source', 'source_metadata']
+
+        self.lta_name = 'LANDSAT_TM'
+
+        self.sensor_name = 'tm'
+
+
 
 class LandsatETM(Landsat):
     ''' Models Enhanced Thematic Mapper Plus based products '''
     def __init__(self, product_id):
         super(LandsatETM, self).__init__(product_id)
+
+        self.products = ['etm_sr', 'etm_toa', 'etm_l1',
+                         'etm_sr_ndvi', 'etm_sr_ndmi', 'etm_sr_evi',
+                         'etm_sr_savi', 'etm_sr_msavi', 'etm_sr_nbr',
+                         'etm_sr_nbr2', 'source', 'source_metadata']
+
+        self.lta_name = 'LANDSAT_ETM_PLUS'
+
+        self.sensor_name = 'etm'
+
+        
 
 
 class LandsatOLITIRS(Landsat):
@@ -314,14 +317,29 @@ class LandsatOLITIRS(Landsat):
     def __init__(self, product_id):
         super(LandsatOLITIRS, self).__init__(product_id)
 
+        self.products = ['olitirs_sr', 'olitirs_toa', 'olitirs_l1',
+                         'olitirs_sr_ndvi', 'olitirs_sr_ndmi', 'olitirs_sr_evi',
+                         'olitirs_sr_savi', 'olitirs_sr_msavi', 'olitirs_sr_nbr',
+                         'olitirs_sr_nbr2', 'source', 'source_metadata']
+
+        self.lta_name = 'LANDSAT_8'
+
+        self.sensor_name = 'olitirs'
+
+
 
 class LandsatOLI(Landsat):
     ''' Models Landsat 8 OLI only products '''
     def __init__(self, product_id):
         super(LandsatOLI, self).__init__(product_id)
 
+        self.products = ['oli_toa', 'oli_l1', 'source', 'source_metadata']
 
-products = SensorProduct.products()      
+        self.lta_name = 'LANDSAT_8'
+
+        self.sensor_name = 'oli'
+
+
 
 def instance(product_id):
     '''
@@ -340,8 +358,8 @@ def instance(product_id):
     # remove known file extensions before comparison
     # do not alter the case of the actual product_id!
     _id = product_id.lower().strip()
-    __modis_ext = SensorProduct.config.get('file.extension.modis.input.filename')
-    __landsat_ext = SensorProduct.config.get('file.extension.landsat.input.filename')
+    __modis_ext = Modis.input_filename_extension
+    __landsat_ext = Landsat.input_filename_extension
     
     if _id.endswith(__modis_ext):
         index = _id.index(__modis_ext)
@@ -423,3 +441,27 @@ def instance(product_id):
 
     msg = "[%s] is not a supported sensor product" % product_id
     raise ProductNotImplemented(product_id, msg)
+
+
+def available_products(input_products):
+
+    if not hasattr(input_products, '__iter__'):
+        raise TypeError('input_products must be an iterable')
+    
+    result = {}
+
+    for product in input_products:
+        try:
+            inst = instance(product)
+            name = inst.sensor_name
+            if name not in result:
+                result[name] = {'outputs':inst.products, 
+                                'inputs': [product]}
+            else:
+                result[name]['inputs'].append(product)
+        except ProductNotImplemented:
+            if 'not_implemented' not in result:
+                result['not_implemented'] = [product]
+            else:
+                result['not_implemented'].append(product)
+    return result

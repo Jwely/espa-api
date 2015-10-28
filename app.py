@@ -92,12 +92,17 @@ def list_orders():
     orders = db.list_orders(user)
     return jsonify(orders=orders) 
 
-
-@app.route('/api/v0/available-products', methods=['GET'])
+@app.route('/api/v0/available-products', methods=['POST'])
+@app.route('/api/v0/available-products/<product_id>', methods=['GET'])
 @requires_auth
-def available_products():
-    return jsonify(sensor.products)
+def available_products(product_id=None):
+    if request.method == 'GET':
+        return jsonify(sensor.available_products([product_id]))
+    elif request.method == 'POST':
+        body = request.get_json(force=True)
+        return jsonify(sensor.available_products(body['inputs']))
 
+   
     
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
