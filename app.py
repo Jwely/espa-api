@@ -12,6 +12,7 @@ from functools import wraps
 from storage import Storage
 from configuration import Configuration
 import sensor
+import schema
 
 DEBUG = True
 SECRET_KEY = 'not a secret'
@@ -86,11 +87,26 @@ def user_info():
 
 
 @app.route('/api/v0/orders', methods=['GET'])
+@app.route('/api/v0/orders/<email>', methods=['GET'])
 @requires_auth
-def list_orders():
-    user = request.authorization.username
-    orders = db.list_orders(user)
-    return jsonify(orders=orders) 
+def list_orders(email=None):
+    orders = None
+    if email is None:
+        user = request.authorization.username
+    else:
+        try:
+            user = db.username(email)
+            orders = db.list_orders(user)
+        except:
+            pass
+    return jsonify(orders=orders)
+
+
+@app.route('/api/v0/order/<ordernum>', methods=['GET'])
+@requires_auth
+def order_details(ordernum):
+    return jsonify(db.view_order(ordernum))
+
 
 @app.route('/api/v0/available-products', methods=['POST'])
 @app.route('/api/v0/available-products/<product_id>', methods=['GET'])
@@ -102,8 +118,21 @@ def available_products(product_id=None):
         body = request.get_json(force=True)
         return jsonify(sensor.available_products(body['inputs']))
 
-   
-    
+@app.route('/api/v0/projections', methods=['GET'])
+@requires_auth
+def projections():
+    return jsonify(schema.projections)
+
+@app.route('/api/v0/formats', methods=['GET'])
+@requires_auth
+def formats():
+    return jsonify(formats=schema.formats)
+
+@app.route('/api/v0/resampling-methods', methods=['GET'])
+@requires_auth
+def resampling_methods():
+    return jsonify(resampling_methods=schema.resampling_methods)
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0')
 

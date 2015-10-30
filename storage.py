@@ -22,7 +22,7 @@ USERS = {
  
 ORDERS = {
     'production': {
-        'processing@email.com-101015143201-00132': {
+        'production@email.com-101015143201-00132': {
             'status': 'ordered',
             'order_source': 'bulk api',
             'priority': 'high',
@@ -73,7 +73,7 @@ ORDERS = {
                 'format': 'gtiff'
             }
         },
-        'processing@email.com-101115143201-00132': {
+        'production@email.com-101115143201-00132': {
             'status': 'complete',
             'order_source': 'bulk api',
             'priority': 'normal',
@@ -107,9 +107,28 @@ class Storage(object):
         return USERS[username]
 
     @staticmethod
+    def username(email):
+        username = None
+        for k in USERS.keys():
+            if USERS[k]['email'] == email:
+                username = k
+        if username is None:
+            raise Exception("not found")
+        else:
+            return username
+
+    @staticmethod
     def list_orders(username):
         orders = ORDERS[username]
         return [o for o in orders.keys()]
+
+    @staticmethod
+    def view_order(ordernum):
+        for username in ORDERS.keys():
+            for orderid in ORDERS[username].keys():
+                if orderid == ordernum:
+                    return ORDERS[username][orderid]
+                    
 
 
 '''class DBStorage(Storage):
