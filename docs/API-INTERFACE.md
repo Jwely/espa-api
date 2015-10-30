@@ -157,7 +157,137 @@ http://localhost:5000/api/v0/available-products
 ```
 
 **GET /api/v0/projections**
-* Returns available projections
+```json
+curl --user production:password http://localhost:5000/api/v0/available-products/LE70290302003123EDC00
+
+{
+  "aea": {
+    "central_meridian": {
+      "max": 180.0, 
+      "min": -180.0, 
+      "required": true, 
+      "type": "float"
+    }, 
+    "false_easting": {
+      "required": true, 
+      "type": "float"
+    }, 
+    "false_northing": {
+      "required": true, 
+      "type": "float"
+    }, 
+    "latitude_of_origin": {
+      "max": 90.0, 
+      "min": -90.0, 
+      "required": true, 
+      "type": "float"
+    }, 
+    "name": {
+      "allowed": [
+        "aea"
+      ], 
+      "required": true, 
+      "type": "string"
+    }, 
+    "standard_parallel_1": {
+      "max": 90.0, 
+      "min": -90.0, 
+      "required": true, 
+      "type": "float"
+    }, 
+    "standard_parallel_2": {
+      "max": 90.0, 
+      "min": -90.0, 
+      "required": true, 
+      "type": "float"
+    }
+  }, 
+  "lonlat": {
+    "name": {
+      "allowed": [
+        "lonlat"
+      ], 
+      "required": true, 
+      "type": "string"
+    }
+  }, 
+  "ps": {
+    "latitude_true_scale": {
+      "anyof": [
+        {
+          "max": -60.0, 
+          "min": -90.0
+        }, 
+        {
+          "max": 90.0, 
+          "min": 60.0
+        }
+      ], 
+      "required": true, 
+      "type": "float"
+    }, 
+    "longitudinal_pole": {
+      "max": 180.0, 
+      "min": -180.0, 
+      "required": true, 
+      "type": "float"
+    }, 
+    "name": {
+      "allowed": [
+        "ps"
+      ], 
+      "required": true, 
+      "type": "string"
+    }
+  }, 
+  "sinu": {
+    "central_meridian": {
+      "max": 180.0, 
+      "min": -180.0, 
+      "required": true, 
+      "type": "float"
+    }, 
+    "false_easting": {
+      "required": true, 
+      "type": "float"
+    }, 
+    "false_northing": {
+      "required": true, 
+      "type": "float"
+    }, 
+    "name": {
+      "allowed": [
+        "sinu"
+      ], 
+      "required": true, 
+      "type": "string"
+    }
+  }, 
+  "utm": {
+    "name": {
+      "allowed": [
+        "utm"
+      ], 
+      "required": true, 
+      "type": "string"
+    }, 
+    "zone": {
+      "max": 60, 
+      "min": 1, 
+      "required": true, 
+      "type": "integer"
+    }, 
+    "zone_ns": {
+      "allowed": [
+        "north", 
+        "south"
+      ], 
+      "required": true, 
+      "type": "string"
+    }
+  }
+}
+```
 
 **GET /api/v0/projections/\<projection\>**
 * Returns required projection parameters and ranges
