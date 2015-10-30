@@ -320,18 +320,84 @@ curl --user production:password http://localhost:5000/api/v0/orders
 
 {
   "orders": [
-    "processing@email.com-101015143201-00132",
-    "processing@email.com-101115143201-00132"
+    "production@email.com-101015143201-00132", 
+    "production@email.com-101115143201-00132"
   ]
 }
 ```
 
 **GET /api/v0/orders/\<email\>**
-* List all orders for the supplied email 
+```json
+curl --user production:password http://localhost:5000/api/v0/orders/production@email.com
 
+{
+  "orders": [
+    "production@email.com-101015143201-00132", 
+    "production@email.com-101115143201-00132"
+  ]
+}
+```
 **GET /api/v0/order/\<ordernum\>**
-* Retrieve details for the supplied order.
+```json
+curl --user production:password http://localhost:5000/api/v0/order/production@email.com-101015143201-00132
 
+{
+  "completion_date": "", 
+  "completion_email_sent": "", 
+  "customization": {
+    "extents": {
+      "east": -2415600, 
+      "north": 3164800, 
+      "south": 3014800, 
+      "west": -2565600
+    }, 
+    "format": "gtiff", 
+    "projection": {
+      "central_meridian": -96.0, 
+      "code": "aea", 
+      "false_easting": 0.0, 
+      "false_northing": 0.0, 
+      "latitude_of_origin": 23.0, 
+      "standard_parallel_1": 29.5, 
+      "standard_parallel_2": 45.5
+    }, 
+    "resize": {
+      "pixel_size": 30, 
+      "pixel_size_units": "meters"
+    }
+  }, 
+  "ee_order_id": "", 
+  "initial_email_sent": "2015-10-10", 
+  "inputs": {
+    "LT50290302002123EDC00": {
+      "completion_date": "2015-10-12", 
+      "download_url": "http://localhost:5000/orders/order1/LT50290302002123EDC00.tar.gz", 
+      "status": "complete"
+    }, 
+    "LT50300302002123EDC00": {
+      "hadoop_job_id": "job_abc123", 
+      "processing_location": "processingNode1", 
+      "status": "processing"
+    }, 
+    "LT50310302002123EDC00": {
+      "completion_date": null, 
+      "status": "oncache"
+    }
+  }, 
+  "note": "", 
+  "order_date": "2015-10-10", 
+  "order_source": "bulk api", 
+  "order_type": "ondemand", 
+  "priority": "high", 
+  "products": [
+    "tm_sr", 
+    "tm_sr_ndvi", 
+    "tm_toa"
+  ], 
+  "status": "ordered"
+}
+
+```
 **GET /api/v0/order/request/\<ordernum\>**
 * Retrieve the order that was sent to the server.  Resubmittable to the order endpoint.
 
