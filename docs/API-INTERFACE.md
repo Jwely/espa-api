@@ -288,9 +288,31 @@ curl --user production:password http://localhost:5000/api/v0/available-products/
   }
 }
 ```
+**GET /api/v0/formats**
+```json
+curl --user production:password http://localhost:5000/api/v0/available-products/LE70290302003123EDC00
 
-**GET /api/v0/projections/\<projection\>**
-* Returns required projection parameters and ranges
+{
+  "formats": [
+    "gtiff", 
+    "hdf-eos2", 
+    "envi"
+  ]
+}
+```
+
+**GET /api/v0/resampling-methods**
+```json
+curl --user production:password http://localhost:5000/api/v0/resampling-methods
+
+{
+  "resampling_methods": [
+    "nn", 
+    "bil", 
+    "cc"
+  ]
+}
+```
 
 **GET /api/v0/orders**
 ```json
