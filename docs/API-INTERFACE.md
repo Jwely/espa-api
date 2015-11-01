@@ -434,6 +434,23 @@ curl --user production:password -d '{"inputs":["LE70290302003123EDC00", "LT50290
 {
     "orderid": "production@email.com-101015143201-00132"
 }
+```
+
+**GET /api/v0/order?input=LE70290302003123EDC00&products=etm_sr,etm_toa&projection=aea&standard_parallel_1=29.5&standard_parallel_2=45.5&latitude_of_origin=23.0&false_easting=0.0&false_northing=0.0&north=3164800&south=3014800&east=-2415600&west=-2565600&format=gtiff&pixel_size=60&pixel_size_units=meters&resampling_method=nn**
+
+```json
+curl --user production:password http://localhost:5000/api/v0/order?input=LE70290302003123EDC00&products=etm_sr,etm_toa&projection=aea&standard_parallel_1=29.5&standard_parallel_2=45.5&latitude_of_origin=23.0&false_easting=0.0&false_northing=0.0&north=3164800&south=3014800&east=-2415600&west=-2565600&format=gtiff&pixel_size=60&pixel_size_units=meters&resampling_method=nn
+
+{
+    "orderid": "production@email.com-101015143201-00132"
+}
+
+or
+
+{
+    "url": "http://localhost:5000/downloads/LE70290302003123-SC20151101.tar.gz"
+}
+```
 
 ## Production API
 The Production API is intended to be used by the system or systems that are fulfilling the end user production requests.  As such, the API simply allows production systems to retrieve items to process and then update their status.  There is also a method for retrieving configuration data.
