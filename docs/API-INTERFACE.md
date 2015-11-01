@@ -469,6 +469,11 @@ curl --user production:password -d '{"inputs":["LE70290302003123EDC00", "LT50290
 **GET /api/v0/order**
 
 Accepts a request for production from an HTTP GET.  Either returns the url the completed product can be downloaded from if complete or returns an orderid for the item.  This call should be indempotent and would therefore support reusing already processed items.
+
+There are several advantages to moving to this style of operation.  1 - It is simple and eliminates unnecessary complexity  2 - It is testable and usable directly from a browser. 3 - It forces a many-to-many structure for orders to scenes/products, enabling reuse of the cache (ESPA currently has a very high cache hit rate but is not set up to take advantage of it.  This means saving real dollars as less disk cache will be necessary to scale).  4 - We can be more responsive to end users.  They would obtain data faster if the scenes were already on cache.  We would have to process less.  We would allow most items to remain on the cache much longer, and they would only be purged as they lost popularity to other items.  5 - For end users, this is as easy as it gets.  Hit a url.  You either get a download url or an orderid.  Instead of an orderid maybe we could even just provide information about the item and where it's at in the processing queue.  (submitted on this date, has this many items ahead of it, etc).
+
+There are several disadvantages:
+1 - ESPA is not set up to operate on an item by item basis.  Orders are a real thing (many-to-one) so we'd have to do the engineering and migrate to the new way of operating. 2 - It makes the cache purge a bit more complex, but not by much.
 ```json
 curl --user production:password http://localhost:5000/api/v0/order
 ?input=LE70290302003123EDC00&products=etm_sr,etm_toa&projection=aea
@@ -478,6 +483,18 @@ curl --user production:password http://localhost:5000/api/v0/order
 &east=-2415600&west=-2565600
 &format=gtiff&pixel_size=60
 &pixel_size_units=meters&resampling_method=nn
+
+or shortened:
+
+curl --user production:password http://localhost:5000/api/v0/order
+?i=LE70290302003123EDC00&o=etm_sr,etm_toa
+&p=aea
+&psp1=29.5&psp2=45.5
+&plo=23.0&pfe=0.0&pfn=0.0
+&en=3164800&es=3014800
+&ee=-2415600&ew=-2565600
+&fmt=gtiff&pxs=60
+&pxsu=m&rm=nn
 
 {
     "orderid": "production@email.com-101015143201-00132"
