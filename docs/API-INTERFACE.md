@@ -408,7 +408,7 @@ curl --user production:password http://localhost:5000/api/v0/order/production@em
 curl --user production:password -d '{"inputs":["LE70290302003123EDC00", "LT50290302002123EDC00"], 
                                      "products":["etm_sr", "tm_sr", "stats"],
                                      "projection": {
-                                         "name": "aea"
+                                         "name": "aea",
                                          "standard_parallel_1": 29.5,
                                          "standard_parallel_2": 45.5,
                                          "central_meridian": -96.0,
