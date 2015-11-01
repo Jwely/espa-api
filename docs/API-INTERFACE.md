@@ -467,6 +467,7 @@ curl --user production:password -d '{"inputs":["LE70290302003123EDC00", "LT50290
 ```
 
 **GET /api/v0/order**
+This is an alternative option for ordering.  I would appreciate hearing what YOUR preferred method would be if I could only implement one.
 
 Accepts a request for production from an HTTP GET.  Either returns the url the completed product can be downloaded from if complete or returns an orderid for the item.  This call should be indempotent and would therefore support reusing already processed items.
 
