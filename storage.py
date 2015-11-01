@@ -1,3 +1,5 @@
+import datetime
+
 USERS = {
     'admin': {'password': 'password',
               'email': 'admin@email.com',
@@ -128,6 +130,16 @@ class Storage(object):
             for orderid in ORDERS[username].keys():
                 if orderid == ordernum:
                     return ORDERS[username][orderid]
+
+    @staticmethod
+    def save_order(username, order):
+        email = user_info(username)['email']
+        orderid = '{0}-{1}'.format(email,
+                                   datetime.datetime.now())
+        orders = ORDERS.setdefault(username, {})
+        orders[orderid] = order
+        return orderid
+        
                     
 
 

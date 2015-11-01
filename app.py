@@ -102,6 +102,18 @@ def list_orders(email=None):
     return jsonify(orders=orders)
 
 
+@app.route('/api/v0/order', methods=['POST'])
+@requires_auth
+def place_order():
+    user = request.authorization.username
+    order = request.get_json(force=True)
+    v = schema.OrderValidator(schema.order_schema)
+    if v.validate(order) == False:
+        return jsonify(errors=v.errors)
+    else:
+        return jsonify(db.save_order(user, order))
+
+
 @app.route('/api/v0/order/<ordernum>', methods=['GET'])
 @requires_auth
 def order_details(ordernum):

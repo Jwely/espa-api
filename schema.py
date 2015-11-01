@@ -55,7 +55,7 @@ order_schema = {
   'image_extents': {'type': 'string', 'dependencies': 'projection'},
   'format': {'type': 'string', 'allowed': formats},
   'resize': {'type': 'integer'}, 
-  'resample': {'type': 'string', 'allowed': resampling_methods}
+  'resampling_method': {'type': 'string', 'allowed': resampling_methods}
 }
 
 
