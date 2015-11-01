@@ -8,6 +8,8 @@ Users may also want to specify an output file naming scheme that could be provid
 ### User API Operations
 
 **GET /api**
+
+Lists all available versions of the api.
 ```json
 curl http://localhost:5000/api
 
@@ -20,6 +22,8 @@ curl http://localhost:5000/api
 ```
 
 **GET /api/v0**
+
+Lists all available api operations.
 ```json
 curl http://localhost:5000/api/v0
 
@@ -60,8 +64,10 @@ curl http://localhost:5000/api/v0
 
 **POST /api/v0/authenticate**
 
+Authenticates the username + password.  This wouldn't be necessary if the web tier were authenticating with EE via the encrypted cookie.  
 ```json
-curl -d '{"username":"production", "password":"password"}' http://localhost:5000/api/v0/authenticate
+curl -d '{"username":"production", "password":"password"}' 
+http://localhost:5000/api/v0/authenticate
 
 {
   "result": true
@@ -70,6 +76,7 @@ curl -d '{"username":"production", "password":"password"}' http://localhost:5000
 
 **GET /api/v0/user**
 
+Returns user information for the authenticated user.
 ```json
 curl --user production:password http://localhost:5000/api/v0/user
 
@@ -86,8 +93,11 @@ curl --user production:password http://localhost:5000/api/v0/user
 ```
    
 **GET /api/v0/available-products/\<product_id\>**
+
+Lists the available output products for the supplied input.
 ```json
-curl --user production:password http://localhost:5000/api/v0/available-products/LE70290302003123EDC00
+curl --user production:password 
+http://localhost:5000/api/v0/available-products/LE70290302003123EDC00
 
 {
   "etm": {
@@ -113,6 +123,8 @@ curl --user production:password http://localhost:5000/api/v0/available-products/
 ```
 
 **POST /api/v0/available-products**
+
+Lists available products for the supplied inputs.  Also classifies the inputs by sensor or lists as 'not implemented' if the values cannot be ordered or determined.
 ```json
 curl --user production:password 
 -d '{"inputs":["LE70290302003123EDC00",
@@ -157,8 +169,11 @@ http://localhost:5000/api/v0/available-products
 ```
 
 **GET /api/v0/projections**
+
+Lists and describes available projections.  This is a dump of the schema defined that constrains projection info.
 ```json
-curl --user production:password http://localhost:5000/api/v0/available-products/LE70290302003123EDC00
+curl --user production:password 
+http://localhost:5000/api/v0/available-products/LE70290302003123EDC00
 
 {
   "aea": {
@@ -289,8 +304,11 @@ curl --user production:password http://localhost:5000/api/v0/available-products/
 }
 ```
 **GET /api/v0/formats**
+
+Lists all available output formats
 ```json
-curl --user production:password http://localhost:5000/api/v0/available-products/LE70290302003123EDC00
+curl --user production:password 
+http://localhost:5000/api/v0/available-products/LE70290302003123EDC00
 
 {
   "formats": [
@@ -302,6 +320,8 @@ curl --user production:password http://localhost:5000/api/v0/available-products/
 ```
 
 **GET /api/v0/resampling-methods**
+
+Lists all available resampling methods
 ```json
 curl --user production:password http://localhost:5000/api/v0/resampling-methods
 
@@ -315,6 +335,8 @@ curl --user production:password http://localhost:5000/api/v0/resampling-methods
 ```
 
 **GET /api/v0/orders**
+
+List orders for the authenticated user.
 ```json
 curl --user production:password http://localhost:5000/api/v0/orders
 
@@ -327,6 +349,8 @@ curl --user production:password http://localhost:5000/api/v0/orders
 ```
 
 **GET /api/v0/orders/\<email\>**
+
+Lists orders for the supplied email.  Necessary to support user collaboration.
 ```json
 curl --user production:password http://localhost:5000/api/v0/orders/production@email.com
 
@@ -338,8 +362,11 @@ curl --user production:password http://localhost:5000/api/v0/orders/production@e
 }
 ```
 **GET /api/v0/order/\<ordernum\>**
+
+Retrieves a submitted order. Some information may be omitted from this response depending on access privileges.
 ```json
-curl --user production:password http://localhost:5000/api/v0/order/production@email.com-101015143201-00132
+curl --user production:password 
+http://localhost:5000/api/v0/order/production@email.com-101015143201-00132
 
 {
   "completion_date": "", 
@@ -399,13 +426,98 @@ curl --user production:password http://localhost:5000/api/v0/order/production@em
 
 ```
 **GET /api/v0/order/request/\<ordernum\>**
-* Retrieve the order that was sent to the server.  Resubmittable to the order endpoint.
 
-**POST /api/v0/order/validate**
-* Validates a user order.  Can be used prior to POST'ing an order (same logic will be applied during order submission)
+* Retrieve the order that was sent to the server.  Resubmittable to the order endpoint.
+  * don't know if we need this or not 
+
 
 **POST /api/v0/order**
-* Enter a new order, accepts a populated template as returned from /api/v0/order/template
+
+Accepts requests for process from an HTTP POST with a JSON body.  The body is validated and any errors are returned to the caller.  Otherwise, an orderid is returned.
+```json
+curl --user production:password -d '{"inputs":["LE70290302003123EDC00", "LT50290302002123EDC00"], 
+                                     "products":["etm_sr", "tm_sr", "stats"],
+                                     "projection": {
+                                         "name": "aea",
+                                         "standard_parallel_1": 29.5,
+                                         "standard_parallel_2": 45.5,
+                                         "central_meridian": -96.0,
+                                         "latitude_of_origin": 23.0,
+                                         "false_easting": 0.0,
+                                         "false_northing": 0.0,
+                                     },
+                                     "image_extents": {
+                                         "north": 3164800,
+                                         "south": 3014800,
+                                         "east": -2415600,
+                                         "west": -2565600
+                                     }, 
+                                     "format": "gtiff",
+                                     "resize": {
+                                         "pixel_size": 60,
+                                         "pixel_size_units": "meters"
+                                     },
+                                     "resampling_method": "nn"
+                                    }'
+      http://localhost:5000/api/v0/order
+
+{
+    "orderid": "production@email.com-101015143201-00132"
+}
+```
+
+**GET /api/v0/order**
+This is an alternative option for ordering.  I would appreciate hearing what YOUR preferred method would be if I could only implement one.
+
+Accepts a request for production from an HTTP GET.  Either returns the url the completed product can be downloaded from if complete or returns an orderid for the item.  This call should be indempotent and would therefore support reusing already processed items.
+
+There are several advantages to moving to this style of operation.  
+1. It is simple and eliminates unnecessary complexity  
+2. It is testable and usable directly from a browser.
+3. It forces a many-to-many structure for orders to scenes/products, enabling reuse of the cache (ESPA currently has a very high cache hit rate but is not set up to take advantage of it.  This means saving real dollars as less disk cache will be necessary to scale).  
+4. We can be more responsive to end users.  They would obtain data faster if the scenes were already on cache.  We would have to process less.  We would allow most items to remain on the cache much longer, and they would only be purged as they lost popularity to other items.  
+5. For end users, this is as easy as it gets.  Hit a url.  You either get a download url or an orderid.  Instead of an orderid maybe we could even just provide information about the item and where it's at in the processing queue.  (submitted on this date, has this many items ahead of it, etc).
+
+There are several disadvantages:
+1. ESPA is not set up to operate on an item by item basis.  Orders are a real thing (many-to-one) so we'd have to do the engineering and migrate to the new way of operating. 
+2. It makes the cache purge a bit more complex, but not by much.
+3. It would be require statistical plotting to be reworked.
+4. Tracking down issues with user orders would be _different_.  That is, harder or easier depending on what the issue is.  Seeing the users entire order on disk would be more complex.  Tracking down individual items would be far simpler.
+
+This is currently describing the service as returning a download url if the item is available.  I would LOVE to take this further and have the file actually start downloading if it's available instead, thus getting us down to a single, authoritative url for a given product in our system.  This would require significant rework and scaling at the app tier level as it's only hooked up to 1Gb line and is also a single instance.  It *is* the right thing to do, however.
+
+```json
+curl --user production:password http://localhost:5000/api/v0/order
+?input=LE70290302003123EDC00&products=etm_sr,etm_toa&projection=aea
+&standard_parallel_1=29.5&standard_parallel_2=45.5
+&latitude_of_origin=23.0&false_easting=0.0&false_northing=0.0
+&north=3164800&south=3014800
+&east=-2415600&west=-2565600
+&format=gtiff&pixel_size=60
+&pixel_size_units=meters&resampling_method=nn
+
+or shortened:
+
+curl --user production:password http://localhost:5000/api/v0/order
+?i=LE70290302003123EDC00&o=etm_sr,etm_toa
+&p=aea
+&psp1=29.5&psp2=45.5
+&plo=23.0&pfe=0.0&pfn=0.0
+&en=3164800&es=3014800
+&ee=-2415600&ew=-2565600
+&fmt=gtiff&pxs=60
+&pxsu=m&rm=nn
+
+{
+    "orderid": "production@email.com-101015143201-00132"
+}
+
+or
+
+{
+    "url": "http://localhost:5000/downloads/LE70290302003123-SC20151101.tar.gz"
+}
+```
 
 ## Production API
 The Production API is intended to be used by the system or systems that are fulfilling the end user production requests.  As such, the API simply allows production systems to retrieve items to process and then update their status.  There is also a method for retrieving configuration data.
