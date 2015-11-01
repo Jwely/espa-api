@@ -486,6 +486,8 @@ There are several disadvantages:
 
 This is currently describing the service as returning a download url if the item is available.  I would LOVE to take this further and have the file actually start downloading if it's available instead, thus getting us down to a single, authoritative url for a given product in our system.  This would require significant rework and scaling at the app tier level as it's only hooked up to 1Gb line and is also a single instance.  It *is* the right thing to do, however.
 
+This should also leverage previously processed base images when a user is requesting customization.  For example, if a user requests subsets from an SR product, we should go look to see if there is already the SR base image out there on disk and if there is, ingest that and just subset it then redeliver.  The way it works today is everything is rerun from scratch.  So the question is, is this an operational system now and if so, should we be acting like it is?
+
 ```json
 curl --user production:password http://localhost:5000/api/v0/order
 ?input=LE70290302003123EDC00&products=etm_sr,etm_toa&projection=aea
