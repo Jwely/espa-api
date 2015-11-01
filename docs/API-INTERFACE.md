@@ -61,7 +61,8 @@ curl http://localhost:5000/api/v0
 **POST /api/v0/authenticate**
 
 ```json
-curl -d '{"username":"production", "password":"password"}' http://localhost:5000/api/v0/authenticate
+curl -d '{"username":"production", "password":"password"}' 
+http://localhost:5000/api/v0/authenticate
 
 {
   "result": true
@@ -87,7 +88,8 @@ curl --user production:password http://localhost:5000/api/v0/user
    
 **GET /api/v0/available-products/\<product_id\>**
 ```json
-curl --user production:password http://localhost:5000/api/v0/available-products/LE70290302003123EDC00
+curl --user production:password 
+http://localhost:5000/api/v0/available-products/LE70290302003123EDC00
 
 {
   "etm": {
@@ -158,7 +160,8 @@ http://localhost:5000/api/v0/available-products
 
 **GET /api/v0/projections**
 ```json
-curl --user production:password http://localhost:5000/api/v0/available-products/LE70290302003123EDC00
+curl --user production:password 
+http://localhost:5000/api/v0/available-products/LE70290302003123EDC00
 
 {
   "aea": {
@@ -290,7 +293,8 @@ curl --user production:password http://localhost:5000/api/v0/available-products/
 ```
 **GET /api/v0/formats**
 ```json
-curl --user production:password http://localhost:5000/api/v0/available-products/LE70290302003123EDC00
+curl --user production:password 
+http://localhost:5000/api/v0/available-products/LE70290302003123EDC00
 
 {
   "formats": [
@@ -339,7 +343,8 @@ curl --user production:password http://localhost:5000/api/v0/orders/production@e
 ```
 **GET /api/v0/order/\<ordernum\>**
 ```json
-curl --user production:password http://localhost:5000/api/v0/order/production@email.com-101015143201-00132
+curl --user production:password 
+http://localhost:5000/api/v0/order/production@email.com-101015143201-00132
 
 {
   "completion_date": "", 
@@ -436,10 +441,17 @@ curl --user production:password -d '{"inputs":["LE70290302003123EDC00", "LT50290
 }
 ```
 
-**GET /api/v0/order?input=LE70290302003123EDC00&products=etm_sr,etm_toa&projection=aea&standard_parallel_1=29.5&standard_parallel_2=45.5&latitude_of_origin=23.0&false_easting=0.0&false_northing=0.0&north=3164800&south=3014800&east=-2415600&west=-2565600&format=gtiff&pixel_size=60&pixel_size_units=meters&resampling_method=nn**
+**GET /api/v0/order**
 
 ```json
-curl --user production:password http://localhost:5000/api/v0/order?input=LE70290302003123EDC00&products=etm_sr,etm_toa&projection=aea&standard_parallel_1=29.5&standard_parallel_2=45.5&latitude_of_origin=23.0&false_easting=0.0&false_northing=0.0&north=3164800&south=3014800&east=-2415600&west=-2565600&format=gtiff&pixel_size=60&pixel_size_units=meters&resampling_method=nn
+curl --user production:password http://localhost:5000/api/v0/order
+?input=LE70290302003123EDC00&products=etm_sr,etm_toa&projection=aea
+&standard_parallel_1=29.5&standard_parallel_2=45.5
+&latitude_of_origin=23.0&false_easting=0.0&false_northing=0.0
+&north=3164800&south=3014800
+&east=-2415600&west=-2565600
+&format=gtiff&pixel_size=60
+&pixel_size_units=meters&resampling_method=nn
 
 {
     "orderid": "production@email.com-101015143201-00132"
