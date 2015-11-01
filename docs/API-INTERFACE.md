@@ -400,9 +400,8 @@ curl --user production:password http://localhost:5000/api/v0/order/production@em
 ```
 **GET /api/v0/order/request/\<ordernum\>**
 * Retrieve the order that was sent to the server.  Resubmittable to the order endpoint.
+  * don't know if we need this or not 
 
-**POST /api/v0/order/validate**
-* Validates a user order.  Can be used prior to POST'ing an order (same logic will be applied during order submission)
 
 **POST /api/v0/order**
 ```json
@@ -430,6 +429,7 @@ curl --user production:password -d '{"inputs":["LE70290302003123EDC00", "LT50290
                                      },
                                      "resampling_method": "nn"
                                     }'
+      http://localhost:5000/api/v0/order
 
 {
     "orderid": "production@email.com-101015143201-00132"
