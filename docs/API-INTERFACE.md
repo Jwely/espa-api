@@ -405,7 +405,35 @@ curl --user production:password http://localhost:5000/api/v0/order/production@em
 * Validates a user order.  Can be used prior to POST'ing an order (same logic will be applied during order submission)
 
 **POST /api/v0/order**
-* Enter a new order, accepts a populated template as returned from /api/v0/order/template
+```json
+curl --user production:password -d '{"inputs":["LE70290302003123EDC00", "LT50290302002123EDC00"], 
+                                     "products":["etm_sr", "tm_sr", "stats"],
+                                     "projection": {
+                                         "name": "aea"
+                                         "standard_parallel_1": 29.5,
+                                         "standard_parallel_2": 45.5,
+                                         "central_meridian": -96.0,
+                                         "latitude_of_origin": 23.0,
+                                         "false_easting": 0.0,
+                                         "false_northing": 0.0,
+                                     },
+                                     "image_extents": {
+                                         "north": 3164800,
+                                         "south": 3014800,
+                                         "east": -2415600,
+                                         "west": -2565600
+                                     }, 
+                                     "format": "gtiff",
+                                     "resize": {
+                                         "pixel_size": 60,
+                                         "pixel_size_units": "meters"
+                                     },
+                                     "resampling_method": "nn"
+                                    }'
+
+{
+    "orderid": "production@email.com-101015143201-00132"
+}
 
 ## Production API
 The Production API is intended to be used by the system or systems that are fulfilling the end user production requests.  As such, the API simply allows production systems to retrieve items to process and then update their status.  There is also a method for retrieving configuration data.
