@@ -8,6 +8,7 @@ Users may also want to specify an output file naming scheme that could be provid
 ### User API Operations
 
 **GET /api**
+
 Lists all available versions of the api.
 ```json
 curl http://localhost:5000/api
@@ -21,6 +22,7 @@ curl http://localhost:5000/api
 ```
 
 **GET /api/v0**
+
 Lists all available api operations.
 ```json
 curl http://localhost:5000/api/v0
@@ -61,6 +63,7 @@ curl http://localhost:5000/api/v0
 ```
 
 **POST /api/v0/authenticate**
+
 Authenticates the username + password.  This wouldn't be necessary if the web tier were authenticating with EE via the encrypted cookie.  
 ```json
 curl -d '{"username":"production", "password":"password"}' 
@@ -72,6 +75,7 @@ http://localhost:5000/api/v0/authenticate
 ```
 
 **GET /api/v0/user**
+
 Returns user information for the authenticated user.
 ```json
 curl --user production:password http://localhost:5000/api/v0/user
@@ -89,6 +93,7 @@ curl --user production:password http://localhost:5000/api/v0/user
 ```
    
 **GET /api/v0/available-products/\<product_id\>**
+
 Lists the available output products for the supplied input.
 ```json
 curl --user production:password 
@@ -118,6 +123,7 @@ http://localhost:5000/api/v0/available-products/LE70290302003123EDC00
 ```
 
 **POST /api/v0/available-products**
+
 Lists available products for the supplied inputs.  Also classifies the inputs by sensor or lists as unknown if the values cannot be ordered or determined.
 ```json
 curl --user production:password 
@@ -163,6 +169,7 @@ http://localhost:5000/api/v0/available-products
 ```
 
 **GET /api/v0/projections**
+
 Lists and describes available projections.  This is a dump of the schema defined that constrains projection info.
 ```json
 curl --user production:password 
@@ -297,6 +304,7 @@ http://localhost:5000/api/v0/available-products/LE70290302003123EDC00
 }
 ```
 **GET /api/v0/formats**
+
 Lists all available output formats
 ```json
 curl --user production:password 
@@ -312,6 +320,7 @@ http://localhost:5000/api/v0/available-products/LE70290302003123EDC00
 ```
 
 **GET /api/v0/resampling-methods**
+
 Lists all available resampling methods
 ```json
 curl --user production:password http://localhost:5000/api/v0/resampling-methods
@@ -326,6 +335,7 @@ curl --user production:password http://localhost:5000/api/v0/resampling-methods
 ```
 
 **GET /api/v0/orders**
+
 List orders for the authenticated user.
 ```json
 curl --user production:password http://localhost:5000/api/v0/orders
@@ -339,6 +349,7 @@ curl --user production:password http://localhost:5000/api/v0/orders
 ```
 
 **GET /api/v0/orders/\<email\>**
+
 Lists orders for the supplied email.  Necessary to support user collaboration.
 ```json
 curl --user production:password http://localhost:5000/api/v0/orders/production@email.com
@@ -351,6 +362,7 @@ curl --user production:password http://localhost:5000/api/v0/orders/production@e
 }
 ```
 **GET /api/v0/order/\<ordernum\>**
+
 Retrieves a submitted order. Some information may be omitted from this response depending on access privileges.
 ```json
 curl --user production:password 
@@ -414,11 +426,13 @@ http://localhost:5000/api/v0/order/production@email.com-101015143201-00132
 
 ```
 **GET /api/v0/order/request/\<ordernum\>**
+
 * Retrieve the order that was sent to the server.  Resubmittable to the order endpoint.
   * don't know if we need this or not 
 
 
 **POST /api/v0/order**
+
 Accepts requests for process from an HTTP POST with a JSON body.  The body is validated and any errors are returned to the caller.  Otherwise, an orderid is returned.
 ```json
 curl --user production:password -d '{"inputs":["LE70290302003123EDC00", "LT50290302002123EDC00"], 
@@ -453,6 +467,7 @@ curl --user production:password -d '{"inputs":["LE70290302003123EDC00", "LT50290
 ```
 
 **GET /api/v0/order**
+
 Accepts a request for production from an HTTP GET.  Either returns the url the completed product can be downloaded from if complete or returns an orderid for the item.  This call should be indempotent and would therefore support reusing already processed items.
 ```json
 curl --user production:password http://localhost:5000/api/v0/order
