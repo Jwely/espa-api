@@ -124,7 +124,7 @@ http://localhost:5000/api/v0/available-products/LE70290302003123EDC00
 
 **POST /api/v0/available-products**
 
-Lists available products for the supplied inputs.  Also classifies the inputs by sensor or lists as unknown if the values cannot be ordered or determined.
+Lists available products for the supplied inputs.  Also classifies the inputs by sensor or lists as 'not implemented' if the values cannot be ordered or determined.
 ```json
 curl --user production:password 
 -d '{"inputs":["LE70290302003123EDC00",
