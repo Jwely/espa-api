@@ -14,4 +14,4 @@ the ESPA website itself.
   The LTA name should be provided in the returned calls.
   
   The LTA name should also be provided for MODIS products (current system does not have this information.)
-    The LTA name for MODIS is MODIS_<shortname>
+    The LTA name for MODIS is MODIS_\<shortname\>
