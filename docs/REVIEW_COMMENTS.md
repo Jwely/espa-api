@@ -8,7 +8,7 @@ client that uses ESPA for fulfillment, then the users should ultimately wind up 
 the ESPA website itself.  
 
 4. Service operation mod for determining ESPA production capabilities.
-  API users need to be able to call a service operation to determine what output products ESPA can make for a given input product.
+  API users need to be able to call a service operation to determine what output products ESPA can make for a given input product.  (Some clients may choose not to do this and thats sorta ok.  The point being that ESPA must continue providing the distribution hub)
 
   The caller supplies a list of inputs and ESPA returns a dictionary of inputs to valid output product types.  The output should be able to be organized either by (a) input product (b) output product (c) ESPA dataset (d) LTA dataset.
   
