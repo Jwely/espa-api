@@ -3,10 +3,11 @@ Demo API for the ESPA ordering & scheduling system.
 
 ## Related Pages
 * [API Interface](docs/API-INTERFACE.md)
-* [Available Products](docs/AVAILABLE_PRODUCTS.md)
+* [Available Products](docs/AVAILABLE-PRODUCTS.md)
 * [Abbreviations & Definitions](docs/TERMS.md)
 * [ESPA Customizations](docs/CUSTOMIZATION.md)
 * [Requirements & Assumptions](docs/API-REQUIREMENTS.md)
+* [Review Comments](docs/REVIEW-COMMENTS.md)
 
 
 ## ESPA System Overview
