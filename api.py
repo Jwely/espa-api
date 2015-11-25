@@ -6,23 +6,37 @@ from flask import g
 from flask import url_for
 from flask import abort
 from flask import jsonify
+from flask import Blueprint
 
 from functools import wraps
 
+from blueprints import ordering
+from blueprints import admin
+from blueprints import scheduler
+
 from storage import Storage
 from configuration import Configuration
+
 import sensor
 import schema
 
 DEBUG = True
 SECRET_KEY = 'not a secret'
 
-
 app = Flask(__name__)
 app.config.from_object(__name__)
 
 db = Storage()
 config = Configuration()
+
+ordering = Blueprint(ordering, __name__)
+scheduler = Blueprint(scheduler, __name__)
+admin = Blueprint(admin, __name__)
+
+app.register_blueprint(ordering, url_prefix='/api/v0/ordering')
+app.register_blueprint(scheduler, url_prefix='/api/v0/scheduler')
+app.register_blueprint(admin, url_prefix='/api/v0/admin')
+
 
 def login_required():
     return Response('Not authenticated',
@@ -44,6 +58,7 @@ def requires_auth(f):
 
 
 @app.route('/api', methods=['GET'])
+@requires_auth
 def list_versions():
     resp = {
         'version_0': {
@@ -55,6 +70,7 @@ def list_versions():
 
 
 @app.route('/api/v0', methods=['GET'])
+@requires_auth
 def list_operations():
     links = {}
     for rule in app.url_map.iter_rules():
@@ -84,40 +100,6 @@ def user_info():
                     'email': info['email'],
                     'username': user,
                     'roles': info['roles']})
-
-
-@app.route('/api/v0/orders', methods=['GET'])
-@app.route('/api/v0/orders/<email>', methods=['GET'])
-@requires_auth
-def list_orders(email=None):
-    orders = None
-    if email is None:
-        user = request.authorization.username
-    else:
-        try:
-            user = db.username(email)
-            orders = db.list_orders(user)
-        except:
-            pass
-    return jsonify(orders=orders)
-
-
-@app.route('/api/v0/order', methods=['POST'])
-@requires_auth
-def place_order():
-    user = request.authorization.username
-    order = request.get_json(force=True)
-    v = schema.OrderValidator(schema.order_schema)
-    if v.validate(order) == False:
-        return jsonify(errors=v.errors)
-    else:
-        return jsonify(db.save_order(user, order))
-
-
-@app.route('/api/v0/order/<ordernum>', methods=['GET'])
-@requires_auth
-def order_details(ordernum):
-    return jsonify(db.view_order(ordernum))
 
 
 @app.route('/api/v0/available-products', methods=['POST'])
