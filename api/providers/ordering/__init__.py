@@ -1,0 +1,2 @@
+class MockOrderingProvider(object):
+    pass

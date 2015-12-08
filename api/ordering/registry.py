@@ -1,10 +1,14 @@
-from providers.ordering import DefaultOrderingProvider
-from providers.validation import CerberusValidationProvider
-from providers.metrics import PostgresMetricsProvider
+""" Module to glue interfaces to implementations """
 
-ordering = DefaultOrderingProvider
+from api.providers.ordering import MockOrderingProvider
+from api.providers.validation import MockValidationProvider
+from api.providers.metrics import MockMetricsProvider
+from api.providers.inventory import MockInventoryProvider
 
-# provide cerberus schema here and new the object up??
-validation = CerberusValidationProvider
+ordering = MockOrderingProvider
 
-metrics = PostgresMetricsProvider
+validation = MockValidationProvider
+
+metrics = MockMetricsProvider
+
+inventory = MockInventoryProvider
