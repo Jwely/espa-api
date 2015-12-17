@@ -1,2 +1,0 @@
-class MockInventoryProvider(object):
-    pass
