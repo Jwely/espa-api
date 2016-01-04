@@ -1,2 +1,2 @@
 # espa-api
-Demo API for the ESPA ordering system.
+Development branch for API version 0.
