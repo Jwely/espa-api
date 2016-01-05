@@ -1,0 +1,100 @@
+"""API interface for placing and viewing orders.
+
+   Any methods exposed through this interface are intended to be consumed by
+   end users (publicly). The module should be the pure interface for the api
+   functions.  Don't import or include any implementation specific items here,
+   just logic.  Implementations are touched through the registry.
+"""
+
+
+class API(object):
+    def __init__(self, providers=None):
+        if providers is not None:
+            self.providers = providers()
+        else:
+            from api.ordering.providers import DefaultProviders
+            self.providers = DefaultProviders()
+
+        self.ordering = self.providers.ordering
+        self.inventory = self.providers.inventory
+        self.validation = self.providers.validation
+
+    def place_order(self, order):
+        """Enters a new order into the system.
+
+        Args:
+            :keyword order (api.domain.order.Order): The order to be entered into the system
+
+        Returns:
+            str: The generated order id
+
+        Raises:
+            api.exceptions.ValidationException: Error occurred validating params
+            api.exceptions.InventoryException: Items were not found/unavailable
+        """
+        # perform validation, raises ValidationException
+        self.providers.validation.validate(order)
+
+        # performs inventory check, raises InventoryException
+        self.providers.inventory.check(order)
+
+        # track metrics
+        self.providers.metrics.collect(order)
+
+        # capture the order
+        return self.providers.ordering.place_order(order)
+
+    def list_orders(self, username_or_email):
+        """Returns all the orders for the user
+
+        Args:
+            username_or_email (str): Username or email address of user
+
+        Returns:
+            list: A list of all the users orders (order ids).  May be zero length
+        """
+        return self.providers.ordering.list_orders(username_or_email)
+
+    def view_order(self, orderid):
+        """Show details for a user order
+
+        Args:
+            orderid (str): The orderid to view
+
+        Returns:
+            api.domain.order.Order: Same information as when placing the order
+
+        Raises:
+            OrderNotFound:
+        """
+        return self.providers.ordering.view_order(orderid)
+
+    def order_status(self, orderid):
+        """Shows an order status
+
+        Orders contain additional information such as date ordered, date completed,
+        current status and so on.
+
+        Args:
+            orderid (str): id of the order
+
+        Raises:
+            OrderNotFound if the order did not exist
+        """
+        return self.providers.ordering.order_status(orderid)
+
+    def item_status(self, orderid, itemid='ALL'):
+        """Shows an individual item status
+
+        Args:
+            orderid (str): id of the order
+            itemid (str): id of the item.  If ALL is specified, a list of status
+                          for all items in the order will be returned.
+
+        Returns:
+            list: list of dictionaries with status, completion_time and note
+
+        Raises:
+            ItemNotFound if the item did not exist
+        """
+        return self.providers.ordering.item_status(orderid, itemid)

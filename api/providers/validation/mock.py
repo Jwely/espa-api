@@ -1,0 +1,2 @@
+def validate(order):
+    pass

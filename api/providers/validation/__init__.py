@@ -1,0 +1,2 @@
+class MockValidationProvider(object):
+    pass
