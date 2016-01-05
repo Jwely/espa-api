@@ -1,0 +1,2 @@
+class MockMetricsProvider(object):
+    pass
