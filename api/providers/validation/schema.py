@@ -72,8 +72,8 @@ PROJECTIONS = [{'type': 'dict',
                                                  'max': 180.0},
                            'latitude_true_scale': {'type': 'float',
                                                    'required': True,
-                                                   'anyof': [{'min': -90.0 , 'max': -60.0},
-                                                             {'min': 60.0 , 'max': 90.0}]}}}]
+                                                   'anyof': [{'min': -90.0, 'max': -60.0},
+                                                             {'min': 60.0, 'max': 90.0}]}}}]
 
 CUSTOMIZATIONS = {'projection': {'type': 'dict',
                                  'oneof': PROJECTIONS},
