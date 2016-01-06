@@ -19,6 +19,39 @@ class API(object):
         self.inventory = self.providers.inventory
         self.validation = self.providers.validation
 
+    def api_info(self):
+        return {"version_0": {"description": "Demo URLS for development","url": "/api/v0"}}
+
+    def available_products(self, product_id):
+        """
+        Provides list of available products given
+        a scene id.
+
+        Args:
+            keyword: product_id - the scene id to retrieve list of availabe products for.
+
+        Returns: dictionary
+            {
+              "etm": {
+                  "inputs": [
+                        "LE70290302003123EDC00"
+                            ],
+                            "outputs": [
+                                "etm_sr",
+                                "etm_toa",
+                                "etm_l1",
+                                "source",
+                                "source_metadata"
+                              ]
+                            },
+                            "not_implemented": [
+                              "bad scene id"
+                            ],
+                    }
+        """
+        return self.ordering.available_products(product_id)
+
+
     def place_order(self, order):
         """Enters a new order into the system.
 

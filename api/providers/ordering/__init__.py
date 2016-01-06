@@ -1,6 +1,5 @@
 import abc
 
-
 class ProviderInterfaceV0(object):
     __metaclass__ = abc.ABCMeta
 
