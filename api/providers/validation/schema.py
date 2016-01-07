@@ -11,6 +11,7 @@ PRODUCTS = [{'type': 'list',
             {'type': 'list',
              'allowed': ['oli_l1']}]
 
+               # Albers
 PROJECTIONS = [{'type': 'dict',
                 'schema': {'name': {'type': 'string',
                                     'required': True,
@@ -35,6 +36,7 @@ PROJECTIONS = [{'type': 'dict',
                                              'required': True},
                            'false_northing': {'type': 'float',
                                               'required': True}}},
+               # UTM
                {'type': 'dict',
                 'schema': {'name': {'type': 'string',
                                     'required': True,
@@ -46,10 +48,12 @@ PROJECTIONS = [{'type': 'dict',
                            'zone_ns': {'type': 'string',
                                        'required': True,
                                        'allowed': ['north', 'south']}}},
+               # Geographic
                {'type': 'dict',
                 'schema': {'name': {'type': 'string',
                                     'required': True,
                                     'allowed': ['Geographic', 'lonlat']}}},
+               # Sinusoidal
                {'type': 'dict',
                 'schema': {'name': {'type': 'string',
                                     'required': True,
@@ -62,6 +66,7 @@ PROJECTIONS = [{'type': 'dict',
                                              'required': True},
                            'false_northing': {'type': 'float',
                                               'required': True}}},
+               # Polar
                {'type': 'dict',
                 'schema': {'name': {'type': 'string',
                                     'required': True,
@@ -75,7 +80,7 @@ PROJECTIONS = [{'type': 'dict',
                                                    'anyof': [{'min': -90.0, 'max': -60.0},
                                                              {'min': 60.0, 'max': 90.0}]}}}]
 
-CUSTOMIZATIONS = {'projection': {'type': 'dict',
+CUSTOMIZATIONS = {'projection': {'type': 'list',
                                  'oneof': PROJECTIONS},
                   'format': {'type': 'list',
                              'oneof': FORMATS},
