@@ -49,8 +49,6 @@ class SensorProduct(object):
 
         self.product_id = product_id
         self.sensor_code = product_id[0:3]
-        self.sensor_name = None
-        self.lta_name = None
 
 
 class Modis(SensorProduct):
@@ -242,7 +240,7 @@ class LandsatTM(Landsat):
                 'tm_sr_nbr2', 'source', 'source_metadata']
     lta_name = 'LANDSAT_TM'
     sensor_name = 'tm'
-
+    
 
 class LandsatETM(Landsat):
     """Models Enhanced Thematic Mapper Plus based products"""
