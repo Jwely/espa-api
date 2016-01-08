@@ -5,13 +5,13 @@ from api.providers.metrics import MockMetricsProvider
 from api.providers.ordering import MockOrderingProvider
 from api.providers.validation.validation import MockValidationProvider, ValidationProvider
 
-from api.providers.validation.schema import REQUEST_SCHEMA
+from api.providers.validation.schema import Version0Schema
 
 
 class DefaultProviders(object):
     ordering = MockOrderingProvider()
 
-    validation = ValidationProvider(schema=REQUEST_SCHEMA)
+    validation = ValidationProvider(Version0Schema)
 
     metrics = MockMetricsProvider()
 
