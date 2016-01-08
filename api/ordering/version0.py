@@ -18,9 +18,14 @@ class API(object):
         self.ordering = self.providers.ordering
         self.inventory = self.providers.inventory
         self.validation = self.providers.validation
+        self.metrics = self.providers.metrics
 
-    def api_info(self):
-        return {"version_0": {"description": "Demo URLS for development","url": "/api/v0"}}
+    def api_versions(self):
+        return self.ordering.api_versions()
+
+    def api_info(self, version):
+        return self.ordering.api_info(version)
+        #return {"version_0": {"description": "Demo URLS for development","url": "/api/v0"}}
 
     def available_products(self, product_id):
         """
@@ -66,16 +71,16 @@ class API(object):
             api.exceptions.InventoryException: Items were not found/unavailable
         """
         # perform validation, raises ValidationException
-        self.providers.validation.validate(order)
+        self.validation.validate(order)
 
         # performs inventory check, raises InventoryException
-        self.providers.inventory.check(order)
+        self.inventory.check(order)
 
         # track metrics
-        self.providers.metrics.collect(order)
+        self.metrics.collect(order)
 
         # capture the order
-        return self.providers.ordering.place_order(order)
+        return self.ordering.place_order(order)
 
     def list_orders(self, username_or_email):
         """Returns all the orders for the user
@@ -86,7 +91,7 @@ class API(object):
         Returns:
             list: A list of all the users orders (order ids).  May be zero length
         """
-        return self.providers.ordering.list_orders(username_or_email)
+        return self.ordering.list_orders(username_or_email)
 
     def view_order(self, orderid):
         """Show details for a user order
@@ -100,7 +105,7 @@ class API(object):
         Raises:
             OrderNotFound:
         """
-        return self.providers.ordering.view_order(orderid)
+        return self.ordering.view_order(orderid)
 
     def order_status(self, orderid):
         """Shows an order status
@@ -114,7 +119,7 @@ class API(object):
         Raises:
             OrderNotFound if the order did not exist
         """
-        return self.providers.ordering.order_status(orderid)
+        return self.ordering.order_status(orderid)
 
     def item_status(self, orderid, itemid='ALL'):
         """Shows an individual item status
@@ -130,4 +135,4 @@ class API(object):
         Raises:
             ItemNotFound if the item did not exist
         """
-        return self.providers.ordering.item_status(orderid, itemid)
+        return self.ordering.item_status(orderid, itemid)
