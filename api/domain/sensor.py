@@ -50,6 +50,10 @@ class SensorProduct(object):
         self.product_id = product_id
         self.sensor_code = product_id[0:3]
 
+        self.products = ['include_source_data',
+                         'include_source_metadata',
+                         'include_customized_source_data']
+
 
 class Modis(SensorProduct):
     """Superclass for all Modis products"""
@@ -82,12 +86,12 @@ class Terra(Modis):
     """Superclass for Terra based Modis products"""
 
     sensor_name = 'terra'
-    products = ['mod_l1', 'source', 'source_metadata']
+    # products = ['mod_l1', 'source', 'source_metadata']
 
 
 class Aqua(Modis):
     """Superclass for Aqua based Modis products"""
-    products = ['myd_l1', 'source', 'source_metadata']
+    # products = ['myd_l1', 'source', 'source_metadata']
     sensor_name = 'aqua'
 
 
@@ -231,42 +235,92 @@ class Landsat(SensorProduct):
         self.station = product_id[16:19]
         self.version = product_id[19:21]
 
+        self.products.extend(['include_sr',
+                              'include_sr_browse',
+                              'include_sr_evi',
+                              'include_sr_msavi',
+                              'include_sr_nbr',
+                              'include_sr_nbr2',
+                              'include_sr_ndmi',
+                              'include_sr_ndvi',
+                              'include_sr_savi',
+                              'include_sr_toa',
+                              'include_statistics'])
 
-class LandsatTM(Landsat):
+
+class LandsatTM4(Landsat):
     """Models Thematic Mapper based products"""
-    products = ['tm_sr', 'tm_toa', 'tm_l1',
-                'tm_sr_ndvi', 'tm_sr_ndmi', 'tm_sr_evi',
-                'tm_sr_savi', 'tm_sr_msavi', 'tm_sr_nbr',
-                'tm_sr_nbr2', 'source', 'source_metadata']
+    # products = ['tm_sr', 'tm_toa', 'tm_l1',
+    #             'tm_sr_ndvi', 'tm_sr_ndmi', 'tm_sr_evi',
+    #             'tm_sr_savi', 'tm_sr_msavi', 'tm_sr_nbr',
+    #             'tm_sr_nbr2', 'source', 'source_metadata']
     lta_name = 'LANDSAT_TM'
     sensor_name = 'tm'
+
+    def __init__(self, product_id):
+        super(LandsatTM4, self).__init__(product_id)
+
+        self.products.extend(['include_sr_thermal',
+                              'include_dswe',
+                              'include_cfmask'])
+
+class LandsatTM5(Landsat):
+    """Models Thematic Mapper based products"""
+    # products = ['tm_sr', 'tm_toa', 'tm_l1',
+    #             'tm_sr_ndvi', 'tm_sr_ndmi', 'tm_sr_evi',
+    #             'tm_sr_savi', 'tm_sr_msavi', 'tm_sr_nbr',
+    #             'tm_sr_nbr2', 'source', 'source_metadata']
+    lta_name = 'LANDSAT_TM'
+    sensor_name = 'tm'
+
+    def __init__(self, product_id):
+        super(LandsatTM5, self).__init__(product_id)
+
+        self.products.extend(['include_lst',
+                              'include_sr_thermal',
+                              'include_dswe',
+                              'include_cfmask'])
     
 
 class LandsatETM(Landsat):
     """Models Enhanced Thematic Mapper Plus based products"""
-    products = ['etm_sr', 'etm_toa', 'etm_l1',
-                'etm_sr_ndvi', 'etm_sr_ndmi', 'etm_sr_evi',
-                'etm_sr_savi', 'etm_sr_msavi', 'etm_sr_nbr',
-                'etm_sr_nbr2', 'source', 'source_metadata']
+    # products = ['etm_sr', 'etm_toa', 'etm_l1',
+    #             'etm_sr_ndvi', 'etm_sr_ndmi', 'etm_sr_evi',
+    #             'etm_sr_savi', 'etm_sr_msavi', 'etm_sr_nbr',
+    #             'etm_sr_nbr2', 'source', 'source_metadata']
     lta_name = 'LANDSAT_ETM_PLUS'
     sensor_name = 'etm'
+
+    def __init__(self, product_id):
+        super(LandsatETM, self).__init__(product_id)
+
+        self.products.extend(['include_lst',
+                              'include_sr_thermal',
+                              'include_dswe',
+                              'include_cfmask'])
 
 
 class LandsatOLITIRS(Landsat):
     """Models combined Landsat 8 OLI/TIRS products"""
 
-    products = ['olitirs_sr', 'olitirs_toa', 'olitirs_l1',
-                'olitirs_sr_ndvi', 'olitirs_sr_ndmi',
-                'olitirs_sr_evi', 'olitirs_sr_savi',
-                'olitirs_sr_msavi', 'olitirs_sr_nbr',
-                'olitirs_sr_nbr2', 'source', 'source_metadata']
+    # products = ['olitirs_sr', 'olitirs_toa', 'olitirs_l1',
+    #             'olitirs_sr_ndvi', 'olitirs_sr_ndmi',
+    #             'olitirs_sr_evi', 'olitirs_sr_savi',
+    #             'olitirs_sr_msavi', 'olitirs_sr_nbr',
+    #             'olitirs_sr_nbr2', 'source', 'source_metadata']
     lta_name = 'LANDSAT_8'
     sensor_name = 'olitirs'
+
+    def __init__(self, product_id):
+        super(LandsatOLITIRS, self).__init__(product_id)
+
+        self.products.extend(['include_sr_thermal',
+                              'include_cfmask'])
 
 
 class LandsatOLI(Landsat):
     """Models Landsat 8 OLI only products"""
-    product = ['oli_toa', 'oli_l1', 'source', 'source_metadata']
+    # product = ['oli_toa', 'oli_l1', 'source', 'source_metadata']
     lta_name = 'LANDSAT_8'
     sensor_name = 'oli'
 
@@ -304,8 +358,11 @@ def instance(product_id):
         _id = _id[0:index]
 
     instances = {
-        'tm': (r'^lt[4|5]\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$',
-               LandsatTM),
+        'tm4': (r'^lt4\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$',
+                LandsatTM4),
+
+        'tm5': (r'^lt5\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$',
+                LandsatTM5),
 
         'etm': (r'^le7\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
                 LandsatETM),
