@@ -27,12 +27,24 @@ class BaseValidationSchema(object):
                                           'required': False,
                                           'dependencies': ['maxx', 'minx', 'miny']}}}]
 
-    products = ['include_lst', 'include_solr', 'include_source_data',
-                'include_source_metadata', 'include_cfmask', 'include_customized_source_data',
-                'include_sr_evi', 'include_sr_msavi', 'include_sr_nbr',
-                'include_sr_nbr2', 'include_sr_ndmi', 'include_sr_ndvi',
-                'include_sr_savi', 'include_sr', 'include_sr_thermal',
-                'include_sr_toa']
+    products = ['include_sr',
+                'include_sr_browse',
+                'include_lst',
+                'include_source_data',
+                'include_source_metadata',
+                'include_cfmask',
+                'include_customized_source_data',
+                'include_sr_evi',
+                'include_sr_msavi',
+                'include_sr_nbr',
+                'include_sr_nbr2',
+                'include_sr_ndmi',
+                'include_sr_ndvi',
+                'include_sr_savi',
+                'include_sr_thermal',
+                'include_sr_toa',
+                'include_dswe',
+                'include_statistics']
 
                     # Albers
     projections = [{'type': 'dict',

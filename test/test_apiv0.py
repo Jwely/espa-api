@@ -24,6 +24,9 @@ class TestAPI(unittest.TestCase):
         product_id = 'LT50150401987120XXX02'
         self.assertEqual( api.available_products(product_id).keys()[0], "tm" )
 
+class TestValidation(unittest.TestCase):
+    pass
+
 if __name__ == '__main__':
     unittest.main()
 

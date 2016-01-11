@@ -71,7 +71,7 @@ class API(object):
             api.exceptions.InventoryException: Items were not found/unavailable
         """
         # perform validation, raises ValidationException
-        self.validation.validate(order)
+        self.validation(order)
 
         # performs inventory check, raises InventoryException
         self.inventory.check(order)
