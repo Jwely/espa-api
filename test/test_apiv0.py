@@ -10,11 +10,17 @@ class TestAPI(unittest.TestCase):
     def setUp(self):
        pass
 
+    def test_api_versions_type(self):
+        self.assertIsInstance( api.api_versions(), dict ) 
+
+    def test_api_versions_key_val(self):
+        self.assertEqual( api.api_versions().keys()[0], 'version_0' ) 
+
     def test_api_info_type(self):
-       self.assertIsInstance( api.api_info(), dict ) 
+       self.assertIsInstance( api.api_info("0"), dict ) 
 
     def test_api_info_key_val(self):
-        self.assertEqual( api.api_info().keys(), ['version_0'] )
+        self.assertEqual( api.api_info("0").keys()[0], 'operations' )
 
     def test_get_available_products_type(self):
         product_id = 'LT50150401987120XXX02'
