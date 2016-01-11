@@ -25,7 +25,6 @@ class API(object):
 
     def api_info(self, version):
         return self.ordering.api_info(version)
-        #return {"version_0": {"description": "Demo URLS for development","url": "/api/v0"}}
 
     def available_products(self, product_id):
         """

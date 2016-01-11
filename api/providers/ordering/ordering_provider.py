@@ -47,52 +47,62 @@ class OrderingProvider(object):
                             "POST"
                         ]
                     },
+                    "/api/v0/projections": {
+                        'function': "list available projections",
+                        'methods': [
+                            "HEAD",
+                            "GET"
+                        ]
+                    },
+                    "/api/v0/formats": {
+                        'function': "list available output formats",
+                        'methods': [
+                            "HEAD",
+                            "GET"
+                        ]
+                    },
+                    "/api/v0/resampling-methods": {
+                        'function': "list available resampling methods",
+                        'methods': [
+                            "HEAD",
+                            "GET"
+                        ]
+                    },
+                    "/api/v0/orders": {
+                        'function': "list orders for authenticated user",
+                        'methods': [
+                            "HEAD",
+                            "GET"
+                        ]
+                    },
+                    "/api/v0/orders/<email>": {
+                        'function': "list orders for supplied email, for user collaboration",
+                        'methods': [
+                            "HEAD",
+                            "GET"
+                        ]
+                    },
+                    "/api/v0/order/<ordernum>": {
+                        'function': "retrieves a submitted order",
+                        'methods': [
+                            "HEAD",
+                            "GET"
+                        ]
+                    },
+                    "/api/v0/request/<ordernum>": {
+                        'function': "retrieve order sent to server",
+                        'methods': [
+                            "HEAD",
+                            "GET"
+                        ]
+                    },
 
-
-                    "/api": {
-                        'function': "list_versions",
+                    "/api/v0/order": {
+                        'function': "point for accepting processing requests via HTTP POST with JSON body. Errors are returned to user, successful validation returns an orderid",
                         'methods': [
-                            "HEAD",
-                            "GET"
+                            "POST"
                         ]
                     },
-                    "/api": {
-                        'function': "list_versions",
-                        'methods': [
-                            "HEAD",
-                            "GET"
-                        ]
-                    },
-                    "/api": {
-                        'function': "list_versions",
-                        'methods': [
-                            "HEAD",
-                            "GET"
-                        ]
-                    },
-                    "/api": {
-                        'function': "list_versions",
-                        'methods': [
-                            "HEAD",
-                            "GET"
-                        ]
-                    },
-                    "/api": {
-                        'function': "list_versions",
-                        'methods': [
-                            "HEAD",
-                            "GET"
-                        ]
-                    },
-                    "/api": {
-                        'function': "list_versions",
-                        'methods': [
-                            "HEAD",
-                            "GET"
-                        ]
-                    },
-
-
                 }
             }
         }
