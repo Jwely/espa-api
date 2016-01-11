@@ -1,31 +1,31 @@
 from api.domain.sensor import available_products
 
 
-# mimic what's in the DB and the backend
-# TODO Build a standard schema base class with standard methods to call
-class Version0Schema(object):
+class BaseValidationSchema(object):
     """
-    Provides the order validation schema to be passed to the Cerberus module
-    and the valid parameters
+    Provides the base order validation schema to be passed to the Cerberus module
+    and the valid parameters associated with the schema
+
+    This is meant to be inherited into major version change schemas
     """
-    # TODO Fix schema to validate inside of Cerberus
 
     formats = ['gtiff', 'hdf-eos2', 'envi']
 
     resampling_methods = ['nn', 'bil', 'cc']
 
-    image_extents = {'minx': {'type': 'float',
-                              'required': False,
-                              'dependencies': ['maxx', 'miny', 'maxy']},
-                     'maxx': {'type': 'float',
-                              'required': False,
-                              'dependencies': ['minx', 'miny', 'maxy']},
-                     'miny': {'type': 'float',
-                              'required': False,
-                              'dependencies': ['maxx', 'minx', 'maxy']},
-                     'maxy': {'type': 'float',
-                              'required': False,
-                              'dependencies': ['maxx', 'minx', 'miny']}}
+    image_extents = [{'type': 'dict',
+                      'schema': {'minx': {'type': 'float',
+                                          'required': False,
+                                          'dependencies': ['maxx', 'miny', 'maxy']},
+                                 'maxx': {'type': 'float',
+                                          'required': False,
+                                          'dependencies': ['minx', 'miny', 'maxy']},
+                                 'miny': {'type': 'float',
+                                          'required': False,
+                                          'dependencies': ['maxx', 'minx', 'maxy']},
+                                 'maxy': {'type': 'float',
+                                          'required': False,
+                                          'dependencies': ['maxx', 'minx', 'miny']}}}]
 
     products = ['include_lst', 'include_solr', 'include_source_data',
                 'include_source_metadata', 'include_cfmask', 'include_customized_source_data',
@@ -120,16 +120,20 @@ class Version0Schema(object):
                                         'required': False,
                                         'dependencies': ['projection'],
                                         'allof': image_extents},
-                      'format': {'type': 'list',
+                      'format': {'type': 'string',
                                  'required': False,
-                                 'oneof': formats},
+                                 'allowed': formats},
                       'resize': {'type': 'float',
                                  'required': False},
-                      'resampling_method': {'type': 'list',
+                      'resampling_method': {'type': 'string',
                                             'required': False,
-                                            'oneof': resampling_methods}}
+                                            'allowed': resampling_methods}}
 
     valid_params = {'formats': {'formats': formats},
                     'resampling_methods': {'resampling_methods': resampling_methods},
                     'projections': {proj['schema']['name']['allowed'][0]: proj['schema'] for proj in
                                     projections}}
+
+
+class Version0Schema(BaseValidationSchema):
+    pass

@@ -44,6 +44,7 @@ class ValidationProvider(Validator):
         try:
             super(ValidationProvider, self).__init__(schema=schema_cls.request_schema, *args, **kwargs)
         except Exception as e:
+            print e
             pass
             # raise ValidationException(e)
 
