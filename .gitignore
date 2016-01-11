@@ -59,6 +59,9 @@ target/
 # virtualenv
 venv*
 
+# swap files
+*.swp*
+
 bin
 include
 local
