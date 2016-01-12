@@ -61,6 +61,9 @@ class API(object):
         """
         return self.ordering.available_products(product_id)
 
+    def fetch_orders(self, user_id):
+        """ return orders given a user id"""
+        return self.ordering.fetch_user_orders(user_id)
 
     def place_order(self, order):
         """Enters a new order into the system.

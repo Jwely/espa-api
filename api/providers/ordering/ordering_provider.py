@@ -5,6 +5,16 @@ class OrderingProvider(object):
         prod_list = product_id.split(",")
         return sensor.available_products(prod_list)
 
+    def fetch_user_orders(self, user_id):
+        # does user exist in system
+        # what orders does user have in system
+        # if user does not exist, return dict with 
+        # key of 'errmsg'
+        pass
+
+
+
+
     def place_order(self, username):
         pass
 
