@@ -1,0 +1,285 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>api.ordering package &mdash; api  documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="api  documentation" href="index.html" />
+    <link rel="up" title="api package" href="api.html" />
+    <link rel="next" title="api.providers package" href="api.providers.html" />
+    <link rel="prev" title="api.fulfillment package" href="api.fulfillment.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="api-ordering-package">
+<h1>api.ordering package<a class="headerlink" href="#api-ordering-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="api-ordering-providers-module">
+<h2>api.ordering.providers module<a class="headerlink" href="#api-ordering-providers-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-api.ordering.version0">
+<span id="api-ordering-version0-module"></span><h2>api.ordering.version0 module<a class="headerlink" href="#module-api.ordering.version0" title="Permalink to this headline">¶</a></h2>
+<p>API interface for placing and viewing orders.</p>
+<p>Any methods exposed through this interface are intended to be consumed by
+end users (publicly). The module should be the pure interface for the api
+functions.  Don&#8217;t import or include any implementation specific items here,
+just logic.  Implementations are touched through the registry.</p>
+<dl class="class">
+<dt id="api.ordering.version0.API">
+<em class="property">class </em><code class="descclassname">api.ordering.version0.</code><code class="descname">API</code><span class="sig-paren">(</span><em>providers=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/ordering/version0.html#API"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.ordering.version0.API" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="api.ordering.version0.API.api_versions">
+<code class="descname">api_versions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/ordering/version0.html#API.api_versions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.ordering.version0.API.api_versions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides list of available api versions
+Returns: dictionary</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>{</dt>
+<dd><dl class="first docutils">
+<dt>&#8220;0&#8221;: </dt>
+<dd>&#8220;description&#8221;: &#8220;Demo access points for development&#8221;,</dd>
+</dl>
+<p class="last">}</p>
+</dd>
+</dl>
+<p>}</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="api.ordering.version0.API.available_products">
+<code class="descname">available_products</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/ordering/version0.html#API.available_products"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.ordering.version0.API.available_products" title="Permalink to this definition">¶</a></dt>
+<dd><p>Provides list of available products given
+a scene id.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>keyword: product_id - the scene id to retrieve list of availabe products for.</dd>
+<dt>Returns: dictionary</dt>
+<dd><dl class="first last docutils">
+<dt>{</dt>
+<dd><dl class="first last docutils">
+<dt>&#8220;etm&#8221;: {</dt>
+<dd><dl class="first last docutils">
+<dt>&#8220;inputs&#8221;: [</dt>
+<dd><blockquote class="first">
+<div><dl class="docutils">
+<dt>&#8220;LE70290302003123EDC00&#8221;</dt>
+<dd><p class="first">],
+&#8220;outputs&#8221;: [</p>
+<blockquote>
+<div><blockquote>
+<div>&#8220;etm_sr&#8221;,
+&#8220;etm_toa&#8221;,
+&#8220;etm_l1&#8221;,
+&#8220;source&#8221;,
+&#8220;source_metadata&#8221;</div></blockquote>
+<p>]</p>
+</div></blockquote>
+<p>},
+&#8220;not_implemented&#8221;: [</p>
+<blockquote>
+<div>&#8220;bad scene id&#8221;</div></blockquote>
+<p class="last">],</p>
+</dd>
+</dl>
+</div></blockquote>
+<p class="last">}</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="api.ordering.version0.API.item_status">
+<code class="descname">item_status</code><span class="sig-paren">(</span><em>orderid</em>, <em>itemid='ALL'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/ordering/version0.html#API.item_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.ordering.version0.API.item_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shows an individual item status</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><p class="first">orderid (str): id of the order
+itemid (str): id of the item.  If ALL is specified, a list of status</p>
+<blockquote class="last">
+<div>for all items in the order will be returned.</div></blockquote>
+</dd>
+<dt>Returns:</dt>
+<dd>list: list of dictionaries with status, completion_time and note</dd>
+<dt>Raises:</dt>
+<dd>ItemNotFound if the item did not exist</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="api.ordering.version0.API.list_orders">
+<code class="descname">list_orders</code><span class="sig-paren">(</span><em>username_or_email</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/ordering/version0.html#API.list_orders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.ordering.version0.API.list_orders" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all the orders for the user</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>username_or_email (str): Username or email address of user</dd>
+<dt>Returns:</dt>
+<dd>list: A list of all the users orders (order ids).  May be zero length</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="api.ordering.version0.API.order_status">
+<code class="descname">order_status</code><span class="sig-paren">(</span><em>orderid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/ordering/version0.html#API.order_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.ordering.version0.API.order_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shows an order status</p>
+<p>Orders contain additional information such as date ordered, date completed,
+current status and so on.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>orderid (str): id of the order</dd>
+<dt>Raises:</dt>
+<dd>OrderNotFound if the order did not exist</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="api.ordering.version0.API.place_order">
+<code class="descname">place_order</code><span class="sig-paren">(</span><em>order</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/ordering/version0.html#API.place_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.ordering.version0.API.place_order" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enters a new order into the system.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd><table class="first last docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">keyword order (api.domain.order.Order):</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body">The order to be entered into the system</td>
+</tr>
+</tbody>
+</table>
+</dd>
+<dt>Returns:</dt>
+<dd>str: The generated order id</dd>
+<dt>Raises:</dt>
+<dd>api.exceptions.ValidationException: Error occurred validating params
+api.exceptions.InventoryException: Items were not found/unavailable</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="api.ordering.version0.API.view_order">
+<code class="descname">view_order</code><span class="sig-paren">(</span><em>orderid</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/ordering/version0.html#API.view_order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.ordering.version0.API.view_order" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show details for a user order</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>orderid (str): The orderid to view</dd>
+<dt>Returns:</dt>
+<dd>api.domain.order.Order: Same information as when placing the order</dd>
+<dt>Raises:</dt>
+<dd>OrderNotFound:</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-api.ordering">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-api.ordering" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">api.ordering package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#api-ordering-providers-module">api.ordering.providers module</a></li>
+<li><a class="reference internal" href="#module-api.ordering.version0">api.ordering.version0 module</a></li>
+<li><a class="reference internal" href="#module-api.ordering">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="api.html">api package</a><ul>
+      <li>Previous: <a href="api.fulfillment.html" title="previous chapter">api.fulfillment package</a></li>
+      <li>Next: <a href="api.providers.html" title="next chapter">api.providers package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/api.ordering.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, clay austin.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="_sources/api.ordering.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

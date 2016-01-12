@@ -1,0 +1,250 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>api.providers.storage.storage &mdash; api  documentation</title>
+    
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="api  documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for api.providers.storage.storage</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">datetime</span>
+
+<span class="n">USERS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;admin&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="s">&#39;password&#39;</span><span class="p">,</span>
+              <span class="s">&#39;email&#39;</span><span class="p">:</span> <span class="s">&#39;admin@email.com&#39;</span><span class="p">,</span>
+              <span class="s">&#39;first_name&#39;</span><span class="p">:</span> <span class="s">&#39;Admin&#39;</span><span class="p">,</span>
+              <span class="s">&#39;last_name&#39;</span><span class="p">:</span> <span class="s">&#39;Person&#39;</span><span class="p">,</span>
+              <span class="s">&#39;roles&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;admin&#39;</span><span class="p">,</span> <span class="s">&#39;user&#39;</span><span class="p">,</span> <span class="s">&#39;production&#39;</span><span class="p">],</span>
+    <span class="p">},</span>
+    <span class="s">&#39;user&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="s">&#39;password&#39;</span><span class="p">,</span>
+              <span class="s">&#39;email&#39;</span><span class="p">:</span> <span class="s">&#39;user@email.com&#39;</span><span class="p">,</span>
+              <span class="s">&#39;first_name&#39;</span><span class="p">:</span> <span class="s">&#39;User&#39;</span><span class="p">,</span>
+              <span class="s">&#39;last_name&#39;</span><span class="p">:</span> <span class="s">&#39;Person&#39;</span><span class="p">,</span>
+              <span class="s">&#39;roles&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">],</span>
+    <span class="p">},</span>
+    <span class="s">&#39;production&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;password&#39;</span><span class="p">:</span> <span class="s">&#39;password&#39;</span><span class="p">,</span>
+              <span class="s">&#39;email&#39;</span><span class="p">:</span> <span class="s">&#39;production@email.com&#39;</span><span class="p">,</span>
+              <span class="s">&#39;first_name&#39;</span><span class="p">:</span> <span class="s">&#39;Production&#39;</span><span class="p">,</span>
+              <span class="s">&#39;last_name&#39;</span><span class="p">:</span> <span class="s">&#39;Person&#39;</span><span class="p">,</span>
+              <span class="s">&#39;roles&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">,</span> <span class="s">&#39;production&#39;</span><span class="p">],</span>
+    <span class="p">}</span>    
+<span class="p">}</span>
+
+ 
+<span class="n">ORDERS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;production&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">&#39;production@email.com-101015143201-00132&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;ordered&#39;</span><span class="p">,</span>
+            <span class="s">&#39;order_source&#39;</span><span class="p">:</span> <span class="s">&#39;bulk api&#39;</span><span class="p">,</span>
+            <span class="s">&#39;priority&#39;</span><span class="p">:</span> <span class="s">&#39;high&#39;</span><span class="p">,</span>
+            <span class="s">&#39;order_date&#39;</span><span class="p">:</span> <span class="s">&#39;2015-10-10&#39;</span><span class="p">,</span>
+            <span class="s">&#39;completion_date&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;note&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;ee_order_id&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;order_type&#39;</span><span class="p">:</span> <span class="s">&#39;ondemand&#39;</span><span class="p">,</span>
+            <span class="s">&#39;initial_email_sent&#39;</span><span class="p">:</span> <span class="s">&#39;2015-10-10&#39;</span><span class="p">,</span>
+            <span class="s">&#39;completion_email_sent&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;inputs&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&#39;LT50290302002123EDC00&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">&#39;status&#39;</span><span class="p">:</span><span class="s">&#39;complete&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;completion_date&#39;</span><span class="p">:</span> <span class="s">&#39;2015-10-12&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;download_url&#39;</span><span class="p">:</span><span class="s">&#39;http://localhost:5000/orders/order1/LT50290302002123EDC00.tar.gz&#39;</span>
+                <span class="p">},</span>
+                <span class="s">&#39;LT50310302002123EDC00&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">&#39;status&#39;</span><span class="p">:</span><span class="s">&#39;oncache&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;completion_date&#39;</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s">&#39;LT50300302002123EDC00&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">&#39;status&#39;</span><span class="p">:</span><span class="s">&#39;processing&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;hadoop_job_id&#39;</span><span class="p">:</span> <span class="s">&#39;job_abc123&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;processing_location&#39;</span><span class="p">:</span> <span class="s">&#39;processingNode1&#39;</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">},</span>
+            <span class="s">&#39;products&#39;</span><span class="p">:[</span><span class="s">&#39;tm_sr&#39;</span><span class="p">,</span> <span class="s">&#39;tm_sr_ndvi&#39;</span><span class="p">,</span> <span class="s">&#39;tm_toa&#39;</span><span class="p">],</span>
+            <span class="s">&#39;customization&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&#39;projection&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">&#39;code&#39;</span><span class="p">:</span> <span class="s">&#39;aea&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;standard_parallel_1&#39;</span><span class="p">:</span> <span class="mf">29.5</span> <span class="p">,</span>
+                    <span class="s">&#39;standard_parallel_2&#39;</span><span class="p">:</span> <span class="mf">45.5</span><span class="p">,</span>
+                    <span class="s">&#39;latitude_of_origin&#39;</span><span class="p">:</span> <span class="mf">23.0</span><span class="p">,</span>
+                    <span class="s">&#39;central_meridian&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mf">96.0</span><span class="p">,</span>
+                    <span class="s">&#39;false_easting&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                    <span class="s">&#39;false_northing&#39;</span><span class="p">:</span> <span class="mf">0.0</span>
+                <span class="p">},</span>
+                <span class="s">&#39;extents&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">&#39;north&#39;</span><span class="p">:</span><span class="mi">3164800</span><span class="p">,</span>
+                    <span class="s">&#39;south&#39;</span><span class="p">:</span><span class="mi">3014800</span><span class="p">,</span>
+                    <span class="s">&#39;east&#39;</span><span class="p">:</span><span class="o">-</span><span class="mi">2415600</span><span class="p">,</span>
+                    <span class="s">&#39;west&#39;</span><span class="p">:</span><span class="o">-</span><span class="mi">2565600</span>
+                <span class="p">},</span>
+                <span class="s">&#39;resize&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">&#39;pixel_size&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span>
+                    <span class="s">&#39;pixel_size_units&#39;</span><span class="p">:</span> <span class="s">&#39;meters&#39;</span>
+                <span class="p">},</span>
+                <span class="s">&#39;format&#39;</span><span class="p">:</span> <span class="s">&#39;gtiff&#39;</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="s">&#39;production@email.com-101115143201-00132&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;complete&#39;</span><span class="p">,</span>
+            <span class="s">&#39;order_source&#39;</span><span class="p">:</span> <span class="s">&#39;bulk api&#39;</span><span class="p">,</span>
+            <span class="s">&#39;priority&#39;</span><span class="p">:</span> <span class="s">&#39;normal&#39;</span><span class="p">,</span>
+            <span class="s">&#39;order_date&#39;</span><span class="p">:</span> <span class="s">&#39;2015-10-11&#39;</span><span class="p">,</span>
+            <span class="s">&#39;completion_date&#39;</span><span class="p">:</span> <span class="s">&#39;2015-10-11&#39;</span><span class="p">,</span>
+            <span class="s">&#39;note&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;ee_order_id&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;order_type&#39;</span><span class="p">:</span> <span class="s">&#39;ondemand&#39;</span><span class="p">,</span>
+            <span class="s">&#39;initial_email_sent&#39;</span><span class="p">:</span> <span class="s">&#39;2015-10-11&#39;</span><span class="p">,</span>
+            <span class="s">&#39;completion_email_sent&#39;</span><span class="p">:</span> <span class="s">&#39;2015-10-11&#39;</span><span class="p">,</span>
+            <span class="s">&#39;inputs&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&#39;LT50290302002123EDC00&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s">&#39;status&#39;</span><span class="p">:</span><span class="s">&#39;complete&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;completion_date&#39;</span><span class="p">:</span> <span class="s">&#39;2015-10-12&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;download_url&#39;</span><span class="p">:</span><span class="s">&#39;http://localhost:5000/orders/order1/LT50290302002123EDC00.tar.gz&#39;</span>
+                <span class="p">}</span>
+             <span class="p">},</span>
+            <span class="s">&#39;products&#39;</span><span class="p">:[</span><span class="s">&#39;tm_l1&#39;</span><span class="p">],</span>
+        <span class="p">},</span>
+     <span class="p">}</span>   
+<span class="p">}</span>
+
+<div class="viewcode-block" id="Storage"><a class="viewcode-back" href="../../../../api.providers.storage.html#api.providers.storage.storage.Storage">[docs]</a><span class="k">class</span> <span class="nc">Storage</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">login</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">username</span> <span class="ow">in</span> <span class="n">USERS</span> <span class="ow">and</span> <span class="n">USERS</span><span class="p">[</span><span class="n">username</span><span class="p">][</span><span class="s">&#39;password&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">password</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">user_info</span><span class="p">(</span><span class="n">username</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">USERS</span><span class="p">[</span><span class="n">username</span><span class="p">]</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">username</span><span class="p">(</span><span class="n">email</span><span class="p">):</span>
+        <span class="n">username</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">USERS</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">USERS</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="s">&#39;email&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">email</span><span class="p">:</span>
+                <span class="n">username</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="k">if</span> <span class="n">username</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;not found&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">username</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">list_orders</span><span class="p">(</span><span class="n">username</span><span class="p">):</span>
+        <span class="n">orders</span> <span class="o">=</span> <span class="n">ORDERS</span><span class="p">[</span><span class="n">username</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">o</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">orders</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">view_order</span><span class="p">(</span><span class="n">ordernum</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">username</span> <span class="ow">in</span> <span class="n">ORDERS</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">orderid</span> <span class="ow">in</span> <span class="n">ORDERS</span><span class="p">[</span><span class="n">username</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">orderid</span> <span class="o">==</span> <span class="n">ordernum</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">ORDERS</span><span class="p">[</span><span class="n">username</span><span class="p">][</span><span class="n">orderid</span><span class="p">]</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">save_order</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="n">order</span><span class="p">):</span>
+        <span class="n">email</span> <span class="o">=</span> <span class="n">user_info</span><span class="p">(</span><span class="n">username</span><span class="p">)[</span><span class="s">&#39;email&#39;</span><span class="p">]</span>
+        <span class="n">orderid</span> <span class="o">=</span> <span class="s">&#39;{0}-{1}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">email</span><span class="p">,</span>
+                                   <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+        <span class="n">orders</span> <span class="o">=</span> <span class="n">ORDERS</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">username</span><span class="p">,</span> <span class="p">{})</span>
+        <span class="n">orders</span><span class="p">[</span><span class="n">orderid</span><span class="p">]</span> <span class="o">=</span> <span class="n">order</span>
+        <span class="k">return</span> <span class="n">orderid</span>
+        
+                    
+
+
+<span class="sd">&#39;&#39;&#39;class DBStorage(Storage):</span>
+
+<span class="sd">    def __init__(self, connection):</span>
+<span class="sd">        self.connection = connection</span>
+
+<span class="sd">    def initialize(self):</span>
+<span class="sd">        with self.connection as cursor:</span>
+<span class="sd">            with open(&#39;db/schema.sql&#39;, &#39;r&#39;) as schema:</span>
+<span class="sd">                cursor.execute(schema.read())</span>
+<span class="sd">        </span>
+<span class="sd">    def login(username, password):</span>
+<span class="sd">        pass</span>
+
+<span class="sd">    def user_info(username):</span>
+<span class="sd">        pass</span>
+
+<span class="sd">    def list_orders(username):</span>
+<span class="sd">        pass        </span>
+<span class="sd">&#39;&#39;&#39;</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, clay austin.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

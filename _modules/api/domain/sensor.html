@@ -1,0 +1,495 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>api.domain.sensor &mdash; api  documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="api  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for api.domain.sensor</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Purpose: module to extract embedded information from product names and supply</span>
+<span class="sd">configured values for each product</span>
+<span class="sd">Author: David V. Hill</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">api.exceptions</span> <span class="kn">import</span> <span class="n">ProductNotImplemented</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="SensorProduct"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.SensorProduct">[docs]</a><span class="k">class</span> <span class="nc">SensorProduct</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for all sensor products&quot;&quot;&quot;</span>
+
+    <span class="c"># landsat sceneid, modis tile name, aster granule id, etc.</span>
+    <span class="n">product_id</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="c"># lt5, le7, mod, myd, etc</span>
+    <span class="n">sensor_code</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="c"># tm, etm, terra, aqua, etc</span>
+    <span class="n">sensor_name</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="c"># four digits</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="c"># three digits</span>
+    <span class="n">doy</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="c"># last 5 for LANDSAT, collection # for MODIS</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="n">default_pixel_size</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">product_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Constructor for the SensorProduct base class</span>
+
+<span class="sd">        Keyword args:</span>
+<span class="sd">        product_id -- The product id for the requested product</span>
+<span class="sd">                      (e.g. Landsat is scene id, Modis is tilename, minus</span>
+<span class="sd">                      file extension)</span>
+
+<span class="sd">        Return:</span>
+<span class="sd">        None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">product_id</span> <span class="o">=</span> <span class="n">product_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sensor_code</span> <span class="o">=</span> <span class="n">product_id</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Modis"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.Modis">[docs]</a><span class="k">class</span> <span class="nc">Modis</span><span class="p">(</span><span class="n">SensorProduct</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Superclass for all Modis products&quot;&quot;&quot;</span>
+    <span class="n">short_name</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">horizontal</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">vertical</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">date_acquired</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">date_produced</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">input_filename_extension</span> <span class="o">=</span> <span class="s">&#39;.hdf&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">product_id</span><span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">Modis</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">product_id</span><span class="p">)</span>
+
+        <span class="n">parts</span> <span class="o">=</span> <span class="n">product_id</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">short_name</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">date_acquired</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">year</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">date_acquired</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">date_acquired</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">8</span><span class="p">]</span>
+
+        <span class="n">__hv</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">horizontal</span> <span class="o">=</span> <span class="n">__hv</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vertical</span> <span class="o">=</span> <span class="n">__hv</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">date_produced</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Terra"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.Terra">[docs]</a><span class="k">class</span> <span class="nc">Terra</span><span class="p">(</span><span class="n">Modis</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Superclass for Terra based Modis products&quot;&quot;&quot;</span>
+
+    <span class="n">sensor_name</span> <span class="o">=</span> <span class="s">&#39;terra&#39;</span>
+    <span class="n">products</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;mod_l1&#39;</span><span class="p">,</span> <span class="s">&#39;source&#39;</span><span class="p">,</span> <span class="s">&#39;source_metadata&#39;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="Aqua"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.Aqua">[docs]</a><span class="k">class</span> <span class="nc">Aqua</span><span class="p">(</span><span class="n">Modis</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Superclass for Aqua based Modis products&quot;&quot;&quot;</span>
+    <span class="n">products</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;myd_l1&#39;</span><span class="p">,</span> <span class="s">&#39;source&#39;</span><span class="p">,</span> <span class="s">&#39;source_metadata&#39;</span><span class="p">]</span>
+    <span class="n">sensor_name</span> <span class="o">=</span> <span class="s">&#39;aqua&#39;</span></div>
+
+
+<div class="viewcode-block" id="Modis09A1"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.Modis09A1">[docs]</a><span class="k">class</span> <span class="nc">Modis09A1</span><span class="p">(</span><span class="n">Modis</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 09A1&quot;&quot;&quot;</span>
+    <span class="n">default_pixel_size</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;meters&#39;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span> <span class="s">&#39;dd&#39;</span><span class="p">:</span> <span class="mf">0.00449155</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Modis09GA"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.Modis09GA">[docs]</a><span class="k">class</span> <span class="nc">Modis09GA</span><span class="p">(</span><span class="n">Modis</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 09GA&quot;&quot;&quot;</span>
+    <span class="n">default_pixel_size</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;meters&#39;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span> <span class="s">&#39;dd&#39;</span><span class="p">:</span> <span class="mf">0.00449155</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Modis09GQ"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.Modis09GQ">[docs]</a><span class="k">class</span> <span class="nc">Modis09GQ</span><span class="p">(</span><span class="n">Modis</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 09GQ&quot;&quot;&quot;</span>
+    <span class="n">default_pixel_size</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;meters&#39;</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span> <span class="s">&#39;dd&#39;</span><span class="p">:</span> <span class="mf">0.002245775</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Modis09Q1"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.Modis09Q1">[docs]</a><span class="k">class</span> <span class="nc">Modis09Q1</span><span class="p">(</span><span class="n">Modis</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 09Q1&quot;&quot;&quot;</span>
+    <span class="n">default_pixel_size</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;meters&#39;</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span> <span class="s">&#39;dd&#39;</span><span class="p">:</span> <span class="mf">0.002245775</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Modis13A1"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.Modis13A1">[docs]</a><span class="k">class</span> <span class="nc">Modis13A1</span><span class="p">(</span><span class="n">Modis</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 13A1&quot;&quot;&quot;</span>
+    <span class="n">default_pixel_size</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;meters&#39;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span> <span class="s">&#39;dd&#39;</span><span class="p">:</span> <span class="mf">0.0089831</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Modis13A2"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.Modis13A2">[docs]</a><span class="k">class</span> <span class="nc">Modis13A2</span><span class="p">(</span><span class="n">Modis</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 13A2&quot;&quot;&quot;</span>
+    <span class="n">default_pixel_size</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;meters&#39;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span> <span class="s">&#39;dd&#39;</span><span class="p">:</span> <span class="mf">0.0089831</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Modis13A3"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.Modis13A3">[docs]</a><span class="k">class</span> <span class="nc">Modis13A3</span><span class="p">(</span><span class="n">Modis</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 13A3&quot;&quot;&quot;</span>
+    <span class="n">default_pixel_size</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;meters&#39;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span> <span class="s">&#39;dd&#39;</span><span class="p">:</span> <span class="mf">0.0089831</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="Modis13Q1"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.Modis13Q1">[docs]</a><span class="k">class</span> <span class="nc">Modis13Q1</span><span class="p">(</span><span class="n">Modis</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 13Q1&quot;&quot;&quot;</span>
+    <span class="n">default_pixel_size</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;meters&#39;</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span> <span class="s">&#39;dd&#39;</span><span class="p">:</span> <span class="mf">0.002245775</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="ModisTerra09A1"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.ModisTerra09A1">[docs]</a><span class="k">class</span> <span class="nc">ModisTerra09A1</span><span class="p">(</span><span class="n">Terra</span><span class="p">,</span> <span class="n">Modis09A1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 09A1 from Terra&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ModisTerra09GA"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.ModisTerra09GA">[docs]</a><span class="k">class</span> <span class="nc">ModisTerra09GA</span><span class="p">(</span><span class="n">Terra</span><span class="p">,</span> <span class="n">Modis09GA</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 09GA from Terra&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ModisTerra09GQ"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.ModisTerra09GQ">[docs]</a><span class="k">class</span> <span class="nc">ModisTerra09GQ</span><span class="p">(</span><span class="n">Terra</span><span class="p">,</span> <span class="n">Modis09GQ</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 09GQ from Terra&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ModisTerra09Q1"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.ModisTerra09Q1">[docs]</a><span class="k">class</span> <span class="nc">ModisTerra09Q1</span><span class="p">(</span><span class="n">Terra</span><span class="p">,</span> <span class="n">Modis09Q1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 09Q1 from Terra&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ModisTerra13A1"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.ModisTerra13A1">[docs]</a><span class="k">class</span> <span class="nc">ModisTerra13A1</span><span class="p">(</span><span class="n">Terra</span><span class="p">,</span> <span class="n">Modis13A1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 13A1 from Terra&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ModisTerra13A2"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.ModisTerra13A2">[docs]</a><span class="k">class</span> <span class="nc">ModisTerra13A2</span><span class="p">(</span><span class="n">Terra</span><span class="p">,</span> <span class="n">Modis13A2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 13A2 from Terra&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ModisTerra13A3"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.ModisTerra13A3">[docs]</a><span class="k">class</span> <span class="nc">ModisTerra13A3</span><span class="p">(</span><span class="n">Terra</span><span class="p">,</span> <span class="n">Modis13A3</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 13A3 from Terra&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ModisTerra13Q1"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.ModisTerra13Q1">[docs]</a><span class="k">class</span> <span class="nc">ModisTerra13Q1</span><span class="p">(</span><span class="n">Terra</span><span class="p">,</span> <span class="n">Modis13Q1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 13Q1 from Terra&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ModisAqua09A1"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.ModisAqua09A1">[docs]</a><span class="k">class</span> <span class="nc">ModisAqua09A1</span><span class="p">(</span><span class="n">Aqua</span><span class="p">,</span> <span class="n">Modis09A1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 09A1 from Aqua&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ModisAqua09GA"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.ModisAqua09GA">[docs]</a><span class="k">class</span> <span class="nc">ModisAqua09GA</span><span class="p">(</span><span class="n">Aqua</span><span class="p">,</span> <span class="n">Modis09GA</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 09GA from Aqua&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ModisAqua09GQ"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.ModisAqua09GQ">[docs]</a><span class="k">class</span> <span class="nc">ModisAqua09GQ</span><span class="p">(</span><span class="n">Aqua</span><span class="p">,</span> <span class="n">Modis09GQ</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 09GQ from Aqua&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ModisAqua09Q1"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.ModisAqua09Q1">[docs]</a><span class="k">class</span> <span class="nc">ModisAqua09Q1</span><span class="p">(</span><span class="n">Aqua</span><span class="p">,</span> <span class="n">Modis09Q1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 09Q1 from Aqua&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ModisAqua13A1"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.ModisAqua13A1">[docs]</a><span class="k">class</span> <span class="nc">ModisAqua13A1</span><span class="p">(</span><span class="n">Aqua</span><span class="p">,</span> <span class="n">Modis13A1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 13A1 from Aqua&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ModisAqua13A2"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.ModisAqua13A2">[docs]</a><span class="k">class</span> <span class="nc">ModisAqua13A2</span><span class="p">(</span><span class="n">Aqua</span><span class="p">,</span> <span class="n">Modis13A2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 13A2 from Aqua&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ModisAqua13A3"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.ModisAqua13A3">[docs]</a><span class="k">class</span> <span class="nc">ModisAqua13A3</span><span class="p">(</span><span class="n">Aqua</span><span class="p">,</span> <span class="n">Modis13A3</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 13A3 from Aqua&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ModisAqua13Q1"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.ModisAqua13Q1">[docs]</a><span class="k">class</span> <span class="nc">ModisAqua13Q1</span><span class="p">(</span><span class="n">Aqua</span><span class="p">,</span> <span class="n">Modis13Q1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;models modis 13Q1 from Aqua&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Landsat"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.Landsat">[docs]</a><span class="k">class</span> <span class="nc">Landsat</span><span class="p">(</span><span class="n">SensorProduct</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Superclass for all landsat based products&quot;&quot;&quot;</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">row</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">station</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">lta_product_code</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">default_pixel_size</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;meters&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span> <span class="s">&#39;dd&#39;</span><span class="p">:</span> <span class="mf">0.0002695</span><span class="p">}</span>
+    <span class="n">input_filename_extension</span> <span class="o">=</span> <span class="s">&#39;.tar.gz&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">product_id</span><span class="p">):</span>
+        <span class="n">product_id</span> <span class="o">=</span> <span class="n">product_id</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Landsat</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">product_id</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">product_id</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s">&#39;0&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">row</span> <span class="o">=</span> <span class="n">product_id</span><span class="p">[</span><span class="mi">6</span><span class="p">:</span><span class="mi">9</span><span class="p">]</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s">&#39;0&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">year</span> <span class="o">=</span> <span class="n">product_id</span><span class="p">[</span><span class="mi">9</span><span class="p">:</span><span class="mi">13</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doy</span> <span class="o">=</span> <span class="n">product_id</span><span class="p">[</span><span class="mi">13</span><span class="p">:</span><span class="mi">16</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">station</span> <span class="o">=</span> <span class="n">product_id</span><span class="p">[</span><span class="mi">16</span><span class="p">:</span><span class="mi">19</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="n">product_id</span><span class="p">[</span><span class="mi">19</span><span class="p">:</span><span class="mi">21</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="LandsatTM"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.LandsatTM">[docs]</a><span class="k">class</span> <span class="nc">LandsatTM</span><span class="p">(</span><span class="n">Landsat</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Models Thematic Mapper based products&quot;&quot;&quot;</span>
+    <span class="n">products</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;tm_sr&#39;</span><span class="p">,</span> <span class="s">&#39;tm_toa&#39;</span><span class="p">,</span> <span class="s">&#39;tm_l1&#39;</span><span class="p">,</span>
+                <span class="s">&#39;tm_sr_ndvi&#39;</span><span class="p">,</span> <span class="s">&#39;tm_sr_ndmi&#39;</span><span class="p">,</span> <span class="s">&#39;tm_sr_evi&#39;</span><span class="p">,</span>
+                <span class="s">&#39;tm_sr_savi&#39;</span><span class="p">,</span> <span class="s">&#39;tm_sr_msavi&#39;</span><span class="p">,</span> <span class="s">&#39;tm_sr_nbr&#39;</span><span class="p">,</span>
+                <span class="s">&#39;tm_sr_nbr2&#39;</span><span class="p">,</span> <span class="s">&#39;source&#39;</span><span class="p">,</span> <span class="s">&#39;source_metadata&#39;</span><span class="p">]</span>
+    <span class="n">lta_name</span> <span class="o">=</span> <span class="s">&#39;LANDSAT_TM&#39;</span>
+    <span class="n">sensor_name</span> <span class="o">=</span> <span class="s">&#39;tm&#39;</span></div>
+    
+
+<div class="viewcode-block" id="LandsatETM"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.LandsatETM">[docs]</a><span class="k">class</span> <span class="nc">LandsatETM</span><span class="p">(</span><span class="n">Landsat</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Models Enhanced Thematic Mapper Plus based products&quot;&quot;&quot;</span>
+    <span class="n">products</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;etm_sr&#39;</span><span class="p">,</span> <span class="s">&#39;etm_toa&#39;</span><span class="p">,</span> <span class="s">&#39;etm_l1&#39;</span><span class="p">,</span>
+                <span class="s">&#39;etm_sr_ndvi&#39;</span><span class="p">,</span> <span class="s">&#39;etm_sr_ndmi&#39;</span><span class="p">,</span> <span class="s">&#39;etm_sr_evi&#39;</span><span class="p">,</span>
+                <span class="s">&#39;etm_sr_savi&#39;</span><span class="p">,</span> <span class="s">&#39;etm_sr_msavi&#39;</span><span class="p">,</span> <span class="s">&#39;etm_sr_nbr&#39;</span><span class="p">,</span>
+                <span class="s">&#39;etm_sr_nbr2&#39;</span><span class="p">,</span> <span class="s">&#39;source&#39;</span><span class="p">,</span> <span class="s">&#39;source_metadata&#39;</span><span class="p">]</span>
+    <span class="n">lta_name</span> <span class="o">=</span> <span class="s">&#39;LANDSAT_ETM_PLUS&#39;</span>
+    <span class="n">sensor_name</span> <span class="o">=</span> <span class="s">&#39;etm&#39;</span></div>
+
+
+<div class="viewcode-block" id="LandsatOLITIRS"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.LandsatOLITIRS">[docs]</a><span class="k">class</span> <span class="nc">LandsatOLITIRS</span><span class="p">(</span><span class="n">Landsat</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Models combined Landsat 8 OLI/TIRS products&quot;&quot;&quot;</span>
+
+    <span class="n">products</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;olitirs_sr&#39;</span><span class="p">,</span> <span class="s">&#39;olitirs_toa&#39;</span><span class="p">,</span> <span class="s">&#39;olitirs_l1&#39;</span><span class="p">,</span>
+                <span class="s">&#39;olitirs_sr_ndvi&#39;</span><span class="p">,</span> <span class="s">&#39;olitirs_sr_ndmi&#39;</span><span class="p">,</span>
+                <span class="s">&#39;olitirs_sr_evi&#39;</span><span class="p">,</span> <span class="s">&#39;olitirs_sr_savi&#39;</span><span class="p">,</span>
+                <span class="s">&#39;olitirs_sr_msavi&#39;</span><span class="p">,</span> <span class="s">&#39;olitirs_sr_nbr&#39;</span><span class="p">,</span>
+                <span class="s">&#39;olitirs_sr_nbr2&#39;</span><span class="p">,</span> <span class="s">&#39;source&#39;</span><span class="p">,</span> <span class="s">&#39;source_metadata&#39;</span><span class="p">]</span>
+    <span class="n">lta_name</span> <span class="o">=</span> <span class="s">&#39;LANDSAT_8&#39;</span>
+    <span class="n">sensor_name</span> <span class="o">=</span> <span class="s">&#39;olitirs&#39;</span></div>
+
+
+<div class="viewcode-block" id="LandsatOLI"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.LandsatOLI">[docs]</a><span class="k">class</span> <span class="nc">LandsatOLI</span><span class="p">(</span><span class="n">Landsat</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Models Landsat 8 OLI only products&quot;&quot;&quot;</span>
+    <span class="n">product</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;oli_toa&#39;</span><span class="p">,</span> <span class="s">&#39;oli_l1&#39;</span><span class="p">,</span> <span class="s">&#39;source&#39;</span><span class="p">,</span> <span class="s">&#39;source_metadata&#39;</span><span class="p">]</span>
+    <span class="n">lta_name</span> <span class="o">=</span> <span class="s">&#39;LANDSAT_8&#39;</span>
+    <span class="n">sensor_name</span> <span class="o">=</span> <span class="s">&#39;oli&#39;</span></div>
+
+
+<div class="viewcode-block" id="instance"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.instance">[docs]</a><span class="k">def</span> <span class="nf">instance</span><span class="p">(</span><span class="n">product_id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Supported MODIS products</span>
+<span class="sd">    MOD09A1 MOD09GA MOD09GQ MOD09Q1 MYD09A1 MYD09GA MYD09GQ MYD09Q1</span>
+<span class="sd">    MOD13A1 MOD13A2 MOD13A3 MOD13Q1 MYD13A1 MYD13A2 MYD13A3 MYD13Q1</span>
+
+<span class="sd">    MODIS FORMAT:   MOD09GQ.A2000072.h02v09.005.2008237032813</span>
+
+<span class="sd">    Supported LANDSAT products</span>
+<span class="sd">    LT4 LT5 LE7 LC8</span>
+
+<span class="sd">    LANDSAT FORMAT: LE72181092013069PFS00</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c"># remove known file extensions before comparison</span>
+    <span class="c"># do not alter the case of the actual product_id!</span>
+    <span class="n">_id</span> <span class="o">=</span> <span class="n">product_id</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">__modis_ext</span> <span class="o">=</span> <span class="n">Modis</span><span class="o">.</span><span class="n">input_filename_extension</span>
+    <span class="n">__landsat_ext</span> <span class="o">=</span> <span class="n">Landsat</span><span class="o">.</span><span class="n">input_filename_extension</span>
+
+    <span class="k">if</span> <span class="n">_id</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">__modis_ext</span><span class="p">):</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">_id</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">__modis_ext</span><span class="p">)</span>
+        <span class="c"># leave original case intact</span>
+        <span class="n">product_id</span> <span class="o">=</span> <span class="n">product_id</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">_id</span> <span class="o">=</span> <span class="n">_id</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">index</span><span class="p">]</span>
+
+    <span class="k">elif</span> <span class="n">_id</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">__landsat_ext</span><span class="p">):</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">_id</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">__landsat_ext</span><span class="p">)</span>
+        <span class="c"># leave original case intact</span>
+        <span class="n">product_id</span> <span class="o">=</span> <span class="n">product_id</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">_id</span> <span class="o">=</span> <span class="n">_id</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">index</span><span class="p">]</span>
+
+    <span class="n">instances</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s">&#39;tm&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">r&#39;^lt[4|5]\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$&#39;</span><span class="p">,</span>
+               <span class="n">LandsatTM</span><span class="p">),</span>
+
+        <span class="s">&#39;etm&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">r&#39;^le7\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$&#39;</span><span class="p">,</span>
+                <span class="n">LandsatETM</span><span class="p">),</span>
+
+        <span class="s">&#39;olitirs&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">r&#39;^lc8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$&#39;</span><span class="p">,</span>
+                    <span class="n">LandsatOLITIRS</span><span class="p">),</span>
+
+        <span class="s">&#39;oli&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">r&#39;^lo8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$&#39;</span><span class="p">,</span>
+                <span class="n">LandsatOLI</span><span class="p">),</span>
+
+        <span class="s">&#39;mod09a1&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">r&#39;^mod09a1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$&#39;</span><span class="p">,</span>
+                    <span class="n">ModisTerra09A1</span><span class="p">),</span>
+
+        <span class="s">&#39;mod09ga&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">r&#39;^mod09ga\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$&#39;</span><span class="p">,</span>
+                    <span class="n">ModisTerra09GA</span><span class="p">),</span>
+
+        <span class="s">&#39;mod09gq&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">r&#39;^mod09gq\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$&#39;</span><span class="p">,</span>
+                    <span class="n">ModisTerra09GQ</span><span class="p">),</span>
+
+        <span class="s">&#39;mod09q1&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">r&#39;^mod09q1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$&#39;</span><span class="p">,</span>
+                    <span class="n">ModisTerra09Q1</span><span class="p">),</span>
+
+        <span class="s">&#39;mod13a1&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">r&#39;^mod13a1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$&#39;</span><span class="p">,</span>
+                    <span class="n">ModisTerra13A1</span><span class="p">),</span>
+
+        <span class="s">&#39;mod13a2&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">r&#39;^mod13a2\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$&#39;</span><span class="p">,</span>
+                    <span class="n">ModisTerra13A2</span><span class="p">),</span>
+
+        <span class="s">&#39;mod13a3&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">r&#39;^mod13a3\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$&#39;</span><span class="p">,</span>
+                    <span class="n">ModisTerra13A3</span><span class="p">),</span>
+
+        <span class="s">&#39;mod13q1&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">r&#39;^mod13q1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$&#39;</span><span class="p">,</span>
+                    <span class="n">ModisTerra13Q1</span><span class="p">),</span>
+
+        <span class="s">&#39;myd09a1&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">r&#39;^myd09a1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$&#39;</span><span class="p">,</span>
+                    <span class="n">ModisAqua09A1</span><span class="p">),</span>
+
+        <span class="s">&#39;myd09ga&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">r&#39;^myd09ga\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$&#39;</span><span class="p">,</span>
+                    <span class="n">ModisAqua09GA</span><span class="p">),</span>
+
+        <span class="s">&#39;myd09gq&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">r&#39;^myd09gq\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$&#39;</span><span class="p">,</span>
+                    <span class="n">ModisAqua09GQ</span><span class="p">),</span>
+
+        <span class="s">&#39;myd09q1&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">r&#39;^myd09q1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$&#39;</span><span class="p">,</span>
+                    <span class="n">ModisAqua09Q1</span><span class="p">),</span>
+
+        <span class="s">&#39;myd13a1&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">r&#39;^myd13a1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$&#39;</span><span class="p">,</span>
+                    <span class="n">ModisAqua13A1</span><span class="p">),</span>
+
+        <span class="s">&#39;myd13a2&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">r&#39;^myd13a2\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$&#39;</span><span class="p">,</span>
+                    <span class="n">ModisAqua13A2</span><span class="p">),</span>
+
+        <span class="s">&#39;myd13a3&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">r&#39;^myd13a3\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$&#39;</span><span class="p">,</span>
+                    <span class="n">ModisAqua13A3</span><span class="p">),</span>
+
+        <span class="s">&#39;myd13q1&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s">r&#39;^myd13q1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$&#39;</span><span class="p">,</span>
+                    <span class="n">ModisAqua13Q1</span><span class="p">)</span>
+    <span class="p">}</span>
+
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">instances</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">instances</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">_id</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">instances</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">1</span><span class="p">](</span><span class="n">product_id</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+    <span class="n">msg</span> <span class="o">=</span> <span class="s">u&quot;[{0:s}] is not a supported sensor product&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">product_id</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="n">ProductNotImplemented</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="available_products"><a class="viewcode-back" href="../../../api.domain.html#api.domain.sensor.available_products">[docs]</a><span class="k">def</span> <span class="nf">available_products</span><span class="p">(</span><span class="n">input_products</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Lists all the available products for each input_product</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        input_products (iterable): An iterable of input_product names (str)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: { &#39;tm&#39;: {&#39;outputs&#39;: [output, products],</span>
+<span class="sd">                       &#39;inputs&#39;: [supplied, input, products]},</span>
+<span class="sd">                &#39;etm&#39;: ... }</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ProductNotImplemented if an unknown product is supplied</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">input_products</span><span class="p">,</span> <span class="s">&#39;__iter__&#39;</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s">&#39;input_products must be iterable&#39;</span><span class="p">)</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">product</span> <span class="ow">in</span> <span class="n">input_products</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">inst</span> <span class="o">=</span> <span class="n">instance</span><span class="p">(</span><span class="n">product</span><span class="p">)</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">inst</span><span class="o">.</span><span class="n">sensor_name</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;outputs&#39;</span><span class="p">:</span> <span class="n">inst</span><span class="o">.</span><span class="n">products</span><span class="p">,</span>
+                                <span class="s">&#39;inputs&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">product</span><span class="p">]}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="s">&#39;inputs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">product</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">ProductNotImplemented</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s">&#39;not_implemented&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="s">&#39;not_implemented&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">product</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="s">&#39;not_implemented&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">product</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, clay austin.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

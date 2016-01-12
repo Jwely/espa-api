@@ -1,0 +1,229 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>api.ordering.version0 &mdash; api  documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="api  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for api.ordering.version0</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;API interface for placing and viewing orders.</span>
+
+<span class="sd">   Any methods exposed through this interface are intended to be consumed by</span>
+<span class="sd">   end users (publicly). The module should be the pure interface for the api</span>
+<span class="sd">   functions.  Don&#39;t import or include any implementation specific items here,</span>
+<span class="sd">   just logic.  Implementations are touched through the registry.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="API"><a class="viewcode-back" href="../../../api.ordering.html#api.ordering.version0.API">[docs]</a><span class="k">class</span> <span class="nc">API</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">providers</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">providers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">providers</span> <span class="o">=</span> <span class="n">providers</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">api.ordering.providers</span> <span class="kn">import</span> <span class="n">DefaultProviders</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">providers</span> <span class="o">=</span> <span class="n">DefaultProviders</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ordering</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">providers</span><span class="o">.</span><span class="n">ordering</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inventory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">providers</span><span class="o">.</span><span class="n">inventory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">providers</span><span class="o">.</span><span class="n">validation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">providers</span><span class="o">.</span><span class="n">metrics</span>
+
+<div class="viewcode-block" id="API.api_versions"><a class="viewcode-back" href="../../../api.ordering.html#api.ordering.version0.API.api_versions">[docs]</a>    <span class="k">def</span> <span class="nf">api_versions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Provides list of available api versions</span>
+<span class="sd">        Returns: dictionary</span>
+<span class="sd">            {</span>
+<span class="sd">                &quot;0&quot;: </span>
+<span class="sd">                    &quot;description&quot;: &quot;Demo access points for development&quot;,</span>
+<span class="sd">                }</span>
+<span class="sd">            }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">providers</span><span class="o">.</span><span class="n">api_versions</span></div>
+
+<div class="viewcode-block" id="API.available_products"><a class="viewcode-back" href="../../../api.ordering.html#api.ordering.version0.API.available_products">[docs]</a>    <span class="k">def</span> <span class="nf">available_products</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">product_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Provides list of available products given</span>
+<span class="sd">        a scene id.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            keyword: product_id - the scene id to retrieve list of availabe products for.</span>
+
+<span class="sd">        Returns: dictionary</span>
+<span class="sd">            {</span>
+<span class="sd">              &quot;etm&quot;: {</span>
+<span class="sd">                  &quot;inputs&quot;: [</span>
+<span class="sd">                        &quot;LE70290302003123EDC00&quot;</span>
+<span class="sd">                            ],</span>
+<span class="sd">                            &quot;outputs&quot;: [</span>
+<span class="sd">                                &quot;etm_sr&quot;,</span>
+<span class="sd">                                &quot;etm_toa&quot;,</span>
+<span class="sd">                                &quot;etm_l1&quot;,</span>
+<span class="sd">                                &quot;source&quot;,</span>
+<span class="sd">                                &quot;source_metadata&quot;</span>
+<span class="sd">                              ]</span>
+<span class="sd">                            },</span>
+<span class="sd">                            &quot;not_implemented&quot;: [</span>
+<span class="sd">                              &quot;bad scene id&quot;</span>
+<span class="sd">                            ],</span>
+<span class="sd">                    }</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ordering</span><span class="o">.</span><span class="n">available_products</span><span class="p">(</span><span class="n">product_id</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="API.place_order"><a class="viewcode-back" href="../../../api.ordering.html#api.ordering.version0.API.place_order">[docs]</a>    <span class="k">def</span> <span class="nf">place_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">order</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Enters a new order into the system.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            :keyword order (api.domain.order.Order): The order to be entered into the system</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            str: The generated order id</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            api.exceptions.ValidationException: Error occurred validating params</span>
+<span class="sd">            api.exceptions.InventoryException: Items were not found/unavailable</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># perform validation, raises ValidationException</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">validation</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+
+        <span class="c"># performs inventory check, raises InventoryException</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inventory</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+
+        <span class="c"># track metrics</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">collect</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+
+        <span class="c"># capture the order</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ordering</span><span class="o">.</span><span class="n">place_order</span><span class="p">(</span><span class="n">order</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="API.list_orders"><a class="viewcode-back" href="../../../api.ordering.html#api.ordering.version0.API.list_orders">[docs]</a>    <span class="k">def</span> <span class="nf">list_orders</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username_or_email</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns all the orders for the user</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            username_or_email (str): Username or email address of user</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: A list of all the users orders (order ids).  May be zero length</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ordering</span><span class="o">.</span><span class="n">list_orders</span><span class="p">(</span><span class="n">username_or_email</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="API.view_order"><a class="viewcode-back" href="../../../api.ordering.html#api.ordering.version0.API.view_order">[docs]</a>    <span class="k">def</span> <span class="nf">view_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">orderid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Show details for a user order</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            orderid (str): The orderid to view</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            api.domain.order.Order: Same information as when placing the order</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            OrderNotFound:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ordering</span><span class="o">.</span><span class="n">view_order</span><span class="p">(</span><span class="n">orderid</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="API.order_status"><a class="viewcode-back" href="../../../api.ordering.html#api.ordering.version0.API.order_status">[docs]</a>    <span class="k">def</span> <span class="nf">order_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">orderid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Shows an order status</span>
+
+<span class="sd">        Orders contain additional information such as date ordered, date completed,</span>
+<span class="sd">        current status and so on.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            orderid (str): id of the order</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            OrderNotFound if the order did not exist</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ordering</span><span class="o">.</span><span class="n">order_status</span><span class="p">(</span><span class="n">orderid</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="API.item_status"><a class="viewcode-back" href="../../../api.ordering.html#api.ordering.version0.API.item_status">[docs]</a>    <span class="k">def</span> <span class="nf">item_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">orderid</span><span class="p">,</span> <span class="n">itemid</span><span class="o">=</span><span class="s">&#39;ALL&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Shows an individual item status</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            orderid (str): id of the order</span>
+<span class="sd">            itemid (str): id of the item.  If ALL is specified, a list of status</span>
+<span class="sd">                          for all items in the order will be returned.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: list of dictionaries with status, completion_time and note</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ItemNotFound if the item did not exist</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ordering</span><span class="o">.</span><span class="n">item_status</span><span class="p">(</span><span class="n">orderid</span><span class="p">,</span> <span class="n">itemid</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, clay austin.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

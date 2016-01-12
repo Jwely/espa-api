@@ -1,0 +1,637 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>api.domain package &mdash; api  documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="api  documentation" href="index.html" />
+    <link rel="up" title="api package" href="api.html" />
+    <link rel="next" title="api.fulfillment package" href="api.fulfillment.html" />
+    <link rel="prev" title="api.admin package" href="api.admin.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="api-domain-package">
+<h1>api.domain package<a class="headerlink" href="#api-domain-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-api.domain.order">
+<span id="api-domain-order-module"></span><h2>api.domain.order module<a class="headerlink" href="#module-api.domain.order" title="Permalink to this headline">¶</a></h2>
+<p>Holds domain objects for orders and the items attached to them</p>
+<dl class="class">
+<dt id="api.domain.order.Order">
+<em class="property">class </em><code class="descclassname">api.domain.order.</code><code class="descname">Order</code><span class="sig-paren">(</span><em>username</em>, <em>input_products</em>, <em>output_products</em>, <em>projection=None</em>, <em>pixel_size=None</em>, <em>image_extents=None</em>, <em>resampling_method=None</em>, <em>output_format=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/order.html#Order"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.order.Order" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>x</p>
+<dl class="staticmethod">
+<dt id="api.domain.order.Order.from_dict">
+<em class="property">static </em><code class="descname">from_dict</code><span class="sig-paren">(</span><em>dadsf</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/order.html#Order.from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.order.Order.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>x</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="api.domain.order.Order.to_dict">
+<code class="descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/order.html#Order.to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.order.Order.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>x</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="api.domain.order.Order.validate">
+<code class="descname">validate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/order.html#Order.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.order.Order.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>checks that this object was constructed correctly</p>
+<dl class="docutils">
+<dt>Raises:</dt>
+<dd>ValidationException if incorrect parameters specified</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-api.domain.sensor">
+<span id="api-domain-sensor-module"></span><h2>api.domain.sensor module<a class="headerlink" href="#module-api.domain.sensor" title="Permalink to this headline">¶</a></h2>
+<p>Purpose: module to extract embedded information from product names and supply
+configured values for each product
+Author: David V. Hill</p>
+<dl class="class">
+<dt id="api.domain.sensor.Aqua">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">Aqua</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#Aqua"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.Aqua" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Modis" title="api.domain.sensor.Modis"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis</span></code></a></p>
+<p>Superclass for Aqua based Modis products</p>
+<dl class="attribute">
+<dt id="api.domain.sensor.Aqua.products">
+<code class="descname">products</code><em class="property"> = ['myd_l1', 'source', 'source_metadata']</em><a class="headerlink" href="#api.domain.sensor.Aqua.products" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.Aqua.sensor_name">
+<code class="descname">sensor_name</code><em class="property"> = 'aqua'</em><a class="headerlink" href="#api.domain.sensor.Aqua.sensor_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.Landsat">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">Landsat</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#Landsat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.Landsat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.SensorProduct" title="api.domain.sensor.SensorProduct"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.SensorProduct</span></code></a></p>
+<p>Superclass for all landsat based products</p>
+<dl class="attribute">
+<dt id="api.domain.sensor.Landsat.default_pixel_size">
+<code class="descname">default_pixel_size</code><em class="property"> = {'dd': 0.0002695, 'meters': 30}</em><a class="headerlink" href="#api.domain.sensor.Landsat.default_pixel_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.Landsat.input_filename_extension">
+<code class="descname">input_filename_extension</code><em class="property"> = '.tar.gz'</em><a class="headerlink" href="#api.domain.sensor.Landsat.input_filename_extension" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.Landsat.lta_product_code">
+<code class="descname">lta_product_code</code><em class="property"> = None</em><a class="headerlink" href="#api.domain.sensor.Landsat.lta_product_code" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.Landsat.path">
+<code class="descname">path</code><em class="property"> = None</em><a class="headerlink" href="#api.domain.sensor.Landsat.path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.Landsat.row">
+<code class="descname">row</code><em class="property"> = None</em><a class="headerlink" href="#api.domain.sensor.Landsat.row" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.Landsat.station">
+<code class="descname">station</code><em class="property"> = None</em><a class="headerlink" href="#api.domain.sensor.Landsat.station" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.LandsatETM">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">LandsatETM</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#LandsatETM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.LandsatETM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Landsat" title="api.domain.sensor.Landsat"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Landsat</span></code></a></p>
+<p>Models Enhanced Thematic Mapper Plus based products</p>
+<dl class="attribute">
+<dt id="api.domain.sensor.LandsatETM.lta_name">
+<code class="descname">lta_name</code><em class="property"> = 'LANDSAT_ETM_PLUS'</em><a class="headerlink" href="#api.domain.sensor.LandsatETM.lta_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.LandsatETM.products">
+<code class="descname">products</code><em class="property"> = ['etm_sr', 'etm_toa', 'etm_l1', 'etm_sr_ndvi', 'etm_sr_ndmi', 'etm_sr_evi', 'etm_sr_savi', 'etm_sr_msavi', 'etm_sr_nbr', 'etm_sr_nbr2', 'source', 'source_metadata']</em><a class="headerlink" href="#api.domain.sensor.LandsatETM.products" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.LandsatETM.sensor_name">
+<code class="descname">sensor_name</code><em class="property"> = 'etm'</em><a class="headerlink" href="#api.domain.sensor.LandsatETM.sensor_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.LandsatOLI">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">LandsatOLI</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#LandsatOLI"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.LandsatOLI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Landsat" title="api.domain.sensor.Landsat"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Landsat</span></code></a></p>
+<p>Models Landsat 8 OLI only products</p>
+<dl class="attribute">
+<dt id="api.domain.sensor.LandsatOLI.lta_name">
+<code class="descname">lta_name</code><em class="property"> = 'LANDSAT_8'</em><a class="headerlink" href="#api.domain.sensor.LandsatOLI.lta_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.LandsatOLI.product">
+<code class="descname">product</code><em class="property"> = ['oli_toa', 'oli_l1', 'source', 'source_metadata']</em><a class="headerlink" href="#api.domain.sensor.LandsatOLI.product" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.LandsatOLI.sensor_name">
+<code class="descname">sensor_name</code><em class="property"> = 'oli'</em><a class="headerlink" href="#api.domain.sensor.LandsatOLI.sensor_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.LandsatOLITIRS">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">LandsatOLITIRS</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#LandsatOLITIRS"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.LandsatOLITIRS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Landsat" title="api.domain.sensor.Landsat"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Landsat</span></code></a></p>
+<p>Models combined Landsat 8 OLI/TIRS products</p>
+<dl class="attribute">
+<dt id="api.domain.sensor.LandsatOLITIRS.lta_name">
+<code class="descname">lta_name</code><em class="property"> = 'LANDSAT_8'</em><a class="headerlink" href="#api.domain.sensor.LandsatOLITIRS.lta_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.LandsatOLITIRS.products">
+<code class="descname">products</code><em class="property"> = ['olitirs_sr', 'olitirs_toa', 'olitirs_l1', 'olitirs_sr_ndvi', 'olitirs_sr_ndmi', 'olitirs_sr_evi', 'olitirs_sr_savi', 'olitirs_sr_msavi', 'olitirs_sr_nbr', 'olitirs_sr_nbr2', 'source', 'source_metadata']</em><a class="headerlink" href="#api.domain.sensor.LandsatOLITIRS.products" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.LandsatOLITIRS.sensor_name">
+<code class="descname">sensor_name</code><em class="property"> = 'olitirs'</em><a class="headerlink" href="#api.domain.sensor.LandsatOLITIRS.sensor_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.LandsatTM">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">LandsatTM</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#LandsatTM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.LandsatTM" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Landsat" title="api.domain.sensor.Landsat"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Landsat</span></code></a></p>
+<p>Models Thematic Mapper based products</p>
+<dl class="attribute">
+<dt id="api.domain.sensor.LandsatTM.lta_name">
+<code class="descname">lta_name</code><em class="property"> = 'LANDSAT_TM'</em><a class="headerlink" href="#api.domain.sensor.LandsatTM.lta_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.LandsatTM.products">
+<code class="descname">products</code><em class="property"> = ['tm_sr', 'tm_toa', 'tm_l1', 'tm_sr_ndvi', 'tm_sr_ndmi', 'tm_sr_evi', 'tm_sr_savi', 'tm_sr_msavi', 'tm_sr_nbr', 'tm_sr_nbr2', 'source', 'source_metadata']</em><a class="headerlink" href="#api.domain.sensor.LandsatTM.products" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.LandsatTM.sensor_name">
+<code class="descname">sensor_name</code><em class="property"> = 'tm'</em><a class="headerlink" href="#api.domain.sensor.LandsatTM.sensor_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.Modis">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">Modis</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#Modis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.Modis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.SensorProduct" title="api.domain.sensor.SensorProduct"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.SensorProduct</span></code></a></p>
+<p>Superclass for all Modis products</p>
+<dl class="attribute">
+<dt id="api.domain.sensor.Modis.date_acquired">
+<code class="descname">date_acquired</code><em class="property"> = None</em><a class="headerlink" href="#api.domain.sensor.Modis.date_acquired" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.Modis.date_produced">
+<code class="descname">date_produced</code><em class="property"> = None</em><a class="headerlink" href="#api.domain.sensor.Modis.date_produced" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.Modis.horizontal">
+<code class="descname">horizontal</code><em class="property"> = None</em><a class="headerlink" href="#api.domain.sensor.Modis.horizontal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.Modis.input_filename_extension">
+<code class="descname">input_filename_extension</code><em class="property"> = '.hdf'</em><a class="headerlink" href="#api.domain.sensor.Modis.input_filename_extension" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.Modis.short_name">
+<code class="descname">short_name</code><em class="property"> = None</em><a class="headerlink" href="#api.domain.sensor.Modis.short_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.Modis.vertical">
+<code class="descname">vertical</code><em class="property"> = None</em><a class="headerlink" href="#api.domain.sensor.Modis.vertical" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.Modis09A1">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">Modis09A1</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#Modis09A1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.Modis09A1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Modis" title="api.domain.sensor.Modis"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis</span></code></a></p>
+<p>models modis 09A1</p>
+<dl class="attribute">
+<dt id="api.domain.sensor.Modis09A1.default_pixel_size">
+<code class="descname">default_pixel_size</code><em class="property"> = {'dd': 0.00449155, 'meters': 500}</em><a class="headerlink" href="#api.domain.sensor.Modis09A1.default_pixel_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.Modis09GA">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">Modis09GA</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#Modis09GA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.Modis09GA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Modis" title="api.domain.sensor.Modis"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis</span></code></a></p>
+<p>models modis 09GA</p>
+<dl class="attribute">
+<dt id="api.domain.sensor.Modis09GA.default_pixel_size">
+<code class="descname">default_pixel_size</code><em class="property"> = {'dd': 0.00449155, 'meters': 500}</em><a class="headerlink" href="#api.domain.sensor.Modis09GA.default_pixel_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.Modis09GQ">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">Modis09GQ</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#Modis09GQ"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.Modis09GQ" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Modis" title="api.domain.sensor.Modis"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis</span></code></a></p>
+<p>models modis 09GQ</p>
+<dl class="attribute">
+<dt id="api.domain.sensor.Modis09GQ.default_pixel_size">
+<code class="descname">default_pixel_size</code><em class="property"> = {'dd': 0.002245775, 'meters': 250}</em><a class="headerlink" href="#api.domain.sensor.Modis09GQ.default_pixel_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.Modis09Q1">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">Modis09Q1</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#Modis09Q1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.Modis09Q1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Modis" title="api.domain.sensor.Modis"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis</span></code></a></p>
+<p>models modis 09Q1</p>
+<dl class="attribute">
+<dt id="api.domain.sensor.Modis09Q1.default_pixel_size">
+<code class="descname">default_pixel_size</code><em class="property"> = {'dd': 0.002245775, 'meters': 250}</em><a class="headerlink" href="#api.domain.sensor.Modis09Q1.default_pixel_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.Modis13A1">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">Modis13A1</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#Modis13A1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.Modis13A1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Modis" title="api.domain.sensor.Modis"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis</span></code></a></p>
+<p>models modis 13A1</p>
+<dl class="attribute">
+<dt id="api.domain.sensor.Modis13A1.default_pixel_size">
+<code class="descname">default_pixel_size</code><em class="property"> = {'dd': 0.0089831, 'meters': 1000}</em><a class="headerlink" href="#api.domain.sensor.Modis13A1.default_pixel_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.Modis13A2">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">Modis13A2</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#Modis13A2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.Modis13A2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Modis" title="api.domain.sensor.Modis"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis</span></code></a></p>
+<p>models modis 13A2</p>
+<dl class="attribute">
+<dt id="api.domain.sensor.Modis13A2.default_pixel_size">
+<code class="descname">default_pixel_size</code><em class="property"> = {'dd': 0.0089831, 'meters': 1000}</em><a class="headerlink" href="#api.domain.sensor.Modis13A2.default_pixel_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.Modis13A3">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">Modis13A3</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#Modis13A3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.Modis13A3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Modis" title="api.domain.sensor.Modis"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis</span></code></a></p>
+<p>models modis 13A3</p>
+<dl class="attribute">
+<dt id="api.domain.sensor.Modis13A3.default_pixel_size">
+<code class="descname">default_pixel_size</code><em class="property"> = {'dd': 0.0089831, 'meters': 1000}</em><a class="headerlink" href="#api.domain.sensor.Modis13A3.default_pixel_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.Modis13Q1">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">Modis13Q1</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#Modis13Q1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.Modis13Q1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Modis" title="api.domain.sensor.Modis"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis</span></code></a></p>
+<p>models modis 13Q1</p>
+<dl class="attribute">
+<dt id="api.domain.sensor.Modis13Q1.default_pixel_size">
+<code class="descname">default_pixel_size</code><em class="property"> = {'dd': 0.002245775, 'meters': 250}</em><a class="headerlink" href="#api.domain.sensor.Modis13Q1.default_pixel_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.ModisAqua09A1">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">ModisAqua09A1</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#ModisAqua09A1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.ModisAqua09A1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Aqua" title="api.domain.sensor.Aqua"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Aqua</span></code></a>, <a class="reference internal" href="#api.domain.sensor.Modis09A1" title="api.domain.sensor.Modis09A1"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis09A1</span></code></a></p>
+<p>models modis 09A1 from Aqua</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.ModisAqua09GA">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">ModisAqua09GA</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#ModisAqua09GA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.ModisAqua09GA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Aqua" title="api.domain.sensor.Aqua"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Aqua</span></code></a>, <a class="reference internal" href="#api.domain.sensor.Modis09GA" title="api.domain.sensor.Modis09GA"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis09GA</span></code></a></p>
+<p>models modis 09GA from Aqua</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.ModisAqua09GQ">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">ModisAqua09GQ</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#ModisAqua09GQ"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.ModisAqua09GQ" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Aqua" title="api.domain.sensor.Aqua"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Aqua</span></code></a>, <a class="reference internal" href="#api.domain.sensor.Modis09GQ" title="api.domain.sensor.Modis09GQ"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis09GQ</span></code></a></p>
+<p>models modis 09GQ from Aqua</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.ModisAqua09Q1">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">ModisAqua09Q1</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#ModisAqua09Q1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.ModisAqua09Q1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Aqua" title="api.domain.sensor.Aqua"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Aqua</span></code></a>, <a class="reference internal" href="#api.domain.sensor.Modis09Q1" title="api.domain.sensor.Modis09Q1"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis09Q1</span></code></a></p>
+<p>models modis 09Q1 from Aqua</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.ModisAqua13A1">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">ModisAqua13A1</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#ModisAqua13A1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.ModisAqua13A1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Aqua" title="api.domain.sensor.Aqua"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Aqua</span></code></a>, <a class="reference internal" href="#api.domain.sensor.Modis13A1" title="api.domain.sensor.Modis13A1"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis13A1</span></code></a></p>
+<p>models modis 13A1 from Aqua</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.ModisAqua13A2">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">ModisAqua13A2</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#ModisAqua13A2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.ModisAqua13A2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Aqua" title="api.domain.sensor.Aqua"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Aqua</span></code></a>, <a class="reference internal" href="#api.domain.sensor.Modis13A2" title="api.domain.sensor.Modis13A2"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis13A2</span></code></a></p>
+<p>models modis 13A2 from Aqua</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.ModisAqua13A3">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">ModisAqua13A3</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#ModisAqua13A3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.ModisAqua13A3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Aqua" title="api.domain.sensor.Aqua"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Aqua</span></code></a>, <a class="reference internal" href="#api.domain.sensor.Modis13A3" title="api.domain.sensor.Modis13A3"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis13A3</span></code></a></p>
+<p>models modis 13A3 from Aqua</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.ModisAqua13Q1">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">ModisAqua13Q1</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#ModisAqua13Q1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.ModisAqua13Q1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Aqua" title="api.domain.sensor.Aqua"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Aqua</span></code></a>, <a class="reference internal" href="#api.domain.sensor.Modis13Q1" title="api.domain.sensor.Modis13Q1"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis13Q1</span></code></a></p>
+<p>models modis 13Q1 from Aqua</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.ModisTerra09A1">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">ModisTerra09A1</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#ModisTerra09A1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.ModisTerra09A1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Terra" title="api.domain.sensor.Terra"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Terra</span></code></a>, <a class="reference internal" href="#api.domain.sensor.Modis09A1" title="api.domain.sensor.Modis09A1"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis09A1</span></code></a></p>
+<p>models modis 09A1 from Terra</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.ModisTerra09GA">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">ModisTerra09GA</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#ModisTerra09GA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.ModisTerra09GA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Terra" title="api.domain.sensor.Terra"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Terra</span></code></a>, <a class="reference internal" href="#api.domain.sensor.Modis09GA" title="api.domain.sensor.Modis09GA"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis09GA</span></code></a></p>
+<p>models modis 09GA from Terra</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.ModisTerra09GQ">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">ModisTerra09GQ</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#ModisTerra09GQ"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.ModisTerra09GQ" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Terra" title="api.domain.sensor.Terra"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Terra</span></code></a>, <a class="reference internal" href="#api.domain.sensor.Modis09GQ" title="api.domain.sensor.Modis09GQ"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis09GQ</span></code></a></p>
+<p>models modis 09GQ from Terra</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.ModisTerra09Q1">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">ModisTerra09Q1</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#ModisTerra09Q1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.ModisTerra09Q1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Terra" title="api.domain.sensor.Terra"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Terra</span></code></a>, <a class="reference internal" href="#api.domain.sensor.Modis09Q1" title="api.domain.sensor.Modis09Q1"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis09Q1</span></code></a></p>
+<p>models modis 09Q1 from Terra</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.ModisTerra13A1">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">ModisTerra13A1</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#ModisTerra13A1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.ModisTerra13A1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Terra" title="api.domain.sensor.Terra"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Terra</span></code></a>, <a class="reference internal" href="#api.domain.sensor.Modis13A1" title="api.domain.sensor.Modis13A1"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis13A1</span></code></a></p>
+<p>models modis 13A1 from Terra</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.ModisTerra13A2">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">ModisTerra13A2</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#ModisTerra13A2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.ModisTerra13A2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Terra" title="api.domain.sensor.Terra"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Terra</span></code></a>, <a class="reference internal" href="#api.domain.sensor.Modis13A2" title="api.domain.sensor.Modis13A2"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis13A2</span></code></a></p>
+<p>models modis 13A2 from Terra</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.ModisTerra13A3">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">ModisTerra13A3</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#ModisTerra13A3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.ModisTerra13A3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Terra" title="api.domain.sensor.Terra"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Terra</span></code></a>, <a class="reference internal" href="#api.domain.sensor.Modis13A3" title="api.domain.sensor.Modis13A3"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis13A3</span></code></a></p>
+<p>models modis 13A3 from Terra</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.ModisTerra13Q1">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">ModisTerra13Q1</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#ModisTerra13Q1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.ModisTerra13Q1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Terra" title="api.domain.sensor.Terra"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Terra</span></code></a>, <a class="reference internal" href="#api.domain.sensor.Modis13Q1" title="api.domain.sensor.Modis13Q1"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis13Q1</span></code></a></p>
+<p>models modis 13Q1 from Terra</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.SensorProduct">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">SensorProduct</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#SensorProduct"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.SensorProduct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Base class for all sensor products</p>
+<dl class="attribute">
+<dt id="api.domain.sensor.SensorProduct.default_pixel_size">
+<code class="descname">default_pixel_size</code><em class="property"> = {}</em><a class="headerlink" href="#api.domain.sensor.SensorProduct.default_pixel_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.SensorProduct.doy">
+<code class="descname">doy</code><em class="property"> = None</em><a class="headerlink" href="#api.domain.sensor.SensorProduct.doy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.SensorProduct.product_id">
+<code class="descname">product_id</code><em class="property"> = None</em><a class="headerlink" href="#api.domain.sensor.SensorProduct.product_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.SensorProduct.sensor_code">
+<code class="descname">sensor_code</code><em class="property"> = None</em><a class="headerlink" href="#api.domain.sensor.SensorProduct.sensor_code" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.SensorProduct.sensor_name">
+<code class="descname">sensor_name</code><em class="property"> = None</em><a class="headerlink" href="#api.domain.sensor.SensorProduct.sensor_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.SensorProduct.version">
+<code class="descname">version</code><em class="property"> = None</em><a class="headerlink" href="#api.domain.sensor.SensorProduct.version" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.SensorProduct.year">
+<code class="descname">year</code><em class="property"> = None</em><a class="headerlink" href="#api.domain.sensor.SensorProduct.year" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="api.domain.sensor.Terra">
+<em class="property">class </em><code class="descclassname">api.domain.sensor.</code><code class="descname">Terra</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#Terra"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.Terra" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#api.domain.sensor.Modis" title="api.domain.sensor.Modis"><code class="xref py py-class docutils literal"><span class="pre">api.domain.sensor.Modis</span></code></a></p>
+<p>Superclass for Terra based Modis products</p>
+<dl class="attribute">
+<dt id="api.domain.sensor.Terra.products">
+<code class="descname">products</code><em class="property"> = ['mod_l1', 'source', 'source_metadata']</em><a class="headerlink" href="#api.domain.sensor.Terra.products" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="api.domain.sensor.Terra.sensor_name">
+<code class="descname">sensor_name</code><em class="property"> = 'terra'</em><a class="headerlink" href="#api.domain.sensor.Terra.sensor_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="api.domain.sensor.available_products">
+<code class="descclassname">api.domain.sensor.</code><code class="descname">available_products</code><span class="sig-paren">(</span><em>input_products</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#available_products"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.available_products" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lists all the available products for each input_product</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>input_products (iterable): An iterable of input_product names (str)</dd>
+<dt>Returns:</dt>
+<dd><dl class="first last docutils">
+<dt>dict: { &#8216;tm&#8217;: {&#8216;outputs&#8217;: [output, products],</dt>
+<dd><blockquote class="first">
+<div>&#8216;inputs&#8217;: [supplied, input, products]},</div></blockquote>
+<p class="last">&#8216;etm&#8217;: ... }</p>
+</dd>
+</dl>
+</dd>
+<dt>Raises:</dt>
+<dd>ProductNotImplemented if an unknown product is supplied</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="api.domain.sensor.instance">
+<code class="descclassname">api.domain.sensor.</code><code class="descname">instance</code><span class="sig-paren">(</span><em>product_id</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/api/domain/sensor.html#instance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#api.domain.sensor.instance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Supported MODIS products
+MOD09A1 MOD09GA MOD09GQ MOD09Q1 MYD09A1 MYD09GA MYD09GQ MYD09Q1
+MOD13A1 MOD13A2 MOD13A3 MOD13Q1 MYD13A1 MYD13A2 MYD13A3 MYD13Q1</p>
+<p>MODIS FORMAT:   MOD09GQ.A2000072.h02v09.005.2008237032813</p>
+<p>Supported LANDSAT products
+LT4 LT5 LE7 LC8</p>
+<p>LANDSAT FORMAT: LE72181092013069PFS00</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-api.domain">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-api.domain" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">api.domain package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-api.domain.order">api.domain.order module</a></li>
+<li><a class="reference internal" href="#module-api.domain.sensor">api.domain.sensor module</a></li>
+<li><a class="reference internal" href="#module-api.domain">Module contents</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="api.html">api package</a><ul>
+      <li>Previous: <a href="api.admin.html" title="previous chapter">api.admin package</a></li>
+      <li>Next: <a href="api.fulfillment.html" title="next chapter">api.fulfillment package</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/api.domain.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, clay austin.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="_sources/api.domain.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
