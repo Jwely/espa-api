@@ -23,117 +23,14 @@ class API(object):
     def api_versions(self):
         """
         Provides list of available api versions
-
         Returns: dictionary
             {
-                "version_0": {
-                    "description": "Demo URLs for development",
-                    "url": "/api/v0"
+                "0": 
+                    "description": "Demo access points for development",
                 }
             }
         """
-        return self.ordering.api_versions()
-
-    def api_info(self, version):
-        """
-        Provides list of available operations for the given api version
-        Args:
-            version: integer
-
-        Returns: dictionary
-            {
-              "base_url": "/api/v0",
-              "description": "Version 0 of the ESPA API",
-              "operations": {
-                "/api": {
-                  "function": "list versions",
-                  "methods": [
-                    "HEAD",
-                    "GET"
-                  ]
-                },
-                "/api/v0": {
-                  "function": "list operations",
-                  "methods": [
-                    "HEAD",
-                    "GET"
-                  ]
-                },
-                "/api/v0/available-products": {
-                  "comments": "sceneids should be delivered in the product_ids parameter, comma separated if more than one",
-                  "function": "list available products per sceneid",
-                  "methods": [
-                    "HEAD",
-                    "POST"
-                  ]
-                },
-                "/api/v0/available-products/<product_ids>": {
-                  "comments": "comma separated ids supported",
-                  "function": "list available products per sceneid",
-                  "methods": [
-                    "HEAD",
-                    "GET"
-                  ]
-                },
-                "/api/v0/formats": {
-                  "function": "list available output formats",
-                  "methods": [
-                    "HEAD",
-                    "GET"
-                  ]
-                },
-                "/api/v0/order": {
-                  "function": "point for accepting processing requests via HTTP POST with JSON body. Errors are returned to user, successful validation returns an orderid",
-                  "methods": [
-                    "POST"
-                  ]
-                },
-                "/api/v0/order/<ordernum>": {
-                  "function": "retrieves a submitted order",
-                  "methods": [
-                    "HEAD",
-                    "GET"
-                  ]
-                },
-                "/api/v0/orders": {
-                  "function": "list orders for authenticated user",
-                  "methods": [
-                    "HEAD",
-                    "GET"
-                  ]
-                },
-                "/api/v0/orders/<email>": {
-                  "function": "list orders for supplied email, for user collaboration",
-                  "methods": [
-                    "HEAD",
-                    "GET"
-                  ]
-                },
-                "/api/v0/projections": {
-                  "function": "list available projections",
-                  "methods": [
-                    "HEAD",
-                    "GET"
-                  ]
-                },
-                "/api/v0/request/<ordernum>": {
-                  "function": "retrieve order sent to server",
-                  "methods": [
-                    "HEAD",
-                    "GET"
-                  ]
-                },
-                "/api/v0/resampling-methods": {
-                  "function": "list available resampling methods",
-                  "methods": [
-                    "HEAD",
-                    "GET"
-                  ]
-                }
-              }
-            }
-        """
-        return self.ordering.api_info(version)
+        return self.providers.api_versions
 
     def available_products(self, product_id):
         """

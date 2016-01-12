@@ -9,7 +9,12 @@ from api.providers.validation.schema import Version0Schema
 
 
 class DefaultProviders(object):
-    #ordering = MockOrderingProvider()
+    api_versions = {"versions":
+                        {"0":
+                            {"description": "demo access points for development"}
+                        }
+                    }
+
     ordering = OrderingProvider()
 
     validation = ValidationProvider(Version0Schema)
