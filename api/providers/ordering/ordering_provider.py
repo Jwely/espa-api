@@ -1,6 +1,10 @@
 from api.domain import sensor
+from api.connections import ApiDB
 
 class OrderingProvider(object):
+    def __init__(self):
+        db = ApiDB()
+
     def available_products(self, product_id):
         prod_list = product_id.split(",")
         return sensor.available_products(prod_list)
