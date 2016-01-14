@@ -1,23 +1,52 @@
 from api.domain import sensor
-from api.connections import ApiDB
+from api.dbconnect import DBConnect
+from api.utils import get_cfg
+from api.utils import is_empty
+from api.utils import not_empty
+import psycopg2.extras
+import re
 
 class OrderingProvider(object):
     def __init__(self):
-        db = ApiDB()
+        cfg = get_cfg()['config']
+        cfg['cursor_factory'] = psycopg2.extras.DictCursor
+        self.cfg = cfg
+        self.email_reg = '(\w+[.|\w])*@(\w+[.])*([a-zA-Z]*$)'
 
     def available_products(self, product_id):
         prod_list = product_id.split(",")
         return sensor.available_products(prod_list)
 
-    def fetch_user_orders(self, user_id):
-        # does user exist in system
-        # what orders does user have in system
-        # if user does not exist, return dict with 
-        # key of 'errmsg'
-        pass
+    def fetch_user_orders(self, uid):
+        id_type = 'email' if re.search(self.email_reg, uid) else 'username'
+        order_list = []
+        out_dict = {}
+        user_ids = []
 
+        with DBConnect(**self.cfg) as db:
+            user_sql = "select id, username, email from auth_user where "
+            user_sql += "email = '%s';" if id_type == 'email' else "username = '%s';"
+            db.select(user_sql % uid)
+            # username uniqueness enforced on the db
+            # not the case for emails though
+            if not_empty(db):
+                user_ids = [db[ind][0] for ind, val in enumerate(db)]
 
+            if not_empty(user_ids):
+                user_tup = tuple([str(idv) for idv in user_ids])
+                db.select("select orderid from ordering_order where user_id in (%s);" % ", ".join(user_tup))
+                if not_empty(db):
+                    order_list = [item[0] for item in db]
 
+        out_dict["orders"] = order_list
+        return out_dict 
+
+    def fetch_order(self, ordernum):
+        sql = "select * from ordering_order where orderid = %s;" % ordernum
+        out_dict = {}
+        with DBConnect(**self.cfg) as db:
+            db.select(sql)
+        return out_dict
 
     def place_order(self, username):
         pass
