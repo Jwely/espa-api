@@ -13,7 +13,7 @@ from api.providers.validation.schema import Version0Schema
 class DefaultProviders(object):
     ordering = OrderingProvider()
 
-    validation = ValidationProvider(Version0Schema)
+    validation = ValidationProvider(schema_cls=Version0Schema)
 
     metrics = MockMetricsProvider()
 
