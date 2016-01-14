@@ -1,4 +1,32 @@
-from api.domain.sensor import available_products
+from api.domain.sensor import instance
+
+
+def populate_products():
+    """
+    Build a complete list of all available products that are available for all supported sensors
+
+    This pulls straight from sensor.py, which is centrally being used to keep track of supported
+    sensors
+
+    :return: List of supported products
+    """
+    # Technically all the MODIS products could be wrapped up in two prefixes, but for completeness
+    # let's check everything that is supposed to be supported
+    sensor_acqids = {'.A2000072.h02v09.005.2008237032813': ['MOD09A1', 'MOD09GA', 'MOD09GQ', 'MOD09Q1',
+                                                            'MYD09A1', 'MYD09GA', 'MYD09GQ', 'MYD09Q1',
+                                                            'MOD13A1', 'MOD13A2', 'MOD13A3', 'MOD13Q1',
+                                                            'MYD13A1', 'MYD13A2', 'MYD13A3', 'MYD13Q1'],
+                     '2181092013069PFS00': ['LT4', 'LT5', 'LE7', 'LO8', 'LC8']}
+
+    all_prods = []
+    for acq in sensor_acqids:
+        for prefix in sensor_acqids[acq]:
+            prods = instance('{}{}'.format(prefix, acq)).products
+            for prod in prods:
+                if prod not in all_prods:
+                    all_prods.append(prod)
+
+    return all_prods
 
 
 class BaseValidationSchema(object):
@@ -6,45 +34,30 @@ class BaseValidationSchema(object):
     Provides the base order validation schema to be passed to the Cerberus module
     and the valid parameters associated with the schema
 
-    This is meant to be inherited into major version change schemas
+    This is meant to be inherited into major version change schemas, with changes
+    overriding the base object
     """
 
     formats = ['gtiff', 'hdf-eos2', 'envi']
 
     resampling_methods = ['nn', 'bil', 'cc']
 
-    image_extents = [{'type': 'dict',
-                      'schema': {'minx': {'type': 'float',
-                                          'required': False,
-                                          'dependencies': ['maxx', 'miny', 'maxy']},
-                                 'maxx': {'type': 'float',
-                                          'required': False,
-                                          'dependencies': ['minx', 'miny', 'maxy']},
-                                 'miny': {'type': 'float',
-                                          'required': False,
-                                          'dependencies': ['maxx', 'minx', 'maxy']},
-                                 'maxy': {'type': 'float',
-                                          'required': False,
-                                          'dependencies': ['maxx', 'minx', 'miny']}}}]
+    image_extents = {'minx': {'type': 'float',
+                              'required': True},
+                     'maxx': {'type': 'float',
+                              'required': True},
+                     'miny': {'type': 'float',
+                              'required': True},
+                     'maxy': {'type': 'float',
+                              'required': True}}
 
-    products = ['include_sr',
-                'include_sr_browse',
-                'include_lst',
-                'include_source_data',
-                'include_source_metadata',
-                'include_cfmask',
-                'include_customized_source_data',
-                'include_sr_evi',
-                'include_sr_msavi',
-                'include_sr_nbr',
-                'include_sr_nbr2',
-                'include_sr_ndmi',
-                'include_sr_ndvi',
-                'include_sr_savi',
-                'include_sr_thermal',
-                'include_sr_toa',
-                'include_dswe',
-                'include_statistics']
+    resize = {'pixel_size': {'type': 'float',
+                             'required': True},
+              'pixel_size_units': {'type': 'string',
+                                   'allowed': ['meters', 'dd'],
+                                   'required': True}}
+
+    products = populate_products()
 
                     # Albers
     projections = [{'type': 'dict',
@@ -130,13 +143,14 @@ class BaseValidationSchema(object):
                                      'oneof': projections},
                       'image_extents': {'type': 'dict',
                                         'required': False,
-                                        'dependencies': ['projection'],
-                                        'allof': image_extents},
+                                        # 'dependencies': ['projection'],
+                                        'schema': image_extents},
                       'format': {'type': 'string',
                                  'required': False,
                                  'allowed': formats},
-                      'resize': {'type': 'float',
-                                 'required': False},
+                      'resize': {'type': 'dict',
+                                 'required': False,
+                                 'schema': resize},
                       'resampling_method': {'type': 'string',
                                             'required': False,
                                             'allowed': resampling_methods}}
