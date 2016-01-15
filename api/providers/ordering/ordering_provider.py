@@ -4,6 +4,7 @@ from api.utils import get_cfg
 from api.utils import is_empty
 from api.utils import not_empty
 import psycopg2.extras
+import yaml
 import re
 
 class OrderingProvider(object):
@@ -42,10 +43,26 @@ class OrderingProvider(object):
         return out_dict 
 
     def fetch_order(self, ordernum):
-        sql = "select * from ordering_order where orderid = %s;" % ordernum
+        sql = "select * from ordering_order where orderid = '%s';" % ordernum
         out_dict = {}
+	opts_dict = {}
+        scrub_keys = ['initial_email_sent', 'completion_email_sent', 'id', 'user_id', 
+			'ee_order_id', 'email']
+
         with DBConnect(**self.cfg) as db:
             db.select(sql)
+	    if not_empty(db):
+                for key, val in db[0].iteritems():
+			out_dict[key] = val
+                opts_str = db[0]['product_options']
+                opts_str = opts_str.replace("\n","")
+		opts_dict = yaml.load(opts_str)
+		out_dict['product_options'] = opts_dict
+
+	for k in scrub_keys:
+	    if k in out_dict.keys():
+		out_dict.pop(k)
+
         return out_dict
 
     def place_order(self, username):

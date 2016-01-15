@@ -24,6 +24,12 @@ class TestAPI(unittest.TestCase):
         product_id = 'LT50150401987120XXX02'
         self.assertEqual( api.available_products(product_id).keys()[0], "tm" )
 
+    def test_fetch_user_orders_type(self):
+	self.assertIsInstance(api.fetch_user_orders('jane.doe@usgs.gov'), dict)
+
+    def test_fetch_order_type(self):
+	self.assertIsInstance(api.fetch_order('abc123'), dict)
+
 if __name__ == '__main__':
     unittest.main()
 
