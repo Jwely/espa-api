@@ -65,7 +65,7 @@ class OrderingProvider(object):
 
         return out_dict
 
-    def place_order(self, username):
+    def place_order(self, username, order):
         pass
 
     def list_orders(self, username_or_email):
