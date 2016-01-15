@@ -120,7 +120,7 @@ class OrderingProvider(object):
         prod_list = product_id.split(",")
         return sensor.available_products(prod_list)
 
-    def place_order(self, username):
+    def place_order(self, username, order):
         pass
 
     def list_orders(self, username_or_email):
