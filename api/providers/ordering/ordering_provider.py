@@ -40,18 +40,19 @@ class OrderingProvider(object):
                     order_list = [item[0] for item in db]
 
         out_dict["orders"] = order_list
-        return out_dict 
+        return out_dict
+
 
     def fetch_order(self, ordernum):
         sql = "select * from ordering_order where orderid = '%s';" % ordernum
         out_dict = {}
-	opts_dict = {}
+        opts_dict = {}
         scrub_keys = ['initial_email_sent', 'completion_email_sent', 'id', 'user_id', 
 			'ee_order_id', 'email']
 
         with DBConnect(**self.cfg) as db:
             db.select(sql)
-	    if not_empty(db):
+            if not_empty(db):
                 for key, val in db[0].iteritems():
 			out_dict[key] = val
                 opts_str = db[0]['product_options']
@@ -59,14 +60,16 @@ class OrderingProvider(object):
 		opts_dict = yaml.load(opts_str)
 		out_dict['product_options'] = opts_dict
 
-	for k in scrub_keys:
-	    if k in out_dict.keys():
-		out_dict.pop(k)
+        for k in scrub_keys:
+            if k in out_dict.keys():
+                out_dict.pop(k)
 
         return out_dict
 
+
     def place_order(self, username, order):
         pass
+
 
     def list_orders(self, username_or_email):
         pass

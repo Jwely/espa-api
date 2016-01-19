@@ -2,33 +2,49 @@
 
 import unittest
 from api.ordering.version0 import API
+from api.utils import get_cfg
+from api.dbconnect import DBConnect
 
 api = API()
 
-
 class TestAPI(unittest.TestCase):
     def setUp(self):
-        pass
+        cfg = get_cfg()['config']
+        db = DBConnect(**cfg)
+        uidsql = "select user_id, orderid from ordering_order limit 1;"
+        unmsql = "select username, email from auth_user where id = %s;"
+        db.select(uidsql)
+        self.userid = db[0][0]
+        self.orderid = db[0][1]
+        db.select(unmsql % db[0][0])
+        self.username = db[0][0]
+        self.usermail = db[0][1]
+        self.product_id = 'LT50150401987120XXX02'
+
+    def tearDown(self):
+        # close the connection
+        db = None
 
     def test_api_versions_type(self):
-        self.assertIsInstance( api.api_versions(), dict ) 
+        self.assertIsInstance(api.api_versions(), dict)
 
     def test_api_versions_key_val(self):
-        self.assertEqual( api.api_versions().keys()[0], 'versions' ) 
-
-    def test_get_available_products_type(self):
-        product_id = 'LT50150401987120XXX02'
-        self.assertIsInstance(api.available_products(product_id), dict)
+        self.assertEqual(api.api_versions().keys()[0], 'versions')
 
     def test_get_available_products_key_val(self):
-        product_id = 'LT50150401987120XXX02'
-        self.assertEqual(api.available_products(product_id).keys()[0], "tm")
+        self.assertEqual(api.available_products(self.product_id).keys()[0], "tm")
 
-    def test_fetch_user_orders_type(self):
-	self.assertIsInstance(api.fetch_user_orders('jane.doe@usgs.gov'), dict)
+    def test_fetch_user_orders_by_email_val(self):
+        orders = api.fetch_user_orders(self.usermail)
+        self.assertEqual(orders.keys()[0], "orders")
 
-    def test_fetch_order_type(self):
-	self.assertIsInstance(api.fetch_order('abc123'), dict)
+    def test_fetch_user_orders_by_username_val(self):
+        orders = api.fetch_user_orders(self.username)
+        self.assertEqual(orders.keys()[0], "orders")
+
+    def test_fetch_order_by_orderid_val(self):
+        order = api.fetch_order(self.orderid)
+        self.assertEqual(order['orderid'], self.orderid)
 
 class TestValidation(unittest.TestCase):
     good = {"inputs": ["LE70290302003123EDC00", "LT50290302002123EDC00", 'LO80290302002123EDC00'],
