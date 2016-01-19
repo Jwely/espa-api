@@ -23,9 +23,13 @@ class API(object):
     def api_versions(self):
         """
         Provides list of available api versions
-        Returns: dictionary
+
+        Returns:
+            dict: of api versions and a description
+
+        Example:
             {
-                "0": 
+                "0":
                     "description": "Demo access points for development",
                 }
             }
@@ -38,9 +42,12 @@ class API(object):
         a scene id.
 
         Args:
-            keyword: product_id - the scene id to retrieve list of availabe products for.
+            product_id (str): the scene id to retrieve list of availabe products for.
 
-        Returns: dictionary
+        Returns:
+            dict: of available products
+
+        Example:
             {
               "etm": {
                   "inputs": [
@@ -65,19 +72,21 @@ class API(object):
         """ Return orders given a user id
 
         Args:
-            :keyword user_id  : The email or username for the user who placed the order.
+            user_id (str): The email or username for the user who placed the order.
 
         Returns:
-            dict: {'orders': [list of orderids]}
+            dict: of orders with list of order ids
         """
         return self.ordering.fetch_user_orders(user_id)
 
     def fetch_order(self, ordernum):
-        """Retrieves a submitted order
+        """ Returns details of a submitted order
+
         Args:
-            ordernum
+            ordernum (str): the order id of a submitted order
+
         Returns:
-            dict
+            dict: of order details
         """
         return self.ordering.fetch_order(ordernum)
 
