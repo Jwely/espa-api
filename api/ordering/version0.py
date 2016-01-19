@@ -61,6 +61,25 @@ class API(object):
         """
         return self.ordering.available_products(product_id)
 
+    def fetch_user_orders(self, user_id):
+        """ Return orders given a user id
+
+        Args:
+            :keyword user_id  : The email or username for the user who placed the order.
+
+        Returns:
+            dict: {'orders': [list of orderids]}
+        """
+        return self.ordering.fetch_user_orders(user_id)
+
+    def fetch_order(self, ordernum):
+        """Retrieves a submitted order
+        Args:
+            ordernum
+        Returns:
+            dict
+        """
+        return self.ordering.fetch_order(ordernum)
 
     def place_order(self, order):
         """Enters a new order into the system.
@@ -76,7 +95,7 @@ class API(object):
             api.exceptions.InventoryException: Items were not found/unavailable
         """
         # perform validation, raises ValidationException
-        self.validation.validate(order)
+        self.validation(order)
 
         # performs inventory check, raises InventoryException
         self.inventory.check(order)
