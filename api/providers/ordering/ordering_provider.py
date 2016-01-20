@@ -26,8 +26,8 @@ class OrderingProvider(object):
 
         with DBConnect(**self.cfg) as db:
             user_sql = "select id, username, email from auth_user where "
-            user_sql += "email = '%s';" if id_type == 'email' else "username = '%s';"
-            db.select(user_sql % uid)
+            user_sql += "email = %s;" if id_type == 'email' else "username = %s;"
+            db.select(user_sql, (uid))
             # username uniqueness enforced on the db
             # not the case for emails though
             if not_empty(db):
@@ -35,7 +35,7 @@ class OrderingProvider(object):
 
             if not_empty(user_ids):
                 user_tup = tuple([str(idv) for idv in user_ids])
-                db.select("select orderid from ordering_order where user_id in (%s);" % ", ".join(user_tup))
+                db.select("select orderid from ordering_order where user_id in {};".format(user_tup))
                 if not_empty(db):
                     order_list = [item[0] for item in db]
 
@@ -44,14 +44,14 @@ class OrderingProvider(object):
 
 
     def fetch_order(self, ordernum):
-        sql = "select * from ordering_order where orderid = '%s';" % ordernum
+        sql = "select * from ordering_order where orderid = %s;"
         out_dict = {}
         opts_dict = {}
         scrub_keys = ['initial_email_sent', 'completion_email_sent', 'id', 'user_id', 
 			'ee_order_id', 'email']
 
         with DBConnect(**self.cfg) as db:
-            db.select(sql)
+            db.select(sql, (ordernum))
             if not_empty(db):
                 for key, val in db[0].iteritems():
 			out_dict[key] = val
