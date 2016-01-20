@@ -233,7 +233,7 @@ class Landsat(SensorProduct):
 
 
 class LandsatTM(Landsat):
-    products = ['tm_sr', 'tm_toa', 'tm_l1',
+    products = ['tm_sr', 'tm_toa', 'tm_l1', 'tm_dswe',
                 'tm_sr_ndvi', 'tm_sr_ndmi', 'tm_sr_evi',
                 'tm_sr_savi', 'tm_sr_msavi', 'tm_sr_nbr',
                 'tm_sr_nbr2', 'source', 'source_metadata']
@@ -245,7 +245,7 @@ class LandsatTM(Landsat):
 
 
 class LandsatETM(Landsat):
-    products = ['etm_sr', 'etm_toa', 'etm_l1',
+    products = ['etm_sr', 'etm_toa', 'etm_l1', 'etm_dswe',
                 'etm_sr_ndvi', 'etm_sr_ndmi', 'etm_sr_evi',
                 'etm_sr_savi', 'etm_sr_msavi', 'etm_sr_nbr',
                 'etm_sr_nbr2', 'source', 'source_metadata']
@@ -254,26 +254,6 @@ class LandsatETM(Landsat):
 
     def __init__(self, product_id):
         super(LandsatETM, self).__init__(product_id)
-
-
-class Landsat4(LandsatTM):
-    def __init__(self, product_id):
-        super(Landsat4, self).__init__(product_id)
-
-
-class Landsat5(LandsatTM):
-    def __init__(self, product_id):
-        super(Landsat5, self).__init__(product_id)
-
-
-class Landsat7(LandsatETM):
-    def __init__(self, product_id):
-        super(Landsat7, self).__init__(product_id)
-
-
-class Landsat8(LandsatETM):
-    def __init__(self, product_id):
-        super(Landsat8, self).__init__(product_id)
 
 
 class LandsatOLITIRS(Landsat):
@@ -296,6 +276,26 @@ class LandsatOLI(Landsat):
     products = ['oli_toa', 'oli_l1', 'source', 'source_metadata']
     lta_name = 'LANDSAT_8'
     sensor_name = 'oli'
+
+
+class Landsat4(LandsatTM):
+    def __init__(self, product_id):
+        super(Landsat4, self).__init__(product_id)
+
+
+class Landsat5(LandsatTM):
+    def __init__(self, product_id):
+        super(Landsat5, self).__init__(product_id)
+        self.products.append('tm_lst')
+
+class Landsat7(LandsatETM):
+    def __init__(self, product_id):
+        super(Landsat7, self).__init__(product_id)
+        self.products.append('tm_lst')
+
+class Landsat8(LandsatOLITIRS):
+    def __init__(self, product_id):
+        super(Landsat8, self).__init__(product_id)
 
 
 def instance(product_id):
@@ -341,7 +341,7 @@ def instance(product_id):
                 Landsat7),
 
         'olitirs': (r'^lc8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
-                    LandsatOLITIRS),
+                    Landsat8),
 
         'oli': (r'^lo8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
                 LandsatOLI),
