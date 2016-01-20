@@ -232,8 +232,7 @@ class Landsat(SensorProduct):
         self.version = product_id[19:21]
 
 
-class LandsatTM4(Landsat):
-    """Models Thematic Mapper based products"""
+class LandsatTM(Landsat):
     products = ['tm_sr', 'tm_toa', 'tm_l1',
                 'tm_sr_ndvi', 'tm_sr_ndmi', 'tm_sr_evi',
                 'tm_sr_savi', 'tm_sr_msavi', 'tm_sr_nbr',
@@ -242,24 +241,10 @@ class LandsatTM4(Landsat):
     sensor_name = 'tm'
 
     def __init__(self, product_id):
-        super(LandsatTM4, self).__init__(product_id)
+        super(LandsatTM, self).__init__(product_id)
 
-
-class LandsatTM5(Landsat):
-    """Models Thematic Mapper based products"""
-    products = ['tm_sr', 'tm_toa', 'tm_l1',
-                'tm_sr_ndvi', 'tm_sr_ndmi', 'tm_sr_evi',
-                'tm_sr_savi', 'tm_sr_msavi', 'tm_sr_nbr',
-                'tm_sr_nbr2', 'source', 'source_metadata']
-    lta_name = 'LANDSAT_TM'
-    sensor_name = 'tm'
-
-    def __init__(self, product_id):
-        super(LandsatTM5, self).__init__(product_id)
-    
 
 class LandsatETM(Landsat):
-    """Models Enhanced Thematic Mapper Plus based products"""
     products = ['etm_sr', 'etm_toa', 'etm_l1',
                 'etm_sr_ndvi', 'etm_sr_ndmi', 'etm_sr_evi',
                 'etm_sr_savi', 'etm_sr_msavi', 'etm_sr_nbr',
@@ -269,6 +254,26 @@ class LandsatETM(Landsat):
 
     def __init__(self, product_id):
         super(LandsatETM, self).__init__(product_id)
+
+
+class Landsat4(LandsatTM):
+    def __init__(self, product_id):
+        super(Landsat4, self).__init__(product_id)
+
+
+class Landsat5(LandsatTM):
+    def __init__(self, product_id):
+        super(Landsat5, self).__init__(product_id)
+
+
+class Landsat7(LandsatETM):
+    def __init__(self, product_id):
+        super(Landsat7, self).__init__(product_id)
+
+
+class Landsat8(LandsatETM):
+    def __init__(self, product_id):
+        super(Landsat8, self).__init__(product_id)
 
 
 class LandsatOLITIRS(Landsat):
@@ -327,13 +332,13 @@ def instance(product_id):
 
     instances = {
         'tm4': (r'^lt4\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$',
-                LandsatTM4),
+                Landsat4),
 
         'tm5': (r'^lt5\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$',
-                LandsatTM5),
+                Landsat5),
 
         'etm': (r'^le7\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
-                LandsatETM),
+                Landsat7),
 
         'olitirs': (r'^lc8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
                     LandsatOLITIRS),
