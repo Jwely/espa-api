@@ -3,7 +3,7 @@
 # TODO validation, this would better support future schema changes
 
 import cerberus
-from api.domain.sensor import instance, available_products, ProductNotImplemented
+import api.domain.sensor as sn
 
 
 class ValidationException(Exception):
@@ -15,11 +15,11 @@ class ValidationProvider(object):
     Validation class for incoming orders
     """
     def __init__(self, schema_cls, size_thresh=2000000, *args, **kwargs):
-        self.validator = cerberus.Validator(schema_cls.request_schema)
+        self.validator = cerberus.Validator()
+        self.schema_cls = schema_cls()
 
-        self.schema_cls = schema_cls
-        self.schema = schema_cls.request_schema
-        self.valid_params = schema_cls.valid_params
+        self.schema = self.schema_cls.request_schema
+        self.valid_params = self.schema_cls.valid_params
 
         self.size_thresh = size_thresh
 
@@ -36,35 +36,69 @@ class ValidationProvider(object):
         self._clear_errors()
         self.order = order
 
-        self._validate_orderstruct()
-        self._validate_scene_list()
+        methods = dir(self)
 
-        # For my sanity right now
-        print self.errors
+        # Validate schemas first, then everything else
+        # TODO look at organizing this better
+        nonschema_methods = []
+        for method in methods:
+            if ('_validate_' and '_schema' in method) and callable(getattr(self, method)):
+                func = getattr(self, method)
+                func()
+            elif '_validate_' in method and callable(getattr(self, method)):
+                nonschema_methods.append(method)
 
         if not self.errors:
-            return True
+            for method in nonschema_methods:
+                func = getattr(self, method)
+                func()
         else:
+            self._add_error('General Error', 'Schema errors must be fixed before validation can finish')
+
+        # For my sanity right now in testing
+        print self.errors
+
+        if self.errors:
             return False
+        else:
+            return True
 
     def __call__(self, *args, **kwargs):
         return self.validate(*args, **kwargs)
 
-    def _validate_orderstruct(self):
+    def _validate_order_schema(self):
         """
         Validate the incoming order structure against the schema
         the class was initialized with
 
-        This will also validate most of the valid ranges on the
-        numeric type entries
-
         Uses the cerberus module to perform the actual validation
         and writes any cerberus errors to the class errors dict
         """
-        self.validator(self.order)
+        self.validator(self.order, self.schema)
 
         if self.validator.errors:
-            self._add_error('Schema Error', self.validator.errors)
+            self._add_error('order_schema', self.validator.errors)
+
+    def _validate_projection_schema(self):
+        """
+        Validates a given projection against supported types
+
+        Uses the cerberus validator class along with the projection schema
+        from the schema class
+        """
+        projs = self.schema_cls.projections
+
+        if 'projection' not in self.order:
+            return
+
+        if 'name' not in self.order['projection'] or self.order['projection']['name'] not in projs:
+            self._add_error('projection_schema', 'Valid projection names are: {}'.format(', '.join(projs.keys())))
+            return
+
+        self.validator(self.order['projection'], projs[self.order['projection']['name']])
+
+        if self.validator.errors:
+            self._add_error('projection_schema', self.validator.errors)
 
     def _validate_scene_list(self):
         """
@@ -75,9 +109,10 @@ class ValidationProvider(object):
 
         Writes any errors to the class errors dict
         """
+        # TODO add in role based restrictions to requested products
         errors = {}
 
-        results = available_products(self.order['inputs'])
+        results = sn.available_products(self.order['inputs'])
 
         if 'not_implemented' in results:
             errors['Sensor ID Not Recognized'] = results['not_implemented']
@@ -93,17 +128,35 @@ class ValidationProvider(object):
             errors['Unsupported Product'] = unsupported
 
         if errors:
-            self._add_error('Requested Products Error', errors)
+            self._add_error('scene_list', errors)
 
-    def _validate_projection_units(self):
+    def _validate_image_extents_schema(self):
         """
-        Check to make sure that requested extent units make sense
-        with the projection units
+        Validates the extent parameters to make sure they are the
+        correct data types and fall within the valid ranges
 
-        The main purpose is to make sure someone doesn't submit
-        extents given in meters for a geographic projection
+        Uses the cerberus validator class along with the image_extent schema
+        from the schema class
         """
-        pass
+        errors = {}
+
+        exts = self.schema_cls.image_extents
+
+        if 'image_extents' not in self.order:
+            return
+        elif 'projection' not in self.order or not self.order['projection']:
+            errors['Projection Error'] = 'You must specify a projection to use image extents'
+
+        if 'units' not in self.order['image_extents'] or self.order['image_extents']['units'] not in exts:
+            errors['Units Error'] = 'Valid units are: {}'.format(', '.join(exts.keys()))
+
+        if errors:
+            self._add_error('image_extents_schema', errors)
+        else:
+            self.validator(self.order['image_extents'], exts[self.order['image_extents']['units']])
+
+            if self.validator.errors:
+                self._add_error('image_extents_schema', self.validator.errors)
 
     def _validate_image_extents(self):
         """
@@ -115,28 +168,37 @@ class ValidationProvider(object):
 
         Total number of pixels do not exceed a processing threshold
         """
+        if 'image_extents_schema' in self.errors or not self.order['image_extents']:
+            return
+
         errors = {}
 
-        maxx = self.order['image_extents']['maxx']
-        minx = self.order['image_extents']['minx']
-        maxy = self.order['image_extents']['maxy']
-        miny = self.order['image_extents']['miny']
-        units = self.order['image_extents']['units']
+        maxx = self.order['image_extents']['east']
+        minx = self.order['image_extents']['west']
+        maxy = self.order['image_extents']['north']
+        miny = self.order['image_extents']['south']
+        extent_units = self.order['image_extents']['units']
         xdif = 0
         ydif = 0
         tot_size = 0
 
+        if self.order['projection'] and self.order['projection']['name'] == 'lonlat':
+            if extent_units != 'dd':
+                errors['Units Error'] = 'Must use decimal degrees (dd) for geographic projection'
+
         # Special care needs to be taken around the antemeridian where the minx
         # could be larger than the maxx when dealing with decimal degrees
-        if units == 'dd' and minx > maxx:
+        # the maxx value will need to be converted to a positive value > 180
+        # before the backend warp command is executed
+        if extent_units == 'dd' and minx > 170 and -170 > maxx:
             xdif = 360 - minx + maxx
         elif minx > maxx:
-            errors['Check X extents'] = 'Maximum X is less than minimum X'
+            errors['Check East/West extents'] = 'Easterly value is less than the Westerly value'
         else:
             xdif = abs(maxx - minx)
 
         if miny > maxy:
-            errors['Check Y extents'] = 'Maximum Y is less than minimum Y'
+            errors['Check Y extents'] = 'Northerly value is less than the Southerly value'
         else:
             ydif = abs(maxy - miny)
 
@@ -144,16 +206,17 @@ class ValidationProvider(object):
             resize_units = self.order['resize']['pixel_size_units']
             pixel_size = self.order['resize']['pixel_size']
         else:
-            resize_units = units
+            resize_units = extent_units
             # This is sensor/band dependant, but this should be ok for now
-            if units == 'dd':
+            if extent_units == 'dd':
                 pixel_size = 0.0002695
             else:
                 pixel_size = 30
 
         # Have to convert in case the resize units does not match the extent units
-        if resize_units != units:
-            if units == 'dd':
+        # Have to allow for extents to be given in dd, even when the projection is meters
+        if resize_units != extent_units:
+            if extent_units == 'dd':
                 pixel_size /= 111317.254174397
             else:
                 pixel_size *= 111317.254174397
@@ -161,12 +224,55 @@ class ValidationProvider(object):
         if xdif > pixel_size and ydif > pixel_size:
             tot_size = xdif * ydif / pixel_size ** 2
         else:
-            errors['Size Error'] = 'Unable to calculate output size, check extent and resize parameters'
+            errors['Size Error'] = 'Unable to verify output size, check extent and resize parameters'
 
         if tot_size > self.size_thresh:
-            errors['Size Error'] = 'Requested extents exceed size threshold'
+            errors['Size Error'] = 'Total pixels requested exceeds size threshold'
+        elif tot_size <= 0:
+            errors['Size Error'] = 'Error calculating total pixels, check extent and resize parameters'
 
-        self._add_error('Extent Validation Error', errors)
+        if errors:
+            self._add_error('image_extents', errors)
+
+    def _validate_resize(self):
+        """
+        Validate the pixel resizing parameters
+        """
+        errors = {}
+        if not self.order['resize'] or 'resize_schema' in self.errors:
+            pass
+        elif not self.order['projection']:
+            if self.order['resize']['pixel_size_units'] != 'meters':
+                errors['Units Error'] = 'Must use meters when no projection is specified'
+        elif self.order['projection']['name'] == 'lonlat':
+            if self.order['resize']['pixel_size_units'] != 'dd':
+                errors['Units Error'] = 'Must use decimal degrees with geographic projection'
+        elif self.order['resize']['pixel_size_units'] != 'meters':
+                errors['Units Error'] = 'Must use meters with supported non-geographic projections'
+
+        if errors:
+            self._add_error('resize', errors)
+
+    def _validate_resize_schema(self):
+        """
+        Validates a given resize parameters structure
+
+        Uses the cerberus validator class along with the resize schema
+        from the schema class
+        """
+        resize = self.schema_cls.resize
+
+        if 'resize' not in self.order:
+            return
+
+        if 'pixel_size_units' not in self.order['resize'] or self.order['resize']['pixel_size_units'] not in resize:
+            self._add_error('resize_schema', 'Valid resize units are: {}'.format(', '.join(resize.keys())))
+            return
+
+        self.validator(self.order['resize'], resize[self.order['resize']['pixel_size_units']])
+
+        if self.validator.errors:
+            self._add_error('resize_schema', self.validator.errors)
 
     def _validate_role(self):
         """

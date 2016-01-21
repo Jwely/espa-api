@@ -1,4 +1,4 @@
-from api.domain.sensor import instance
+import api.domain.sensor as sensorpy
 
 
 def populate_products():
@@ -21,7 +21,7 @@ def populate_products():
     all_prods = []
     for acq in sensor_acqids:
         for prefix in sensor_acqids[acq]:
-            prods = instance('{}{}'.format(prefix, acq)).products
+            prods = sensorpy.instance('{}{}'.format(prefix, acq)).products
             for prod in prods:
                 if prod not in all_prods:
                     all_prods.append(prod)
@@ -35,166 +35,157 @@ class BaseValidationSchema(object):
     and the valid parameters associated with the schema
 
     This is meant to be inherited into major version change schemas, with changes
-    overriding the base object
+    mutating or overriding the base object as necessary
     """
 
-    formats = ['gtiff', 'hdf-eos2', 'envi']
+    def __init__(self):
+        self.formats = ['gtiff', 'hdf-eos2', 'envi']
 
-    resampling_methods = ['nn', 'bil', 'cc']
+        self.resampling_methods = ['nn', 'bil', 'cc']
 
-    image_extents = [{'type': 'dict',
-                      'schema': {'minx': {'type': 'float',
-                                          'required': True},
-                                 'maxx': {'type': 'float',
-                                          'required': True},
-                                 'miny': {'type': 'float',
-                                          'required': True},
-                                 'maxy': {'type': 'float',
-                                          'required': True},
-                                 'units': {'type': 'string',
-                                           'required': True,
-                                           'allowed': ['meters']}}},
-                     {'type': 'dict',
-                      'schema': {'minx': {'type': 'float',
-                                          'min': -180,
-                                          'max': 180,
-                                          'required': True},
-                                 'maxx': {'type': 'float',
-                                          'min': -180,
-                                          'max': 180,
-                                          'required': True},
-                                 'miny': {'type': 'float',
-                                          'min': -90,
-                                          'max': 90,
-                                          'required': True},
-                                 'maxy': {'type': 'float',
-                                          'min': -90,
-                                          'max': 90,
-                                          'required': True},
-                                 'units': {'type': 'string',
-                                           'required': True,
-                                           'allowed': ['dd']}}}]
+        self.image_extents = {'meters': {'north': {'type': 'float',
+                                                   'required': True},
+                                         'south': {'type': 'float',
+                                                   'required': True},
+                                         'east': {'type': 'float',
+                                                  'required': True},
+                                         'west': {'type': 'float',
+                                                  'required': True},
+                                         'units': {'type': 'string',
+                                                   'required': True,
+                                                   'allowed': ['meters']}},
+                              'dd': {'east': {'type': 'float',
+                                              'min': -180,
+                                              'max': 180,
+                                              'required': True},
+                                     'west': {'type': 'float',
+                                              'min': -180,
+                                              'max': 180,
+                                              'required': True},
+                                     'north': {'type': 'float',
+                                               'min': -90,
+                                               'max': 90,
+                                               'required': True},
+                                     'south': {'type': 'float',
+                                               'min': -90,
+                                               'max': 90,
+                                               'required': True},
+                                     'units': {'type': 'string',
+                                               'required': True,
+                                               'allowed': ['dd']}}}
 
-    resize = [{'type': 'dict',
-               'schema': {'pixel_size': {'type': 'float',
-                                         'min': 30.0,
-                                         'max': 1000.0,
-                                         'required': True},
-                          'pixel_size_units': {'type': 'string',
-                                               'allowed': ['meters'],
-                                               'required': True}}},
-              {'type': 'dict',
-               'schema': {'pixel_size': {'type': 'float',
-                                         'min': 0.0002695,
-                                         'max': 0.0089831,
-                                         'required': True},
-                          'pixel_size_units': {'type': 'string',
-                                               'allowed': ['dd'],
-                                               'required': True}}}]
-
-    products = populate_products()
-
-                    # Albers
-    projections = [{'type': 'dict',
-                    'schema': {'name': {'type': 'string',
-                                        'required': True,
-                                        'allowed': ['aea']},
-                               'standard_parallel_1': {'type': 'float',
-                                                       'required': True,
-                                                       'min': -90.0,
-                                                       'max': 90.0},
-                               'standard_parallel_2': {'type': 'float',
-                                                       'required': True,
-                                                       'min': -90.0,
-                                                       'max': 90.0},
-                               'central_meridian': {'type': 'float',
-                                                    'required': True,
-                                                    'min': -180.0,
-                                                    'max': 180.0},
-                               'latitude_of_origin': {'type': 'float',
-                                                      'required': True,
-                                                      'min': -90.0,
-                                                      'max': 90.0},
-                               'false_easting': {'type': 'float',
+        self.resize = {'meters': {'pixel_size': {'type': 'float',
+                                                 'min': 30.0,
+                                                 'max': 1000.0,
                                                  'required': True},
-                               'false_northing': {'type': 'float',
-                                                  'required': True}}},
-                   # UTM
-                   {'type': 'dict',
-                    'schema': {'name': {'type': 'string',
-                                        'required': True,
-                                        'allowed': ['utm']},
-                               'zone': {'type': 'integer',
-                                        'required': True,
-                                        'min': 1,
-                                        'max': 60},
-                               'zone_ns': {'type': 'string',
-                                           'required': True,
-                                           'allowed': ['north', 'south']}}},
-                   # Geographic
-                   {'type': 'dict',
-                    'schema': {'name': {'type': 'string',
-                                        'required': True,
-                                        'allowed': ['lonlat']}}},
-                   # Sinusoidal
-                   {'type': 'dict',
-                    'schema': {'name': {'type': 'string',
-                                        'required': True,
-                                        'allowed': ['sinu']},
-                               'central_meridian': {'type': 'float',
-                                                    'required': True,
-                                                    'min': -180.0,
-                                                    'max': 180.0},
-                               'false_easting': {'type': 'float',
+                                  'pixel_size_units': {'type': 'string',
+                                                       'allowed': ['meters'],
+                                                       'required': True}},
+                       'dd': {'pixel_size': {'type': 'float',
+                                             'min': 0.0002695,
+                                             'max': 0.0089831,
+                                             'required': True},
+                              'pixel_size_units': {'type': 'string',
+                                                   'allowed': ['dd'],
+                                                   'required': True}}}
+
+        self.products = populate_products()
+
+        # Albers
+        self.projections = {'aea': {'name': {'type': 'string',
+                                             'required': True,
+                                             'allowed': ['aea']},
+                                    'standard_parallel_1': {'type': 'float',
+                                                            'required': True,
+                                                            'min': -90.0,
+                                                            'max': 90.0},
+                                    'standard_parallel_2': {'type': 'float',
+                                                            'required': True,
+                                                            'min': -90.0,
+                                                            'max': 90.0},
+                                    'central_meridian': {'type': 'float',
+                                                         'required': True,
+                                                         'min': -180.0,
+                                                         'max': 180.0},
+                                    'latitude_of_origin': {'type': 'float',
+                                                           'required': True,
+                                                           'min': -90.0,
+                                                           'max': 90.0},
+                                    'false_easting': {'type': 'float',
+                                                      'required': True},
+                                    'false_northing': {'type': 'float',
+                                                       'required': True},
+                                    'datum': {'type': 'string',
+                                              'allowed': ['wgs84', 'nad27', 'nad83'],
+                                              'required': True}},
+                            # UTM
+                            'utm': {'name': {'type': 'string',
+                                             'required': True,
+                                             'allowed': ['utm']},
+                                    'zone': {'type': 'integer',
+                                             'required': True,
+                                             'min': 1,
+                                             'max': 60},
+                                    'zone_ns': {'type': 'string',
+                                                'required': True,
+                                                'allowed': ['north', 'south']}},
+                            # Geographic
+                            'lonlat': {'name': {'type': 'string',
+                                                'required': True,
+                                                'allowed': ['lonlat']}},
+                            # Sinusoidal
+                            'sinu': {'name': {'type': 'string',
+                                              'required': True,
+                                              'allowed': ['sinu']},
+                                     'central_meridian': {'type': 'float',
+                                                          'required': True,
+                                                          'min': -180.0,
+                                                          'max': 180.0},
+                                     'false_easting': {'type': 'float',
+                                                       'required': True},
+                                     'false_northing': {'type': 'float',
+                                                        'required': True}},
+                            # Polar
+                            'ps': {'name': {'type': 'string',
+                                            'required': True,
+                                            'allowed': ['ps']},
+                                   'longitudinal_pole': {'type': 'float',
+                                                         'required': True,
+                                                         'min': -180.0,
+                                                         'max': 180.0},
+                                   'latitude_true_scale': {'type': 'float',
+                                                           'required': True,
+                                                           'anyof': [{'min': -90.0, 'max': -60.0},
+                                                                     {'min': 60.0, 'max': 90.0}]}}}
+
+        # DEVELOPER_OPTIONS = {'keep_directory': {'type': 'boolean'},
+        #                      'keep_intermediate_data': {'type': 'boolean'},
+        #                      'keep_log': {'type': 'boolean'}}
+
+        self.request_schema = {'inputs': {'type': 'list',
+                                          'required': True,
+                                          'schema': {'type': 'string'}},
+                               'products': {'type': 'list',
+                                            'required': True,
+                                            'allowed': self.products},
+                               'projection': {'type': 'dict',
+                                              'required': True},
+                               'image_extents': {'type': 'dict',
                                                  'required': True},
-                               'false_northing': {'type': 'float',
-                                                  'required': True}}},
-                   # Polar
-                   {'type': 'dict',
-                    'schema': {'name': {'type': 'string',
-                                        'required': True,
-                                        'allowed': ['ps']},
-                               'longitudinal_pole': {'type': 'float',
+                               'format': {'type': 'string',
+                                          'required': True,
+                                          'allowed': self.formats},
+                               'resize': {'type': 'dict',
+                                          'required': True},
+                               'resampling_method': {'type': 'string',
                                                      'required': True,
-                                                     'min': -180.0,
-                                                     'max': 180.0},
-                               'latitude_true_scale': {'type': 'float',
-                                                       'required': True,
-                                                       'anyof': [{'min': -90.0, 'max': -60.0},
-                                                                 {'min': 60.0, 'max': 90.0}]}}}]
+                                                     'allowed': self.resampling_methods}}
 
-    # DEVELOPER_OPTIONS = {'keep_directory': {'type': 'boolean'},
-    #                      'keep_intermediate_data': {'type': 'boolean'},
-    #                      'keep_log': {'type': 'boolean'}}
-
-    request_schema = {'inputs': {'type': 'list',
-                                 'required': True,
-                                 'schema': {'type': 'string'}},
-                      'products': {'type': 'list',
-                                   'required': True,
-                                   'allowed': products},
-                      'projection': {'type': 'dict',
-                                     'required': False,
-                                     'oneof': projections},
-                      'image_extents': {'type': 'dict',
-                                        'required': False,
-                                        # 'dependencies': ['projection'],
-                                        'oneof': image_extents},
-                      'format': {'type': 'string',
-                                 'required': False,
-                                 'allowed': formats},
-                      'resize': {'type': 'dict',
-                                 'required': False,
-                                 'oneof': resize},
-                      'resampling_method': {'type': 'string',
-                                            'required': False,
-                                            'allowed': resampling_methods}}
-
-    valid_params = {'formats': {'formats': formats},
-                    'resampling_methods': {'resampling_methods': resampling_methods},
-                    'projections': {proj['schema']['name']['allowed'][0]: proj['schema'] for proj in
-                                    projections}}
+        self.valid_params = {'formats': {'formats': self.formats},
+                             'resampling_methods': {'resampling_methods': self.resampling_methods},
+                             'projections': self.projections}
 
 
 class Version0Schema(BaseValidationSchema):
-    pass
+    def __init__(self):
+        super(Version0Schema, self).__init__()

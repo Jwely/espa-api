@@ -25,10 +25,10 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(api.available_products(product_id).keys()[0], "tm")
 
     def test_fetch_user_orders_type(self):
-	self.assertIsInstance(api.fetch_user_orders('jane.doe@usgs.gov'), dict)
+        self.assertIsInstance(api.fetch_user_orders('jane.doe@usgs.gov'), dict)
 
     def test_fetch_order_type(self):
-	self.assertIsInstance(api.fetch_order('abc123'), dict)
+        self.assertIsInstance(api.fetch_order('abc123'), dict)
 
 class TestValidation(unittest.TestCase):
     good = {"inputs": ["LE70290302003123EDC00", "LT50290302002123EDC00", 'LO80290302002123EDC00'],
@@ -39,14 +39,15 @@ class TestValidation(unittest.TestCase):
                            "central_meridian": -96.0,
                            "latitude_of_origin": 23.0,
                            "false_easting": 0.0,
-                           "false_northing": 0.0},
-            "image_extents": {"maxy": 3164800.0,
-                              "miny": 3014800.0,
-                              "maxx": -2415600.0,
-                              "minx": -2565600.0,
+                           "false_northing": 0.0,
+                           'datum': 'wgs84'},
+            "image_extents": {"north": 316480.0,
+                              "south": 301480.0,
+                              "east": -241560.0,
+                              "west": -256560.0,
                               'units': 'meters'},
             "format": "gtiff",
-            "resize": {"pixel_size": 60.0,
+            "resize": {"pixel_size": 60,
                        "pixel_size_units": "meters"},
             "resampling_method": "nn"}
 
