@@ -237,7 +237,7 @@ class LandsatTM(Landsat):
     products = ['tm_sr', 'tm_toa', 'tm_l1', 'tm_dswe',
                 'tm_sr_ndvi', 'tm_sr_ndmi', 'tm_sr_evi',
                 'tm_sr_savi', 'tm_sr_msavi', 'tm_sr_nbr',
-                'tm_sr_nbr2', 'tm_lst', 'source',
+                'tm_sr_nbr2', 'tm_lst', 'tm_bt', 'source',
                 'source_metadata']
     lta_name = 'LANDSAT_TM'
     sensor_name = 'tm'
@@ -251,7 +251,7 @@ class LandsatETM(Landsat):
     products = ['etm_sr', 'etm_toa', 'etm_l1', 'etm_dswe',
                 'etm_sr_ndvi', 'etm_sr_ndmi', 'etm_sr_evi',
                 'etm_sr_savi', 'etm_sr_msavi', 'etm_sr_nbr',
-                'etm_sr_nbr2', 'etm_lst', 'source',
+                'etm_sr_nbr2', 'etm_lst', 'etm_bt', 'source',
                 'source_metadata']
     lta_name = 'LANDSAT_ETM_PLUS'
     sensor_name = 'etm'
@@ -265,7 +265,7 @@ class LandsatOLITIRS(Landsat):
     products = ['olitirs_sr', 'olitirs_toa', 'olitirs_l1',
                 'olitirs_sr_ndvi', 'olitirs_sr_ndmi',
                 'olitirs_sr_evi', 'olitirs_sr_savi',
-                'olitirs_sr_msavi', 'olitirs_sr_nbr',
+                'olitirs_sr_msavi', 'olitirs_sr_nbr', 'olitirs_bt',
                 'olitirs_sr_nbr2', 'source', 'source_metadata']
     lta_name = 'LANDSAT_OLITIRS'
     sensor_name = 'olitirs'
@@ -286,6 +286,7 @@ class LandsatOLI(Landsat):
 
 class LandsatTIRS(Landsat):
     """Models Landsat TIRS only products"""
+    products = ['tirs_bt', 'source', 'source_metadata']
     lta_name = 'LANDSAT_TIRS'
     sensor_name = 'tirs'
 
