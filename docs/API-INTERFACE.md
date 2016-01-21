@@ -348,7 +348,6 @@ http://localhost:5000/api/v0/order/production@email.com-101015143201-00132
 
 {
   "completion_date": "", 
-  "completion_email_sent": "", 
   "customization": {
     "extents": {
       "east": -2415600, 
@@ -371,8 +370,6 @@ http://localhost:5000/api/v0/order/production@email.com-101015143201-00132
       "pixel_size_units": "meters"
     }
   }, 
-  "ee_order_id": "", 
-  "initial_email_sent": "2015-10-10", 
   "inputs": {
     "LT50290302002123EDC00": {
       "completion_date": "2015-10-12", 
@@ -380,20 +377,14 @@ http://localhost:5000/api/v0/order/production@email.com-101015143201-00132
       "status": "complete"
     }, 
     "LT50300302002123EDC00": {
-      "hadoop_job_id": "job_abc123", 
-      "processing_location": "processingNode1", 
       "status": "processing"
     }, 
     "LT50310302002123EDC00": {
-      "completion_date": null, 
       "status": "oncache"
     }
   }, 
   "note": "", 
   "order_date": "2015-10-10", 
-  "order_source": "bulk api", 
-  "order_type": "ondemand", 
-  "priority": "high", 
   "products": {
     "tm5": ["sr", "sr_ndvi", "toa"],
   }, 
