@@ -59,6 +59,7 @@ Statistics and plotting are available for all ESPA output products.
 MODIS products are not generally available for additional processing levels as they have already been processed to a level beyond level 1 by the datasource: MODIS 09 series is at surface reflectance and the 13 series is NDVI/EVI.
 
 
+##UPDATED VALUES - 1/21/16
 ####olitirs8
 - sourcemetadata
 - l1
