@@ -394,11 +394,9 @@ http://localhost:5000/api/v0/order/production@email.com-101015143201-00132
   "order_source": "bulk api", 
   "order_type": "ondemand", 
   "priority": "high", 
-  "products": [
-    "sr", 
-    "sr_ndvi", 
-    "toa"
-  ], 
+  "products": {
+    "tm5": ["sr", "sr_ndvi", "toa"],
+  }, 
   "status": "ordered"
 }
 
