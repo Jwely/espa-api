@@ -414,11 +414,11 @@ http://localhost:5000/api/v0/order/production@email.com-101015143201-00132
 Accepts requests for process from an HTTP POST with a JSON body.  The body is validated and any errors are returned to the caller.  Otherwise, an orderid is returned.
 ```json
 
-curl --user production:password -d '{"etm":{
+curl --user production:password -d '{"etm7":{
                                          "inputs":["LE70290302003123EDC00"],
                                          "products":["sr", "stats"]
                                       },
-                                      "tm":{
+                                      "tm5":{
                                           "inputs":["LT50290302002123EDC00"], 
                                           "products":["sr", "toa", "stats"], 
                                       },
