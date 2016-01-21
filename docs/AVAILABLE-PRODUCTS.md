@@ -63,7 +63,7 @@ MODIS products are not generally available for additional processing levels as t
 
 
 
-olitirs8
+####olitirs8
 sourcemetadata
 l1
 toa
@@ -79,17 +79,52 @@ sr_nbr
 sr_nbr2
 stats
 
-oli8
+####oli8
 sourcemetadata
 l1
 toa
 cloud (coming in March 2016 release)
 stats
 
-tirs8
+####tirs8
 no products currently offered
 
-etm7
+####etm7
+sourcemetadata
+l1
+toa
+bt
+cloud
+sr
+lst (restricted to staff only)
+swe (restricted to staff only)
+sr_ndvi
+sr_evi
+sr_savi
+sr_msavi
+sr_ndmi
+sr_nbr
+sr_nbr2
+stats
+
+####tm4
+sourcemetadata
+l1
+toa
+bt
+cloud
+sr
+swe (restricted to staff only)
+sr_ndvi
+sr_evi
+sr_savi
+sr_msavi
+sr_ndmi
+sr_nbr
+sr_nbr2
+stats
+
+####tm5
 sourcemetadata
 l1
 toa
@@ -108,105 +143,67 @@ sr_nbr2
 stats
 
 
-tm4
-sourcemetadata
-l1
-toa
-bt
-cloud
-sr
-swe (restricted to staff only)
-sr_ndvi
-sr_evi
-sr_savi
-sr_msavi
-sr_ndmi
-sr_nbr
-sr_nbr2
-stats
-
-
-tm5
-sourcemetadata
-l1
-toa
-bt
-cloud
-sr
-lst (restricted to staff only)
-swe (restricted to staff only)
-sr_ndvi
-sr_evi
-sr_savi
-sr_msavi
-sr_ndmi
-sr_nbr
-sr_nbr2
-stats
-
-
-mod09a1
+####mod09a1
 l1
 stats
 
-mod09ga
+####mod09ga
 l1
 stats
 
-mod09gq
+####mod09gq
 l1
 stats
 
-mod09q1
+####mod09q1
 l1
 stats
 
-myd09a1
+####myd09a1
 l1
 stats
 
-myd09ga
+####myd09ga
 l1
 stats
 
-myd09gq
+####myd09gq
 l1
 stats
 
-myd09q1
+####myd09q1
 l1
 stats
 
-
-myd13a1
+####myd13a1
 l1
 stats
 
-myd13a2
+####myd13a2
 l1
 stats
 
-myd13a3
+####myd13a3
 l1
 stats
 
-myd13q1
+####myd13q1
 l1
 stats
 
-myd13a1
+####myd13a1
 l1
 stats
 
-myd13a2
+####myd13a2
 l1
 stats
 
-myd13a3
+####myd13a3
 l1
 stats
 
-myd13q1
+####myd13q1
 l1
 stats
 
