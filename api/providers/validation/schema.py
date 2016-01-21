@@ -1,4 +1,4 @@
-import api.domain.sensor as sensorpy
+import api.domain.sensor as sn
 
 
 def populate_products():
@@ -21,7 +21,7 @@ def populate_products():
     all_prods = []
     for acq in sensor_acqids:
         for prefix in sensor_acqids[acq]:
-            prods = sensorpy.instance('{}{}'.format(prefix, acq)).products
+            prods = sn.instance('{}{}'.format(prefix, acq)).products
             for prod in prods:
                 if prod not in all_prods:
                     all_prods.append(prod)
