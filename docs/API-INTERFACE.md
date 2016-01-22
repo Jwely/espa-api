@@ -100,24 +100,15 @@ curl --user production:password
 http://localhost:5000/api/v0/available-products/LE70290302003123EDC00
 
 {
-  "etm": {
+  "etm7": {
     "inputs": [
       "LE70290302003123EDC00"
     ],
-    "outputs": [
-      "etm_sr",
-      "etm_toa",
-      "etm_l1",
-      "etm_sr_ndvi",
-      "etm_sr_ndmi",
-      "etm_sr_evi",
-      "etm_sr_savi",
-      "etm_sr_msavi",
-      "etm_sr_nbr",
-      "etm_sr_nbr2",
-      "source",
-      "source_metadata"
-    ]
+    "products": ["sourcemetadata", "l1", "toa",
+                 "bt", "cloud", "sr", "lst", "swe",
+                 "sr_ndvi", "sr_evi", "sr_savi", 
+                 "sr_msavi", "sr_ndmi", "sr_nbr", 
+                 "sr_nbr2", "stats"]
   }
 }
 ```
@@ -133,37 +124,24 @@ curl --user production:password
 http://localhost:5000/api/v0/available-products
 
 {
-  "etm": {
+  "etm7": {
     "inputs": [
       "LE70290302003123EDC00"
     ],
-    "outputs": [
-      "etm_sr",
-      "etm_toa",
-      "etm_l1",
-      "etm_sr_ndvi",
-      "etm_sr_ndmi",
-      "etm_sr_evi",
-      "etm_sr_savi",
-      "etm_sr_msavi",
-      "etm_sr_nbr",
-      "etm_sr_nbr2",
-      "source",
-      "source_metadata"
-    ]
+    "products": ["sourcemetadata", "l1", "toa",
+                 "bt", "cloud", "sr", "lst", "swe",
+                 "sr_ndvi", "sr_evi", "sr_savi", 
+                 "sr_msavi", "sr_ndmi", "sr_nbr", 
+                 "sr_nbr2", "stats"]
   },
   "not_implemented": [
     "bad scene id"
   ],
-  "terra": {
+  "mod09a1": {
     "inputs": [
       "MOD09A1.A2000073.h12v11.005.2008238080250.hdf"
     ],
-    "outputs": [
-      "mod_l1",
-      "source",
-      "source_metadata"
-    ]
+    "products": ["l1", "stats"]
   }
 }
 ```
@@ -370,7 +348,6 @@ http://localhost:5000/api/v0/order/production@email.com-101015143201-00132
 
 {
   "completion_date": "", 
-  "completion_email_sent": "", 
   "customization": {
     "extents": {
       "east": -2415600, 
@@ -393,8 +370,6 @@ http://localhost:5000/api/v0/order/production@email.com-101015143201-00132
       "pixel_size_units": "meters"
     }
   }, 
-  "ee_order_id": "", 
-  "initial_email_sent": "2015-10-10", 
   "inputs": {
     "LT50290302002123EDC00": {
       "completion_date": "2015-10-12", 
@@ -402,25 +377,17 @@ http://localhost:5000/api/v0/order/production@email.com-101015143201-00132
       "status": "complete"
     }, 
     "LT50300302002123EDC00": {
-      "hadoop_job_id": "job_abc123", 
-      "processing_location": "processingNode1", 
       "status": "processing"
     }, 
     "LT50310302002123EDC00": {
-      "completion_date": null, 
       "status": "oncache"
     }
   }, 
   "note": "", 
   "order_date": "2015-10-10", 
-  "order_source": "bulk api", 
-  "order_type": "ondemand", 
-  "priority": "high", 
-  "products": [
-    "tm_sr", 
-    "tm_sr_ndvi", 
-    "tm_toa"
-  ], 
+  "products": {
+    "tm5": ["sr", "sr_ndvi", "toa"],
+  }, 
   "status": "ordered"
 }
 
@@ -435,8 +402,15 @@ http://localhost:5000/api/v0/order/production@email.com-101015143201-00132
 
 Accepts requests for process from an HTTP POST with a JSON body.  The body is validated and any errors are returned to the caller.  Otherwise, an orderid is returned.
 ```json
-curl --user production:password -d '{"inputs":["LE70290302003123EDC00", "LT50290302002123EDC00"], 
-                                     "products":["etm_sr", "tm_sr", "stats"],
+
+curl --user production:password -d '{"etm7":{
+                                         "inputs":["LE70290302003123EDC00"],
+                                         "products":["sr", "stats"]
+                                      },
+                                      "tm5":{
+                                          "inputs":["LT50290302002123EDC00"], 
+                                          "products":["sr", "toa", "stats"], 
+                                      },
                                      "projection": {
                                          "name": "aea",
                                          "standard_parallel_1": 29.5,
@@ -457,7 +431,8 @@ curl --user production:password -d '{"inputs":["LE70290302003123EDC00", "LT50290
                                          "pixel_size": 60,
                                          "pixel_size_units": "meters"
                                      },
-                                     "resampling_method": "nn"
+                                     "resampling_method": "nn",
+                                     "plot_statistics": true,
                                     }'
       http://localhost:5000/api/v0/order
 
@@ -490,7 +465,7 @@ This should also leverage previously processed base images when a user is reques
 
 ```json
 curl --user production:password http://localhost:5000/api/v0/order
-?input=LE70290302003123EDC00&products=etm_sr,etm_toa&projection=aea
+?input=LE70290302003123EDC00&products=sr,toa&projection=aea
 &standard_parallel_1=29.5&standard_parallel_2=45.5
 &latitude_of_origin=23.0&false_easting=0.0&false_northing=0.0
 &north=3164800&south=3014800
@@ -501,7 +476,7 @@ curl --user production:password http://localhost:5000/api/v0/order
 or shortened:
 
 curl --user production:password http://localhost:5000/api/v0/order
-?i=LE70290302003123EDC00&o=etm_sr,etm_toa
+?i=LE70290302003123EDC00&o=sr,toa
 &p=aea
 &psp1=29.5&psp2=45.5
 &plo=23.0&pfe=0.0&pfn=0.0
