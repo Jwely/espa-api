@@ -277,7 +277,7 @@ class LandsatOLI(Landsat):
 
 class LandsatTIRS(Landsat):
     """Models Landsat TIRS only products"""
-    products = "source_metadata bt".split()
+    products = "".split()
     lta_name = 'LANDSAT_TIRS'
     sensor_name = 'tirs'
 
