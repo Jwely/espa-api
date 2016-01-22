@@ -347,7 +347,6 @@ curl --user production:password
 http://localhost:5000/api/v0/order/production@email.com-101015143201-00132
 
 {
-  "completion_date": "", 
   "customization": {
     "extents": {
       "east": -2415600, 
@@ -385,18 +384,13 @@ http://localhost:5000/api/v0/order/production@email.com-101015143201-00132
   }, 
   "note": "", 
   "order_date": "2015-10-10", 
+  "completion_date": "",
+  "expiration_date": "",
   "products": {
     "tm5": ["sr", "sr_ndvi", "toa"],
   }, 
   "status": "ordered"
 }
-
-```
-**GET /api/v0/order/request/\<ordernum\>**
-
-* Retrieve the order that was sent to the server.  Resubmittable to the order endpoint.
-  * don't know if we need this or not 
-
 
 **POST /api/v0/order**
 
