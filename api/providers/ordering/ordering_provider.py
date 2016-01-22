@@ -6,6 +6,7 @@ from api.utils import not_empty
 import psycopg2.extras
 import yaml
 import re
+import copy
 
 class OrderingProvider(object):
     cfg = get_cfg()['config']
@@ -43,7 +44,7 @@ class OrderingProvider(object):
 
         if not_empty(userlist):
             # fetch all available products
-            return_products = OrderingProvider.sensor_products(product_id)
+            return_products = copy.deepcopy(OrderingProvider.sensor_products(product_id))
             # Unless the user is staff, all possible products
             # are not available
             if userlist['is_staff'] == False:
