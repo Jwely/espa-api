@@ -179,7 +179,9 @@ class BaseValidationSchema(object):
                                           'required': True},
                                'resampling_method': {'type': 'string',
                                                      'required': True,
-                                                     'allowed': self.resampling_methods}}
+                                                     'allowed': self.resampling_methods},
+                               'plot_statistics': {'type': 'boolean',
+                                                   'required': True}}
 
         self.valid_params = {'formats': {'formats': self.formats},
                              'resampling_methods': {'resampling_methods': self.resampling_methods},

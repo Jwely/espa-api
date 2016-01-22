@@ -14,7 +14,7 @@ class ValidationProvider(object):
     """
     Validation class for incoming orders
     """
-    def __init__(self, schema_cls, size_thresh=2000000, *args, **kwargs):
+    def __init__(self, schema_cls, size_thresh=200000000, *args, **kwargs):
         self.validator = cerberus.Validator()
         self.schema_cls = schema_cls()
 
