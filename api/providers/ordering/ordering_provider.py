@@ -8,15 +8,54 @@ import yaml
 import re
 
 class OrderingProvider(object):
+    cfg = get_cfg()['config']
+    cfg['cursor_factory'] = psycopg2.extras.DictCursor
+
     def __init__(self):
-        cfg = get_cfg()['config']
-        cfg['cursor_factory'] = psycopg2.extras.DictCursor
-        self.cfg = cfg
         self.email_reg = '(\w+[.|\w])*@(\w+[.])*([a-zA-Z]*$)'
 
-    def available_products(self, product_id):
-        prod_list = product_id.split(",")
+    @staticmethod
+    def sensor_products(product_id):
+        if isinstance(product_id, str):
+            prod_list = product_id.split(",")
+        else:
+            prod_list = product_id
+
         return sensor.available_products(prod_list)
+
+    @staticmethod
+    def fetch_user(username):
+        userlist = []
+        with DBConnect(**OrderingProvider.cfg) as db:
+            # username uniqueness enforced on auth_user table at database
+            user_sql = "select id, username, email, is_staff, is_active, " \
+                       "is_superuser from auth_user where username = %s;"
+            db.select(user_sql, (username))
+        if not_empty(db):
+            userlist = db[0]
+
+        return userlist
+
+
+    def available_products(self, product_id, username):
+        userlist = OrderingProvider.fetch_user(username)
+        return_products = {}
+        with open('api/domain/restricted.yaml') as f:
+            restricted_list = yaml.load(f.read())
+
+        if not_empty(userlist):
+            return_products = OrderingProvider.sensor_products(product_id)
+            if userlist['is_staff'] == False:
+            # then we need to filter available products
+                for prod_suffix in restricted_list['internal_only']:
+                # prod_suffix == 'dswe', 'lts'
+                    for sensor_type in return_products.keys():
+                        prod_name = "%s_%s" % (sensor_type, prod_suffix)
+                        if prod_name in return_products[sensor_type]:
+                            return_products[sensor_type].remove(prod_name)
+
+        return return_products
+
 
     def fetch_user_orders(self, uid):
         id_type = 'email' if re.search(self.email_reg, uid) else 'username'
@@ -24,7 +63,7 @@ class OrderingProvider(object):
         out_dict = {}
         user_ids = []
 
-        with DBConnect(**self.cfg) as db:
+        with DBConnect(**OrderingProvider.cfg) as db:
             user_sql = "select id, username, email from auth_user where "
             user_sql += "email = %s;" if id_type == 'email' else "username = %s;"
             db.select(user_sql, (uid))
@@ -50,7 +89,7 @@ class OrderingProvider(object):
         scrub_keys = ['initial_email_sent', 'completion_email_sent', 'id', 'user_id', 
 			'ee_order_id', 'email']
 
-        with DBConnect(**self.cfg) as db:
+        with DBConnect(**OrderingProvider.cfg) as db:
             db.select(sql, (ordernum))
             if not_empty(db):
                 for key, val in db[0].iteritems():

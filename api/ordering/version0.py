@@ -36,7 +36,7 @@ class API(object):
         """
         return self.providers.api_versions
 
-    def available_products(self, product_id):
+    def available_products(self, product_id, username):
         """
         Provides list of available products given
         a scene id.
@@ -66,7 +66,7 @@ class API(object):
                             ],
                     }
         """
-        return self.ordering.available_products(product_id)
+        return self.ordering.available_products(product_id, username)
 
     def fetch_user_orders(self, user_id):
         """ Return orders given a user id
