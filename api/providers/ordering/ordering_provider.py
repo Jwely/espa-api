@@ -10,9 +10,7 @@ import re
 class OrderingProvider(object):
     cfg = get_cfg()['config']
     cfg['cursor_factory'] = psycopg2.extras.DictCursor
-
-    def __init__(self):
-        self.email_reg = '(\w+[.|\w])*@(\w+[.])*([a-zA-Z]*$)'
+    email_reg = '(\w+[.|\w])*@(\w+[.])*([a-zA-Z]*$)'
 
     @staticmethod
     def sensor_products(product_id):
@@ -44,21 +42,22 @@ class OrderingProvider(object):
             restricted_list = yaml.load(f.read())
 
         if not_empty(userlist):
+            # fetch all available products
             return_products = OrderingProvider.sensor_products(product_id)
+            # Unless the user is staff, all possible products
+            # are not available
             if userlist['is_staff'] == False:
-            # then we need to filter available products
-                for prod_suffix in restricted_list['internal_only']:
-                # prod_suffix == 'dswe', 'lts'
+                for prod in restricted_list['internal_only']:
+                # ['swe', 'lst'] 1/22/16 
                     for sensor_type in return_products.keys():
-                        prod_name = "%s_%s" % (sensor_type, prod_suffix)
-                        if prod_name in return_products[sensor_type]:
-                            return_products[sensor_type].remove(prod_name)
+                        if prod in return_products[sensor_type]['outputs']:
+                            return_products[sensor_type]['outputs'].remove(prod)
 
         return return_products
 
 
     def fetch_user_orders(self, uid):
-        id_type = 'email' if re.search(self.email_reg, uid) else 'username'
+        id_type = 'email' if re.search(OrderingProvider.email_reg, uid) else 'username'
         order_list = []
         out_dict = {}
         user_ids = []
@@ -74,7 +73,9 @@ class OrderingProvider(object):
 
             if not_empty(user_ids):
                 user_tup = tuple([str(idv) for idv in user_ids])
-                db.select("select orderid from ordering_order where user_id in {};".format(user_tup))
+                sql = "select orderid from ordering_order where user_id in {};".format(user_tup)
+                sql = sql.replace(",)",")")
+                db.select(sql)
                 if not_empty(db):
                     order_list = [item[0] for item in db]
 
