@@ -60,6 +60,7 @@ MODIS products are not generally available for additional processing levels as t
 
 
 ##UPDATED VALUES - 1/21/16
+##Update TIRS - 1/22/16
 ####olitirs8
 - sourcemetadata
 - l1
@@ -84,7 +85,8 @@ MODIS products are not generally available for additional processing levels as t
 - stats
 
 ####tirs8
-- no products currently offered
+- bt
+- source_metadata
 
 ####etm7
 - sourcemetadata
