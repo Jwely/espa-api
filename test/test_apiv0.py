@@ -42,19 +42,19 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(api.api_versions().keys()[0], 'versions')
 
     def test_get_available_products_key_val(self):
-        self.assertEqual(api.available_products(self.product_id, self.username).keys()[0], "tm")
+        self.assertEqual(api.available_products(self.product_id, self.username).keys()[0], "tm5")
 
     def test_get_available_products_by_staff(self):
         # staff should see all available products
         return_dict = api.available_products(self.staff_product_id, self.staffuser)
         for item in self.restricted_list['internal_only']:
-            self.assertTrue(item in return_dict['etm']['outputs'])
+            self.assertTrue(item in return_dict['etm7']['outputs'])
 
     def test_get_available_products_by_public(self):
         # public should not see products listed in api/domain.restricted.yaml
         return_dict = api.available_products(self.staff_product_id, self.pubuser)
         for item in self.restricted_list['internal_only']:
-            self.assertFalse(item in return_dict['etm']['outputs'])
+            self.assertFalse(item in return_dict['etm7']['outputs'])
 
     def test_fetch_user_orders_by_email_val(self):
         orders = api.fetch_user_orders(self.usermail)

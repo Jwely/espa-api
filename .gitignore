@@ -68,3 +68,8 @@ local
 
 # Pycharm
 .idea
+
+# random
+contest.py
+runtests
+

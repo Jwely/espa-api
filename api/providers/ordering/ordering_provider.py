@@ -35,27 +35,32 @@ class OrderingProvider(object):
 
         return userlist
 
+    @staticmethod
+    def staff_products(product_id):
+        all_prods = copy.deepcopy(OrderingProvider.sensor_products(product_id))
+        return all_prods
+
+    @staticmethod
+    def pub_products(product_id):
+        pub_prods = copy.deepcopy(OrderingProvider.sensor_products(product_id))
+        with open('api/domain/restricted.yaml') as f:
+            restricted_list = yaml.load(f.read())
+        for prod in restricted_list['internal_only']:
+            for sensor_type in pub_prods.keys():
+                if prod in pub_prods[sensor_type]['outputs']:
+                    pub_prods[sensor_type]['outputs'].remove(prod)
+
+        return pub_prods
 
     def available_products(self, product_id, username):
         userlist = OrderingProvider.fetch_user(username)
-        return_products = {}
-        with open('api/domain/restricted.yaml') as f:
-            restricted_list = yaml.load(f.read())
+        return_prods = {}
+        if userlist['is_staff']:
+            return_prods = OrderingProvider.staff_products(product_id)
+        else:
+            return_prods = OrderingProvider.pub_products(product_id)
 
-        if not_empty(userlist):
-            # fetch all available products
-            return_products = copy.deepcopy(OrderingProvider.sensor_products(product_id))
-            # Unless the user is staff, all possible products
-            # are not available
-            if userlist['is_staff'] == False:
-                for prod in restricted_list['internal_only']:
-                # ['swe', 'lst'] 1/22/16 
-                    for sensor_type in return_products.keys():
-                        if prod in return_products[sensor_type]['outputs']:
-                            return_products[sensor_type]['outputs'].remove(prod)
-
-        return return_products
-
+        return return_prods
 
     def fetch_user_orders(self, uid):
         id_type = 'email' if re.search(OrderingProvider.email_reg, uid) else 'username'
@@ -83,12 +88,11 @@ class OrderingProvider(object):
         out_dict["orders"] = order_list
         return out_dict
 
-
     def fetch_order(self, ordernum):
         sql = "select * from ordering_order where orderid = %s;"
         out_dict = {}
         opts_dict = {}
-        scrub_keys = ['initial_email_sent', 'completion_email_sent', 'id', 'user_id', 
+        scrub_keys = ['initial_email_sent', 'completion_email_sent', 'id', 'user_id',
 			'ee_order_id', 'email']
 
         with DBConnect(**OrderingProvider.cfg) as db:
@@ -107,10 +111,8 @@ class OrderingProvider(object):
 
         return out_dict
 
-
     def place_order(self, username, order):
         pass
-
 
     def list_orders(self, username_or_email):
         pass
