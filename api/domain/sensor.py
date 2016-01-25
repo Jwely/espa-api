@@ -82,12 +82,12 @@ class Terra(Modis):
     """Superclass for Terra based Modis products"""
 
     sensor_name = 'terra'
-    products = ['mod_l1', 'source', 'source_metadata']
+    products = ['l1', 'stats']
 
 
 class Aqua(Modis):
     """Superclass for Aqua based Modis products"""
-    products = ['myd_l1', 'source', 'source_metadata']
+    products = ['l1',  'stats']
     sensor_name = 'aqua'
 
 
@@ -232,38 +232,21 @@ class Landsat(SensorProduct):
         self.version = product_id[19:21]
 
 
-class LandsatTM4(Landsat):
-    """Models Thematic Mapper based products"""
-    products = ['tm_sr', 'tm_toa', 'tm_l1',
-                'tm_sr_ndvi', 'tm_sr_ndmi', 'tm_sr_evi',
-                'tm_sr_savi', 'tm_sr_msavi', 'tm_sr_nbr',
-                'tm_sr_nbr2', 'source', 'source_metadata']
+class LandsatTM(Landsat):
+    """Models Landsat TM only products"""
+    products = "source_metadata l1 toa bt cloud sr lst swe sr_ndvi " \
+               " sr_evi sr_savi sr_msavi sr_ndmi sr_nbr sr_nbr2 stats".split()
     lta_name = 'LANDSAT_TM'
     sensor_name = 'tm'
 
     def __init__(self, product_id):
-        super(LandsatTM4, self).__init__(product_id)
+        super(LandsatTM, self).__init__(product_id)
 
-
-class LandsatTM5(Landsat):
-    """Models Thematic Mapper based products"""
-    products = ['tm_sr', 'tm_toa', 'tm_l1',
-                'tm_sr_ndvi', 'tm_sr_ndmi', 'tm_sr_evi',
-                'tm_sr_savi', 'tm_sr_msavi', 'tm_sr_nbr',
-                'tm_sr_nbr2', 'source', 'source_metadata']
-    lta_name = 'LANDSAT_TM'
-    sensor_name = 'tm'
-
-    def __init__(self, product_id):
-        super(LandsatTM5, self).__init__(product_id)
-    
 
 class LandsatETM(Landsat):
-    """Models Enhanced Thematic Mapper Plus based products"""
-    products = ['etm_sr', 'etm_toa', 'etm_l1',
-                'etm_sr_ndvi', 'etm_sr_ndmi', 'etm_sr_evi',
-                'etm_sr_savi', 'etm_sr_msavi', 'etm_sr_nbr',
-                'etm_sr_nbr2', 'source', 'source_metadata']
+    """Models Landsat ETM only products"""
+    products = "source_metadata l1 toa bt cloud sr lst swe sr_ndvi " \
+               "sr_evi sr_savi sr_msavi sr_ndmi sr_nbr sr_nbr2 stats".split()
     lta_name = 'LANDSAT_ETM_PLUS'
     sensor_name = 'etm'
 
@@ -272,14 +255,10 @@ class LandsatETM(Landsat):
 
 
 class LandsatOLITIRS(Landsat):
-    """Models combined Landsat 8 OLI/TIRS products"""
-
-    products = ['olitirs_sr', 'olitirs_toa', 'olitirs_l1',
-                'olitirs_sr_ndvi', 'olitirs_sr_ndmi',
-                'olitirs_sr_evi', 'olitirs_sr_savi',
-                'olitirs_sr_msavi', 'olitirs_sr_nbr',
-                'olitirs_sr_nbr2', 'source', 'source_metadata']
-    lta_name = 'LANDSAT_8'
+    """Models Landsat OLI/TIRS only products"""
+    products = "source_metadata l1 toa bt cloud sr sr_ndvi sr_evi " \
+                "sr_savi sr_msavi sr_ndmi sr_nbr sr_nbr2 stats".split()
+    lta_name = 'LANDSAT_OLITIRS'
     sensor_name = 'olitirs'
 
     def __init__(self, product_id):
@@ -287,10 +266,90 @@ class LandsatOLITIRS(Landsat):
 
 
 class LandsatOLI(Landsat):
-    """Models Landsat 8 OLI only products"""
-    products = ['oli_toa', 'oli_l1', 'source', 'source_metadata']
-    lta_name = 'LANDSAT_8'
+    """Models Landsat OLI only products"""
+    products = "source_metadata l1 toa cloud stats".split()
+    lta_name = 'LANDSAT_OLI'
     sensor_name = 'oli'
+
+    def __init__(self, product_id):
+        super(LandsatOLI, self).__init__(product_id)
+
+
+class LandsatTIRS(Landsat):
+    """Models Landsat TIRS only products"""
+    products = "".split()
+    lta_name = 'LANDSAT_TIRS'
+    sensor_name = 'tirs'
+
+    def __init__(self, product_id):
+        super(LandsatTIRS, self).__init__(product_id)
+
+
+class Landsat4(Landsat):
+    """Models Landsat 4 only products"""
+    def __init__(self, product_id):
+        super(Landsat4, self).__init__(product_id)
+
+
+class Landsat4TM(LandsatTM, Landsat4):
+    """Models Landsat 4 TM only products"""
+    sensor_name = 'tm4'
+    def __init__(self, product_id):
+        super(Landsat4TM, self).__init__(product_id)
+        Landsat4TM.products = [ i for i in self.products if i != 'lst' ]
+
+
+class Landsat5(Landsat):
+    """Models Landsat 5 only products"""
+    def __init__(self, product_id):
+        super(Landsat5, self).__init__(product_id)
+
+
+class Landsat5TM(LandsatTM, Landsat5):
+    """Models Landsat 5 TM only products"""
+    sensor_name = 'tm5'
+    def __init__(self, product_id):
+        super(Landsat5TM, self).__init__(product_id)
+
+
+class Landsat7(Landsat):
+    """Models Landsat 7 only products"""
+    def __init__(self, product_id):
+        super(Landsat7, self).__init__(product_id)
+
+
+class Landsat7ETM(LandsatETM, Landsat7):
+    """Models Landsat 7 ETM only products"""
+    sensor_name = 'etm7'
+    def __init__(self, product_id):
+        super(Landsat7ETM, self).__init__(product_id)
+
+
+class Landsat8(Landsat):
+    """Models Landsat 8 only products"""
+    def __init__(self, product_id):
+        super(Landsat8, self).__init__(product_id)
+
+
+class Landsat8OLI(LandsatOLI, Landsat8):
+    """Models Landsat 8 OLI only products"""
+    sensor_name = 'oli8'
+    def __init__(self, product_id):
+        super(Landsat8OLI, self).__init__(product_id)
+
+
+class Landsat8TIRS(LandsatTIRS, Landsat8):
+    """Models Landsat 8 TIRS only products"""
+    sensor_name = 'tirs8'
+    def __init__(self, product_id):
+        super(Landsat8TIRS, self).__init__(product_id)
+
+
+class Landsat8OLITIRS(LandsatOLITIRS, Landsat8):
+    """Models Landsat 8 OLI/TIRS only products"""
+    sensor_name = 'olitirs8'
+    def __init__(self, product_id):
+        super(Landsat8OLITIRS, self).__init__(product_id)
 
 
 def instance(product_id):
@@ -327,19 +386,19 @@ def instance(product_id):
 
     instances = {
         'tm4': (r'^lt4\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$',
-                LandsatTM4),
+                Landsat4TM),
 
         'tm5': (r'^lt5\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$',
-                LandsatTM5),
+                Landsat5TM),
 
         'etm': (r'^le7\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
-                LandsatETM),
+                Landsat7ETM),
 
         'olitirs': (r'^lc8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
-                    LandsatOLITIRS),
+                    Landsat8OLITIRS),
 
         'oli': (r'^lo8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
-                LandsatOLI),
+                Landsat8OLI),
 
         'mod09a1': (r'^mod09a1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
                     ModisTerra09A1),

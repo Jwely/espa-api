@@ -57,3 +57,152 @@
 Statistics and plotting are available for all ESPA output products.
 
 MODIS products are not generally available for additional processing levels as they have already been processed to a level beyond level 1 by the datasource: MODIS 09 series is at surface reflectance and the 13 series is NDVI/EVI.
+
+
+##UPDATED VALUES - 1/21/16
+##Update TIRS - 1/22/16
+####olitirs8
+- sourcemetadata
+- l1
+- toa
+- bt
+- cloud
+- sr
+- sr_ndvi
+- sr_evi
+- sr_savi
+- sr_msavi
+- sr_ndmi
+- sr_nbr
+- sr_nbr2
+- stats
+
+####oli8
+- sourcemetadata
+- l1
+- toa
+- cloud (coming in March 2016 release)
+- stats
+
+####tirs8
+- bt
+- source_metadata
+
+####etm7
+- sourcemetadata
+- l1
+- toa
+- bt
+- cloud
+- sr
+- lst (restricted to staff only)
+- swe (restricted to staff only)
+- sr_ndvi
+- sr_evi
+- sr_savi
+- sr_msavi
+- sr_ndmi
+- sr_nbr
+- sr_nbr2
+- stats
+
+####tm4
+- sourcemetadata
+- l1
+- toa
+- bt
+- cloud
+- sr
+- swe (restricted to staff only)
+- sr_ndvi
+- sr_evi
+- sr_savi
+- sr_msavi
+- sr_ndmi
+- sr_nbr
+- sr_nbr2
+- stats
+
+####tm5
+- sourcemetadata
+- l1
+- toa
+- bt
+- cloud
+- sr
+- lst (restricted to staff only)
+- swe (restricted to staff only)
+- sr_ndvi
+- sr_evi
+- sr_savi
+- sr_msavi
+- sr_ndmi
+- sr_nbr
+- sr_nbr2
+- stats
+
+
+####mod09a1
+- l1
+- stats
+
+####mod09ga
+- l1
+- stats
+
+####mod09gq
+- l1
+- stats
+
+####mod09q1
+- l1
+- stats
+
+####myd09a1
+- l1
+- stats
+
+####myd09ga
+- l1
+- stats
+
+####myd09gq
+- l1
+- stats
+
+####myd09q1
+- l1
+- stats
+
+####myd13a1
+- l1
+- stats
+
+####myd13a2
+- l1
+- stats
+
+####myd13a3
+- l1
+- stats
+
+####myd13q1
+- l1
+- stats
+
+####myd13a1
+- l1
+- stats
+
+####myd13a2
+- l1
+- stats
+
+####myd13a3
+- l1
+- stats
+
+####myd13q1
+- l1
+- stats
+
