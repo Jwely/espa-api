@@ -55,10 +55,11 @@ class OrderingProvider(object):
     def available_products(self, product_id, username):
         userlist = OrderingProvider.fetch_user(username)
         return_prods = {}
-        if userlist['is_staff']:
-            return_prods = OrderingProvider.staff_products(product_id)
-        else:
-            return_prods = OrderingProvider.pub_products(product_id)
+        if not_empty(userlist):
+            if userlist['is_staff']:
+                return_prods = OrderingProvider.staff_products(product_id)
+            else:
+                return_prods = OrderingProvider.pub_products(product_id)
 
         return return_prods
 
