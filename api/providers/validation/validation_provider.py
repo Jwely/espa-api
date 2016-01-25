@@ -4,6 +4,7 @@
 
 import cerberus
 import api.domain.sensor as sn
+import api.providers.ordering as ordering
 
 
 class ValidationException(Exception):
@@ -14,9 +15,10 @@ class ValidationProvider(object):
     """
     Validation class for incoming orders
     """
-    def __init__(self, schema_cls, size_thresh=200000000, *args, **kwargs):
+    def __init__(self, schema_cls, userid, size_thresh=200000000, *args, **kwargs):
         self.validator = cerberus.Validator()
         self.schema_cls = schema_cls()
+        self.userid = userid
 
         self.schema = self.schema_cls.request_schema
         self.valid_params = self.schema_cls.valid_params
@@ -100,7 +102,7 @@ class ValidationProvider(object):
         if self.validator.errors:
             self._add_error('projection_schema', self.validator.errors)
 
-    def _validate_scene_list(self):
+    def _validate_scene_lists(self):
         """
         Validate the scene list and requested sensors with the available products
 
