@@ -100,10 +100,10 @@ class OrderingProvider(object):
             db.select(sql, (ordernum))
             if not_empty(db):
                 for key, val in db[0].iteritems():
-			out_dict[key] = val
+                    out_dict[key] = val
                 opts_str = db[0]['product_options']
                 opts_str = opts_str.replace("\n","")
-		opts_dict = yaml.load(opts_str)
+                opts_dict = yaml.load(opts_str)
 		out_dict['product_options'] = opts_dict
 
         for k in scrub_keys:

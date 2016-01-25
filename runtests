@@ -1,0 +1,6 @@
+#!/bin/bash
+
+source venv_api/bin/activate
+
+python -m unittest discover test
+
