@@ -293,6 +293,7 @@ class Landsat4(Landsat):
 
 class Landsat4TM(LandsatTM, Landsat4):
     """Models Landsat 4 TM only products"""
+    sensor_name = 'tm4'
     def __init__(self, product_id):
         super(Landsat4TM, self).__init__(product_id)
         Landsat4TM.products = [ i for i in self.products if i != 'lst' ]
@@ -306,6 +307,7 @@ class Landsat5(Landsat):
 
 class Landsat5TM(LandsatTM, Landsat5):
     """Models Landsat 5 TM only products"""
+    sensor_name = 'tm5'
     def __init__(self, product_id):
         super(Landsat5TM, self).__init__(product_id)
 
@@ -318,6 +320,7 @@ class Landsat7(Landsat):
 
 class Landsat7ETM(LandsatETM, Landsat7):
     """Models Landsat 7 ETM only products"""
+    sensor_name = 'etm7'
     def __init__(self, product_id):
         super(Landsat7ETM, self).__init__(product_id)
 
@@ -330,18 +333,21 @@ class Landsat8(Landsat):
 
 class Landsat8OLI(LandsatOLI, Landsat8):
     """Models Landsat 8 OLI only products"""
+    sensor_name = 'oli8'
     def __init__(self, product_id):
         super(Landsat8OLI, self).__init__(product_id)
 
 
 class Landsat8TIRS(LandsatTIRS, Landsat8):
     """Models Landsat 8 TIRS only products"""
+    sensor_name = 'tirs8'
     def __init__(self, product_id):
         super(Landsat8TIRS, self).__init__(product_id)
 
 
 class Landsat8OLITIRS(LandsatOLITIRS, Landsat8):
     """Models Landsat 8 OLI/TIRS only products"""
+    sensor_name = 'olitirs8'
     def __init__(self, product_id):
         super(Landsat8OLITIRS, self).__init__(product_id)
 
