@@ -11,6 +11,12 @@ from api.exceptions import ProductNotImplemented
 
 logger = logging.getLogger(__name__)
 
+TEST_STRINGS = {'.A2000072.h02v09.005.2008237032813': ['MOD09A1', 'MOD09GA', 'MOD09GQ', 'MOD09Q1',
+                                                       'MYD09A1', 'MYD09GA', 'MYD09GQ', 'MYD09Q1',
+                                                       'MOD13A1', 'MOD13A2', 'MOD13A3', 'MOD13Q1',
+                                                       'MYD13A1', 'MYD13A2', 'MYD13A3', 'MYD13Q1'],
+                '2181092013069PFS00': ['LT4', 'LT5', 'LE7', 'LO8', 'LC8']}
+
 
 class SensorProduct(object):
     """Base class for all sensor products"""
@@ -61,7 +67,6 @@ class Modis(SensorProduct):
     input_filename_extension = '.hdf'
 
     def __init__(self, product_id):
-
         super(Modis, self).__init__(product_id)
 
         parts = product_id.strip().split('.')
@@ -87,7 +92,7 @@ class Terra(Modis):
 
 class Aqua(Modis):
     """Superclass for Aqua based Modis products"""
-    products = ['l1',  'stats']
+    products = ['l1', 'stats']
     sensor_name = 'aqua'
 
 
@@ -133,82 +138,82 @@ class Modis13Q1(Modis):
 
 class ModisTerra09A1(Terra, Modis09A1):
     """models modis 09A1 from Terra"""
-    pass
+    sensor_name = 'MOD09A1'
 
 
 class ModisTerra09GA(Terra, Modis09GA):
     """models modis 09GA from Terra"""
-    pass
+    sensor_name = 'MOD09GA'
 
 
 class ModisTerra09GQ(Terra, Modis09GQ):
     """models modis 09GQ from Terra"""
-    pass
+    sensor_name = 'MOD09GQ'
 
 
 class ModisTerra09Q1(Terra, Modis09Q1):
     """models modis 09Q1 from Terra"""
-    pass
+    sensor_name = 'MOD09Q1'
 
 
 class ModisTerra13A1(Terra, Modis13A1):
     """models modis 13A1 from Terra"""
-    pass
+    sensor_name = 'MOD13A1'
 
 
 class ModisTerra13A2(Terra, Modis13A2):
     """models modis 13A2 from Terra"""
-    pass
+    sensor_name = 'MOD13A2'
 
 
 class ModisTerra13A3(Terra, Modis13A3):
     """models modis 13A3 from Terra"""
-    pass
+    sensor_name = 'MOD13A3'
 
 
 class ModisTerra13Q1(Terra, Modis13Q1):
     """models modis 13Q1 from Terra"""
-    pass
+    sensor_name = 'MOD13Q1'
 
 
 class ModisAqua09A1(Aqua, Modis09A1):
     """models modis 09A1 from Aqua"""
-    pass
+    sensor_name = 'MOD09A1'
 
 
 class ModisAqua09GA(Aqua, Modis09GA):
     """models modis 09GA from Aqua"""
-    pass
+    sensor_name = 'MOD09GA'
 
 
 class ModisAqua09GQ(Aqua, Modis09GQ):
     """models modis 09GQ from Aqua"""
-    pass
+    sensor_name = 'MOD09GQ'
 
 
 class ModisAqua09Q1(Aqua, Modis09Q1):
     """models modis 09Q1 from Aqua"""
-    pass
+    sensor_name = 'MOD09Q1'
 
 
 class ModisAqua13A1(Aqua, Modis13A1):
     """models modis 13A1 from Aqua"""
-    pass
+    sensor_name = 'MOD13A1'
 
 
 class ModisAqua13A2(Aqua, Modis13A2):
     """models modis 13A2 from Aqua"""
-    pass
+    sensor_name = 'MOD13A2'
 
 
 class ModisAqua13A3(Aqua, Modis13A3):
     """models modis 13A3 from Aqua"""
-    pass
+    sensor_name = 'MOD13A3'
 
 
 class ModisAqua13Q1(Aqua, Modis13Q1):
     """models modis 13Q1 from Aqua"""
-    pass
+    sensor_name = 'MOD13Q1'
 
 
 class Landsat(SensorProduct):
@@ -257,7 +262,7 @@ class LandsatETM(Landsat):
 class LandsatOLITIRS(Landsat):
     """Models Landsat OLI/TIRS only products"""
     products = "source_metadata l1 toa bt cloud sr sr_ndvi sr_evi " \
-                "sr_savi sr_msavi sr_ndmi sr_nbr sr_nbr2 stats".split()
+               "sr_savi sr_msavi sr_ndmi sr_nbr sr_nbr2 stats".split()
     lta_name = 'LANDSAT_OLITIRS'
     sensor_name = 'olitirs'
 
@@ -287,6 +292,7 @@ class LandsatTIRS(Landsat):
 
 class Landsat4(Landsat):
     """Models Landsat 4 only products"""
+
     def __init__(self, product_id):
         super(Landsat4, self).__init__(product_id)
 
@@ -294,13 +300,15 @@ class Landsat4(Landsat):
 class Landsat4TM(LandsatTM, Landsat4):
     """Models Landsat 4 TM only products"""
     sensor_name = 'tm4'
+
     def __init__(self, product_id):
         super(Landsat4TM, self).__init__(product_id)
-        Landsat4TM.products = [ i for i in self.products if i != 'lst' ]
+        Landsat4TM.products = [i for i in self.products if i != 'lst']
 
 
 class Landsat5(Landsat):
     """Models Landsat 5 only products"""
+
     def __init__(self, product_id):
         super(Landsat5, self).__init__(product_id)
 
@@ -308,12 +316,14 @@ class Landsat5(Landsat):
 class Landsat5TM(LandsatTM, Landsat5):
     """Models Landsat 5 TM only products"""
     sensor_name = 'tm5'
+
     def __init__(self, product_id):
         super(Landsat5TM, self).__init__(product_id)
 
 
 class Landsat7(Landsat):
     """Models Landsat 7 only products"""
+
     def __init__(self, product_id):
         super(Landsat7, self).__init__(product_id)
 
@@ -321,12 +331,14 @@ class Landsat7(Landsat):
 class Landsat7ETM(LandsatETM, Landsat7):
     """Models Landsat 7 ETM only products"""
     sensor_name = 'etm7'
+
     def __init__(self, product_id):
         super(Landsat7ETM, self).__init__(product_id)
 
 
 class Landsat8(Landsat):
     """Models Landsat 8 only products"""
+
     def __init__(self, product_id):
         super(Landsat8, self).__init__(product_id)
 
@@ -334,6 +346,7 @@ class Landsat8(Landsat):
 class Landsat8OLI(LandsatOLI, Landsat8):
     """Models Landsat 8 OLI only products"""
     sensor_name = 'oli8'
+
     def __init__(self, product_id):
         super(Landsat8OLI, self).__init__(product_id)
 
@@ -341,6 +354,7 @@ class Landsat8OLI(LandsatOLI, Landsat8):
 class Landsat8TIRS(LandsatTIRS, Landsat8):
     """Models Landsat 8 TIRS only products"""
     sensor_name = 'tirs8'
+
     def __init__(self, product_id):
         super(Landsat8TIRS, self).__init__(product_id)
 
@@ -348,6 +362,7 @@ class Landsat8TIRS(LandsatTIRS, Landsat8):
 class Landsat8OLITIRS(LandsatOLITIRS, Landsat8):
     """Models Landsat 8 OLI/TIRS only products"""
     sensor_name = 'olitirs8'
+
     def __init__(self, product_id):
         super(Landsat8OLITIRS, self).__init__(product_id)
 
