@@ -1,17 +1,59 @@
 from flask import Flask
 from flask import jsonify
 from flask import request
+from flask import Response
+
+from flask.ext.login import LoginManager, UserMixin, login_required, current_user
+
+#from functools import wraps
+
 from api.ordering.version0 import API
+from api import lta
 
 app = Flask(__name__)
+app.debug = True
+login_manager = LoginManager()
+login_manager.init_app(app)
+
 api = API()
+
+class User(UserMixin):
+    user_database = {"JohnDoe": ("JohnDoe", "John")}
+
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+
+    @classmethod
+    def get(cls,username,password):
+        #lta.login_user(username, password)
+        return cls.user_database.get(username)
+
+@login_manager.request_loader
+def load_user(request):
+    token = request.headers.get('Authorization')
+    if token is None:
+        token = request.args.get('token')
+
+    if token is not None:
+        username,password = token.split(":") # naive token
+        user_entry = User.get(username,password)
+        if (user_entry is not None):
+            user = User(user_entry[0],user_entry[1])
+            if (user.password == password):
+                return user
+    return None
+
 
 @app.route('/')
 def index():
     return 'Welcome to the ESPA API, please direct requests to /api'
 
 @app.route('/api')
+@login_required
 def api_versions():
+  user = current_user
+  print "****************** %s ************" % user.username
   return jsonify(api.api_versions())
 
 @app.route('/api/v<version>')
@@ -121,8 +163,10 @@ def api_info(version):
     return jsonify(response), return_code
 
 @app.route('/api/v0/available-products/<product_id>', methods=['GET'])
+#@requires_auth
 def available_prods_get(product_id):
-    return jsonify(api.available_products(product_id))
+    #username = 'callij'
+    return jsonify(api.available_products(product_id, username))
 
 @app.route('/api/v0/available-products', methods=['POST'])
 def available_prods_post():
@@ -141,7 +185,7 @@ def get_user_orders():
 def get_order_by_email(email):
     response = api.fetch_orders(email)
     return_code = 200 if response.keys()[0] != "errmsg" else 401
-    return jsonify(response), return_code 
+    return jsonify(response), return_code
 
 
 if __name__ == '__main__':
