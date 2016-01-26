@@ -4,6 +4,7 @@ import yaml
 from api.ordering.version0 import API
 from api.utils import get_cfg
 from api.dbconnect import DBConnect
+import version0_testcases as tc
 
 api = API()
 
@@ -73,25 +74,6 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(order['orderid'], self.orderid)
 
 class TestValidation(unittest.TestCase):
-    good = {"inputs": ["LE70290302003123EDC00", "LT50290302002123EDC00", 'LO80290302002123EDC00'],
-            "products": ["sr", "sr_nbr", 'toa'],
-            "projection": {"name": "aea",
-                           "standard_parallel_1": 29.5,
-                           "standard_parallel_2": 45.5,
-                           "central_meridian": -96.0,
-                           "latitude_of_origin": 23.0,
-                           "false_easting": 0.0,
-                           "false_northing": 0.0},
-            "image_extents": {"maxy": 3164800.0,
-                              "miny": 3014800.0,
-                              "maxx": -2415600.0,
-                              "minx": -2565600.0,
-                              'units': 'meters'},
-            "format": "gtiff",
-            "resize": {"pixel_size": 60.0,
-                       "pixel_size_units": "meters"},
-            "resampling_method": "nn"}
-
     def test_validation_get_order_schema(self):
         self.assertIsInstance(api.validation.schema, dict)
 
@@ -99,7 +81,7 @@ class TestValidation(unittest.TestCase):
         self.assertIsInstance(api.validation.valid_params, dict)
 
     def test_validate_good_order(self):
-        self.assertTrue(api.validation(self.good))
+        self.assertTrue(api.validation(tc.BASE))
 
     def test_validate_bad_order(self):
         pass

@@ -1,34 +1,6 @@
 import api.domain.sensor as sn
 
 
-def populate_products():
-    """
-    Build a complete list of all available products that are available for all supported sensors
-
-    This pulls straight from sensor.py, which is centrally being used to keep track of supported
-    sensors
-
-    :return: List of supported products
-    """
-    # Technically all the MODIS products could be wrapped up in two prefixes, but for completeness
-    # let's check everything that is supposed to be supported
-    sensor_acqids = {'.A2000072.h02v09.005.2008237032813': ['MOD09A1', 'MOD09GA', 'MOD09GQ', 'MOD09Q1',
-                                                            'MYD09A1', 'MYD09GA', 'MYD09GQ', 'MYD09Q1',
-                                                            'MOD13A1', 'MOD13A2', 'MOD13A3', 'MOD13Q1',
-                                                            'MYD13A1', 'MYD13A2', 'MYD13A3', 'MYD13Q1'],
-                     '2181092013069PFS00': ['LT4', 'LT5', 'LE7', 'LO8', 'LC8']}
-
-    all_prods = []
-    for acq in sensor_acqids:
-        for prefix in sensor_acqids[acq]:
-            prods = sn.instance('{}{}'.format(prefix, acq)).products
-            for prod in prods:
-                if prod not in all_prods:
-                    all_prods.append(prod)
-
-    return all_prods
-
-
 class BaseValidationSchema(object):
     """
     Provides the base order validation schema to be passed to the Cerberus module
@@ -88,8 +60,6 @@ class BaseValidationSchema(object):
                               'pixel_size_units': {'type': 'string',
                                                    'allowed': ['dd'],
                                                    'required': True}}}
-
-        self.products = populate_products()
 
         # Albers
         self.projections = {'aea': {'name': {'type': 'string',
@@ -162,13 +132,7 @@ class BaseValidationSchema(object):
         #                      'keep_intermediate_data': {'type': 'boolean'},
         #                      'keep_log': {'type': 'boolean'}}
 
-        self.request_schema = {'inputs': {'type': 'list',
-                                          'required': True,
-                                          'schema': {'type': 'string'}},
-                               'products': {'type': 'list',
-                                            'required': True,
-                                            'allowed': self.products},
-                               'projection': {'type': 'dict',
+        self.request_schema = {'projection': {'type': 'dict',
                                               'required': True},
                                'image_extents': {'type': 'dict',
                                                  'required': True},
@@ -183,9 +147,39 @@ class BaseValidationSchema(object):
                                'plot_statistics': {'type': 'boolean',
                                                    'required': True}}
 
+        sensorprod_schemas = self.build_sensorprods_schema()
+
+        for prod in sensorprod_schemas:
+            self.request_schema[prod] = sensorprod_schemas[prod]
+
         self.valid_params = {'formats': {'formats': self.formats},
                              'resampling_methods': {'resampling_methods': self.resampling_methods},
                              'projections': self.projections}
+
+    @staticmethod
+    def build_sensorprods_schema():
+        """
+        Build the dynamic sensor/product schemas
+        These are built based on the end point classes inside of sensor.py
+
+        :return: dictionary of schemas
+        """
+        out_schemas = {}
+
+        for acq in sn.TEST_STRINGS:
+            for prefix in sn.TEST_STRINGS[acq]:
+                prods = sn.instance('{}{}'.format(prefix, acq)).products
+                if prefix in out_schemas:
+                    continue
+                else:
+                    out_schemas[prefix] = {'type': 'dict',
+                                           'required': False,
+                                           'schema': {'inputs': {'type': 'list',
+                                                                 'required': True},
+                                                      'products': {'type': 'list',
+                                                                   'required': True,
+                                                                   'allowed': prods}}}
+        return out_schemas
 
 
 class Version0Schema(BaseValidationSchema):
