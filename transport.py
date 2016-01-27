@@ -1,14 +1,17 @@
+import time
+import psycopg2
 from flask import Flask
 from flask import jsonify
 from flask import request
 from flask import Response
-
 from flask.ext.login import LoginManager, UserMixin, login_required, current_user
-
-#from functools import wraps
 
 from api.ordering.version0 import API
 from api import lta
+
+from api.dbconnect import DBConnect
+from api.utils import get_cfg
+from api.utils import is_empty
 
 app = Flask(__name__)
 app.debug = True
@@ -18,20 +21,61 @@ login_manager.init_app(app)
 api = API()
 
 class User(UserMixin):
-    user_database = {"JohnDoe": ("JohnDoe", "John")}
+    cfg = get_cfg()['config']
+    cfg['cursor_factory'] = psycopg2.extras.DictCursor
 
-    def __init__(self, username, password):
+    def __init__(self, username, email, first_name, last_name):
         self.username = username
-        self.password = password
+        self.email = email
+        self.first_name = first_name
+        self.last_name = last_name
+
+        # check if user exists in our DB, if
+        # not create them, and assign self.id
+        self.id = User.find_or_create_user(self.username, self.email, self.first_name, self.last_name)
 
     @classmethod
     def get(cls,username,password):
-        #lta.login_user(username, password)
-        return cls.user_database.get(username)
+        user_tup = None
+        try:
+            lta_user = lta.get_user_info(username, password)
+            user_tup = (str(username), str(lta_user.email), str(lta_user.first_name), str(lta_user.last_name))
+        except Exception as e:
+            raise e.message
+            #logger.exception('Exception retrieving user[{0}] from earth '
+            #                 'explorer during login'.format(username))
+
+        return user_tup
+
+    @classmethod
+    def find_or_create_user(cls, username, email, first_name, last_name):
+        user_id = None
+        nownow = time.strftime('%Y-%m-%d %H:%M:%S')
+        insert_stmt = "insert into auth_user (username, " \
+                      "email, first_name, last_name, password, " \
+                      "is_staff, is_active, is_superuser, " \
+                      "last_login, date_joined) values {};"
+        arg_tup = (username, email, first_name, last_name,
+                    'pass', 'f', 't', 'f', nownow, nownow)
+
+        with DBConnect(**cls.cfg) as db:
+            user_sql = "select id from auth_user where username = %s;"
+            db.select(user_sql, username)
+            if is_empty(db):
+                # we need to create a local user
+                db.execute(insert_stmt.format(arg_tup))
+                db.commit()
+            # user should be there now, lets try this again
+            db.select(user_sql, username)
+            user_id = db[0][0]
+
+        return user_id
+
 
 @login_manager.request_loader
 def load_user(request):
     token = request.headers.get('Authorization')
+    api_user = None
     if token is None:
         token = request.args.get('token')
 
@@ -39,10 +83,13 @@ def load_user(request):
         username,password = token.split(":") # naive token
         user_entry = User.get(username,password)
         if (user_entry is not None):
-            user = User(user_entry[0],user_entry[1])
-            if (user.password == password):
-                return user
-    return None
+            # user has successfully authenticated with EE
+            # lets find or create them on our side
+            user = User(user_entry[0],user_entry[1],user_entry[2],user_entry[3])
+            if user.id:
+                api_user = user
+
+    return api_user
 
 
 @app.route('/')
@@ -52,11 +99,10 @@ def index():
 @app.route('/api')
 @login_required
 def api_versions():
-  user = current_user
-  print "****************** %s ************" % user.username
   return jsonify(api.api_versions())
 
 @app.route('/api/v<version>')
+@login_required
 def api_info(version):
     info_dict = {
         '0': {
@@ -163,25 +209,25 @@ def api_info(version):
     return jsonify(response), return_code
 
 @app.route('/api/v0/available-products/<product_id>', methods=['GET'])
-#@requires_auth
+@login_required
 def available_prods_get(product_id):
-    #username = 'callij'
-    return jsonify(api.available_products(product_id, username))
+    return jsonify(api.available_products(product_id, current_user.username))
 
 @app.route('/api/v0/available-products', methods=['POST'])
+@login_required
 def available_prods_post():
     x = request.form['product_ids']
-    return jsonify(api.available_products(x))
+    return jsonify(api.available_products(x, current_user.username))
 
 @app.route('/api/v0/orders', methods=['GET'])
+@login_required
 def get_user_orders():
-    user = request.form['user']
-    passwd = request.form['password']
-    response = api.fetch_orders(user)
+    response = api.fetch_orders(current_user.username)
     return_code = 200 if response.keys()[0] != "errmsg" else 401
     return jsonify(response), return_code
 
 @app.route('/api/v0/orders/<email>', methods=['GET'])
+@login_required
 def get_order_by_email(email):
     response = api.fetch_orders(email)
     return_code = 200 if response.keys()[0] != "errmsg" else 401

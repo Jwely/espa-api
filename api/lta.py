@@ -12,7 +12,7 @@ from suds.client import Client as SoapClient
 from suds.cache import ObjectCache
 
 from api.domain import sensor
-from ordering.models.configuration import Configuration as config
+#from ordering.models.configuration import Configuration as config
 
 logger = logging.getLogger(__name__)
 
@@ -20,11 +20,13 @@ logger = logging.getLogger(__name__)
 class LTAService(object):
     ''' Abstract service client for all of LTA services '''
 
-    service_name = None
+    #service_name = None
+    service_name = 'registration'
 
     def __init__(self):
         self.xml_header = "<?xml version ='1.0' encoding='UTF-8' ?>"
-        self.url = config.url_for(self.service_name)
+        #self.url = config.url_for(self.service_name)
+        self.url = "http://eedevmast.cr.usgs.gov/RegistrationServicedevmast/RegistrationService?wsdl"
 
     def __repr__(self):
         return "LTAService:{0}".format(self.__dict__)
@@ -40,8 +42,10 @@ class LTASoapService(LTAService):
 
     def build_object_cache(self):
         cache = ObjectCache()
-        cache.setduration(seconds=config.get('soap.client_timeout'))
-        cache.setlocation(config.get('soap.cache_location'))
+        #cache.setduration(seconds=config.get('soap.client_timeout'))
+        cache.setduration(seconds='1800')
+        #cache.setlocation(config.get('soap.cache_location'))
+        cache.setlocation('/tmp/suds')
         return cache
 
 
