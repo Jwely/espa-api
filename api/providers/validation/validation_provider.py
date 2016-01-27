@@ -1,10 +1,5 @@
-# TODO Look at maybe making the actual validation logic more generic and create a translation class
-# TODO that pulls the appropriate data out of the schema/order to populate the required fields for
-# TODO validation, this would better support future schema changes
-
 import cerberus
-import api.domain.sensor as sn
-import api.providers.ordering as ordering
+from api.providers.ordering.ordering_provider import OrderingProvider
 
 
 class ValidationException(Exception):
@@ -15,10 +10,9 @@ class ValidationProvider(object):
     """
     Validation class for incoming orders
     """
-    def __init__(self, schema_cls,  size_thresh=200000000, *args, **kwargs):
+    def __init__(self, schema_cls, size_thresh=200000000, *args, **kwargs):
         self.validator = cerberus.Validator()
         self.schema_cls = schema_cls()
-        # self.userid = userid
 
         self.schema = self.schema_cls.request_schema
         self.valid_params = self.schema_cls.valid_params
@@ -26,6 +20,7 @@ class ValidationProvider(object):
         self.size_thresh = size_thresh
 
         self.order = None
+        self.userid = None
         self.errors = {}
 
     def _clear_errors(self):
@@ -34,9 +29,10 @@ class ValidationProvider(object):
     def _add_error(self, name, err_msg):
         self.errors[name] = err_msg
 
-    def validate(self, order):
+    def validate(self, order, userid):
         self._clear_errors()
         self.order = order
+        self.userid = userid
 
         methods = dir(self)
 
@@ -101,36 +97,6 @@ class ValidationProvider(object):
 
         if self.validator.errors:
             self._add_error('projection_schema', self.validator.errors)
-
-    # def _validate_scene_lists(self):
-    #     """
-    #     Validate the scene list and requested sensors with the available products
-    #
-    #     Uses the sensor.py module to gather the available processing products for the
-    #     given sensors
-    #
-    #     Writes any errors to the class errors dict
-    #     """
-    #     # TODO add in role based restrictions to requested products
-    #     errors = {}
-    #
-    #     results = sn.available_products(self.order['inputs'])
-    #
-    #     if 'not_implemented' in results:
-    #         errors['Sensor ID Not Recognized'] = results['not_implemented']
-    #         results.pop('not_implemented', None)
-    #
-    #     supported_prods = []
-    #     for sensor in results:
-    #         supported_prods.extend(results[sensor]['outputs'])
-    #
-    #     unsupported = list(set(self.order['products']) - set(supported_prods))
-    #
-    #     if unsupported:
-    #         errors['Unsupported Product'] = unsupported
-    #
-    #     if errors:
-    #         self._add_error('scene_list', errors)
 
     def _validate_image_extents_schema(self):
         """
@@ -283,4 +249,9 @@ class ValidationProvider(object):
         Exclude lists will need to be generated for each designated role
         in the system, then compared against the incoming order
         """
-        pass
+        ordering = OrderingProvider()
+        keys = self.schema.sensorprod_schemas.keys()
+
+        for key in keys:
+            if key in self.order:
+                pass

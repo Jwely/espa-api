@@ -74,6 +74,28 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(order['orderid'], self.orderid)
 
 class TestValidation(unittest.TestCase):
+    def setUp(self):
+
+        cfg = get_cfg()['config']
+        with DBConnect(**cfg) as db:
+        # db = DBConnect(**cfg)
+            uidsql = "select user_id, orderid from ordering_order limit 1;"
+            unmsql = "select username, email from auth_user where id = %s;"
+            db.select(uidsql)
+            self.userid = db[0][0]
+            self.orderid = db[0][1]
+            db.select(unmsql % db[0][0])
+            self.username = db[0][0]
+            self.usermail = db[0][1]
+            staffusersql = "select username, email, is_staff from auth_user where is_staff = True limit 1;"
+            pubusersql = "select username, email, is_staff from auth_user where is_staff = False limit 1;"
+            db.select(staffusersql)
+            self.staffuser = db[0][0]
+            db.select(pubusersql)
+            self.pubuser = db[0][0]
+            with open('api/domain/restricted.yaml') as f:
+                self.restricted_list = yaml.load(f.read())
+
     def test_validation_get_order_schema(self):
         self.assertIsInstance(api.validation.schema, dict)
 
@@ -81,7 +103,7 @@ class TestValidation(unittest.TestCase):
         self.assertIsInstance(api.validation.valid_params, dict)
 
     def test_validate_good_order(self):
-        self.assertTrue(api.validation(tc.BASE))
+        self.assertTrue(api.validation(tc.build_base_order(), self.staffuser))
 
     def test_validate_bad_order(self):
         pass

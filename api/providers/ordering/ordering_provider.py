@@ -8,6 +8,7 @@ import yaml
 import re
 import copy
 
+
 class OrderingProvider(object):
     cfg = get_cfg()['config']
     cfg['cursor_factory'] = psycopg2.extras.DictCursor
@@ -81,7 +82,7 @@ class OrderingProvider(object):
             if not_empty(user_ids):
                 user_tup = tuple([str(idv) for idv in user_ids])
                 sql = "select orderid from ordering_order where user_id in {};".format(user_tup)
-                sql = sql.replace(",)",")")
+                sql = sql.replace(",)", ")")
                 db.select(sql)
                 if not_empty(db):
                     order_list = [item[0] for item in db]
@@ -94,17 +95,17 @@ class OrderingProvider(object):
         out_dict = {}
         opts_dict = {}
         scrub_keys = ['initial_email_sent', 'completion_email_sent', 'id', 'user_id',
-			'ee_order_id', 'email']
+                      'ee_order_id', 'email']
 
         with DBConnect(**OrderingProvider.cfg) as db:
             db.select(sql, (ordernum))
             if not_empty(db):
                 for key, val in db[0].iteritems():
-			out_dict[key] = val
+                    out_dict[key] = val
                 opts_str = db[0]['product_options']
-                opts_str = opts_str.replace("\n","")
-		opts_dict = yaml.load(opts_str)
-		out_dict['product_options'] = opts_dict
+                opts_str = opts_str.replace("\n", "")
+                opts_dict = yaml.load(opts_str)
+                out_dict['product_options'] = opts_dict
 
         for k in scrub_keys:
             if k in out_dict.keys():

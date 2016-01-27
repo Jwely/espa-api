@@ -178,42 +178,42 @@ class ModisTerra13Q1(Terra, Modis13Q1):
 
 class ModisAqua09A1(Aqua, Modis09A1):
     """models modis 09A1 from Aqua"""
-    sensor_name = 'MOD09A1'
+    sensor_name = 'MYD09A1'
 
 
 class ModisAqua09GA(Aqua, Modis09GA):
     """models modis 09GA from Aqua"""
-    sensor_name = 'MOD09GA'
+    sensor_name = 'MYD09GA'
 
 
 class ModisAqua09GQ(Aqua, Modis09GQ):
     """models modis 09GQ from Aqua"""
-    sensor_name = 'MOD09GQ'
+    sensor_name = 'MYD09GQ'
 
 
 class ModisAqua09Q1(Aqua, Modis09Q1):
     """models modis 09Q1 from Aqua"""
-    sensor_name = 'MOD09Q1'
+    sensor_name = 'MYD09Q1'
 
 
 class ModisAqua13A1(Aqua, Modis13A1):
     """models modis 13A1 from Aqua"""
-    sensor_name = 'MOD13A1'
+    sensor_name = 'MYD13A1'
 
 
 class ModisAqua13A2(Aqua, Modis13A2):
     """models modis 13A2 from Aqua"""
-    sensor_name = 'MOD13A2'
+    sensor_name = 'MYD13A2'
 
 
 class ModisAqua13A3(Aqua, Modis13A3):
     """models modis 13A3 from Aqua"""
-    sensor_name = 'MOD13A3'
+    sensor_name = 'MYD13A3'
 
 
 class ModisAqua13Q1(Aqua, Modis13Q1):
     """models modis 13Q1 from Aqua"""
-    sensor_name = 'MOD13Q1'
+    sensor_name = 'MYD13Q1'
 
 
 class Landsat(SensorProduct):
