@@ -90,7 +90,7 @@ class ValidationProvider(object):
         """
         projs = self.schema_cls.projections
 
-        if 'projection' not in self.order:
+        if 'projection' not in self.order or not self.order['projection']:
             return
 
         if 'name' not in self.order['projection'] or self.order['projection']['name'] not in projs:
@@ -102,35 +102,35 @@ class ValidationProvider(object):
         if self.validator.errors:
             self._add_error('projection_schema', self.validator.errors)
 
-    def _validate_scene_lists(self):
-        """
-        Validate the scene list and requested sensors with the available products
-
-        Uses the sensor.py module to gather the available processing products for the
-        given sensors
-
-        Writes any errors to the class errors dict
-        """
-        # TODO add in role based restrictions to requested products
-        errors = {}
-
-        results = sn.available_products(self.order['inputs'])
-
-        if 'not_implemented' in results:
-            errors['Sensor ID Not Recognized'] = results['not_implemented']
-            results.pop('not_implemented', None)
-
-        supported_prods = []
-        for sensor in results:
-            supported_prods.extend(results[sensor]['outputs'])
-
-        unsupported = list(set(self.order['products']) - set(supported_prods))
-
-        if unsupported:
-            errors['Unsupported Product'] = unsupported
-
-        if errors:
-            self._add_error('scene_list', errors)
+    # def _validate_scene_lists(self):
+    #     """
+    #     Validate the scene list and requested sensors with the available products
+    #
+    #     Uses the sensor.py module to gather the available processing products for the
+    #     given sensors
+    #
+    #     Writes any errors to the class errors dict
+    #     """
+    #     # TODO add in role based restrictions to requested products
+    #     errors = {}
+    #
+    #     results = sn.available_products(self.order['inputs'])
+    #
+    #     if 'not_implemented' in results:
+    #         errors['Sensor ID Not Recognized'] = results['not_implemented']
+    #         results.pop('not_implemented', None)
+    #
+    #     supported_prods = []
+    #     for sensor in results:
+    #         supported_prods.extend(results[sensor]['outputs'])
+    #
+    #     unsupported = list(set(self.order['products']) - set(supported_prods))
+    #
+    #     if unsupported:
+    #         errors['Unsupported Product'] = unsupported
+    #
+    #     if errors:
+    #         self._add_error('scene_list', errors)
 
     def _validate_image_extents_schema(self):
         """
@@ -144,7 +144,7 @@ class ValidationProvider(object):
 
         exts = self.schema_cls.image_extents
 
-        if 'image_extents' not in self.order:
+        if 'image_extents' not in self.order or not self.order['image_extents']:
             return
         elif 'projection' not in self.order or not self.order['projection']:
             errors['Projection Error'] = 'You must specify a projection to use image extents'
@@ -264,7 +264,7 @@ class ValidationProvider(object):
         """
         resize = self.schema_cls.resize
 
-        if 'resize' not in self.order:
+        if 'resize' not in self.order or not self.order['resize']:
             return
 
         if 'pixel_size_units' not in self.order['resize'] or self.order['resize']['pixel_size_units'] not in resize:

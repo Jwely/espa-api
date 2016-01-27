@@ -166,19 +166,22 @@ class BaseValidationSchema(object):
         """
         out_schemas = {}
 
+        li = []
         for acq in sn.TEST_STRINGS:
             for prefix in sn.TEST_STRINGS[acq]:
-                prods = sn.instance('{}{}'.format(prefix, acq)).products
-                if prefix in out_schemas:
-                    continue
-                else:
-                    out_schemas[prefix] = {'type': 'dict',
-                                           'required': False,
-                                           'schema': {'inputs': {'type': 'list',
-                                                                 'required': True},
-                                                      'products': {'type': 'list',
-                                                                   'required': True,
-                                                                   'allowed': prods}}}
+                li.append('{}{}'.format(prefix, acq))
+
+        results = sn.available_products(li)
+
+        for sensor, prods in results.items():
+            out_schemas[sensor] = {'type': 'dict',
+                                   'required': False,
+                                   'schema': {'inputs': {'type': 'list',
+                                                         'required': True},
+                                              'products': {'type': 'list',
+                                                           'required': True,
+                                                           'allowed': prods['outputs']}}}
+
         return out_schemas
 
 
