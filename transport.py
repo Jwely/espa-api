@@ -222,14 +222,14 @@ def available_prods_post():
 @app.route('/api/v0/orders', methods=['GET'])
 @login_required
 def get_user_orders():
-    response = api.fetch_orders(current_user.username)
+    response = api.fetch_user_orders(current_user.username)
     return_code = 200 if response.keys()[0] != "errmsg" else 401
     return jsonify(response), return_code
 
 @app.route('/api/v0/orders/<email>', methods=['GET'])
 @login_required
 def get_order_by_email(email):
-    response = api.fetch_orders(email)
+    response = api.fetch_user_orders(str(email))
     return_code = 200 if response.keys()[0] != "errmsg" else 401
     return jsonify(response), return_code
 

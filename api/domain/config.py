@@ -24,8 +24,6 @@ class ApiConfig(object):
 
         cfg['cursor_factory'] = psycopg2.extras.DictCursor
 
-
-
         with DBConnect(**cfg) as db:
             con_query = "select key, value from ordering_configuration;"
             db.select(con_query)
@@ -47,30 +45,6 @@ class ApiConfig(object):
     def service_name_url(self):
         key = "url.%s.registration" % self.mode()
         return self.settings[key]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
