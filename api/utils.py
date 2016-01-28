@@ -8,14 +8,17 @@ import subprocess
 from dbconnect import DBConnect
 
 
-def get_cfg():
+def get_cfg(cfgfile=".cfgnfo"):
     """
     Retrieve the configuration information from the .cfgnfo file
     located in the current user's home directory
 
     :return: dict
     """
-    cfg_path = os.path.join(os.path.expanduser('~'), '.cfgnfo')
+    if cfgfile == ".cfgnfo":
+        cfg_path = os.path.join(os.path.expanduser('~'), '.cfgnfo')
+    else:
+        cfg_path = cfgfile
 
     cfg_info = {}
     config = ConfigParser.ConfigParser()
