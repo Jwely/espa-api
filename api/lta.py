@@ -25,7 +25,7 @@ class LTAService(object):
 
     def __init__(self):
         self.xml_header = "<?xml version ='1.0' encoding='UTF-8' ?>"
-        self.url = config.service_name_url()
+        self.url = config.service_name_url
 
     def __repr__(self):
         return "LTAService:{0}".format(self.__dict__)

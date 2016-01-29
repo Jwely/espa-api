@@ -6,7 +6,7 @@ import datetime
 import subprocess
 
 from dbconnect import DBConnect
-
+import psycopg2.extras
 
 def get_cfg(cfgfile=".cfgnfo"):
     """
@@ -31,6 +31,10 @@ def get_cfg(cfgfile=".cfgnfo"):
 
     return cfg_info
 
+def api_cfg(cfgfile=".cfgnfo"):
+    config = get_cfg(cfgfile)['config']
+    config['cursor_factory'] = psycopg2.extras.DictCursor
+    return config
 
 def send_email(sender, recipient, subject, body):
     """
@@ -89,29 +93,4 @@ def backup_cron():
 
     with open(os.path.join(bk_path, cron_file), 'w') as f:
         subprocess.call(['crontab', '-l'], stdout=f)
-
-def is_empty(an_iter):
-    """
-    report True if object is empty
-    """
-    empty = False
-    if len(an_iter) == 0:
-        empty = True
-
-    return empty
-
-def not_empty(an_iter):
-    """
-    report True if object is not empty
-    """
-    empty = False 
-    if len(an_iter) > 0:
-        empty = True 
-
-    return empty
-
-
-
-
-
 

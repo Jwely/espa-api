@@ -1,17 +1,10 @@
-import time
-import psycopg2
 from flask import Flask
 from flask import jsonify
 from flask import request
 from flask import Response
-from flask.ext.login import LoginManager, UserMixin, login_required, current_user
-
+from flask.ext.login import LoginManager, login_required, current_user
 from api.ordering.version0 import API
-from api import lta
-
-from api.dbconnect import DBConnect
-from api.utils import get_cfg
-from api.utils import is_empty
+from api.user import User
 
 app = Flask(__name__)
 app.debug = True
@@ -19,58 +12,6 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 api = API()
-
-class User(UserMixin):
-    cfg = get_cfg()['config']
-    cfg['cursor_factory'] = psycopg2.extras.DictCursor
-
-    def __init__(self, username, email, first_name, last_name):
-        self.username = username
-        self.email = email
-        self.first_name = first_name
-        self.last_name = last_name
-
-        # check if user exists in our DB, if
-        # not create them, and assign self.id
-        self.id = User.find_or_create_user(self.username, self.email, self.first_name, self.last_name)
-
-    @classmethod
-    def get(cls,username,password):
-        user_tup = None
-        try:
-            lta_user = lta.get_user_info(username, password)
-            user_tup = (str(username), str(lta_user.email), str(lta_user.first_name), str(lta_user.last_name))
-        except Exception as e:
-            raise e.message
-            #logger.exception('Exception retrieving user[{0}] from earth '
-            #                 'explorer during login'.format(username))
-
-        return user_tup
-
-    @classmethod
-    def find_or_create_user(cls, username, email, first_name, last_name):
-        user_id = None
-        nownow = time.strftime('%Y-%m-%d %H:%M:%S')
-        insert_stmt = "insert into auth_user (username, " \
-                      "email, first_name, last_name, password, " \
-                      "is_staff, is_active, is_superuser, " \
-                      "last_login, date_joined) values {};"
-        arg_tup = (username, email, first_name, last_name,
-                    'pass', 'f', 't', 'f', nownow, nownow)
-
-        with DBConnect(**cls.cfg) as db:
-            user_sql = "select id from auth_user where username = %s;"
-            db.select(user_sql, username)
-            if is_empty(db):
-                # we need to create a local user
-                db.execute(insert_stmt.format(arg_tup))
-                db.commit()
-            # user should be there now, lets try this again
-            db.select(user_sql, username)
-            user_id = db[0][0]
-
-        return user_id
-
 
 @login_manager.request_loader
 def load_user(request):

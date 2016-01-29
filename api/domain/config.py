@@ -3,7 +3,7 @@ Purpose: serve up settings stored
 on the configuration table
 """
 
-from api.utils import get_cfg
+from api.utils import api_cfg
 from api.dbconnect import DBConnect
 import psycopg2.extras
 
@@ -18,11 +18,9 @@ class ApiConfig(object):
         cfgout = {}
 
         if cfgfile is None:
-            cfg = get_cfg()['config']
+            cfg = api_cfg()
         else:
-            cfg = get_cfg(cfgfile)['config']
-
-        cfg['cursor_factory'] = psycopg2.extras.DictCursor
+            cfg = api_cfg(cfgfile)
 
         with DBConnect(**cfg) as db:
             con_query = "select key, value from ordering_configuration;"
@@ -33,6 +31,7 @@ class ApiConfig(object):
         self.cfg = cfg
         self.settings = cfgout
 
+    @property
     def mode(self):
         apimode = 'dev'
         if self.cfg['dbuser'] == 'espa':
@@ -42,8 +41,9 @@ class ApiConfig(object):
 
         return apimode
 
+    @property
     def service_name_url(self):
-        key = "url.%s.registration" % self.mode()
+        key = "url.%s.registration" % self.mode
         return self.settings[key]
 
 
