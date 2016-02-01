@@ -2,12 +2,13 @@ from api.domain import sensor
 from api.dbconnect import DBConnect
 from api.utils import api_cfg
 from validate_email import validate_email
+from api.providers.ordering import ProviderInterfaceV0
 import psycopg2.extras
 import yaml
 import re
 import copy
 
-class OrderingProvider(object):
+class OrderingProvider(ProviderInterfaceV0):
 
     @staticmethod
     def sensor_products(product_id):
@@ -110,12 +111,6 @@ class OrderingProvider(object):
         return out_dict
 
     def place_order(self, username, order):
-        pass
-
-    def list_orders(self, username_or_email):
-        pass
-
-    def view_order(self, orderid):
         pass
 
     def order_status(self, orderid):
