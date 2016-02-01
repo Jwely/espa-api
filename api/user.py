@@ -59,6 +59,7 @@ class User(UserMixin):
         # not create them, and assign self.id
         self.id = User.find_or_create_user(self.username, self.email, self.first_name, self.last_name)
 
+
     @classmethod
     def get(cls,username,password):
         user_tup = None
@@ -96,3 +97,37 @@ class User(UserMixin):
 
         return user_id
 
+    def roles(self):
+        result = None
+        with DBConnect(**api_cfg()) as db:
+            db.select("select is_staff, is_active, is_superuser from auth_user where id = %s;" % self.id)
+        result = db[0]
+        return result
+
+    def is_staff(self):
+        return self.roles()['is_staff']
+
+    def active(self):
+        # is_active is already a method of UserMixin
+        return self.roles()['is_active']
+
+    def is_superuser(self):
+        return self.roles()['is_superuser']
+
+    def role_list(self):
+        out_list = []
+        if self.is_staff():
+            out_list.append('staff')
+        if self.is_superuser():
+            out_list.append('super')
+        if self.active():
+            out_list.append('active')
+
+        return out_list
+
+    def as_dict(self):
+        return {"email": self.email,
+                "first_name": self.first_name,
+                "last_name": self.last_name,
+                "username": self.username,
+                "roles": self.role_list()}
