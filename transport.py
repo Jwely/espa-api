@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask import jsonify
 from flask import request
@@ -5,13 +6,16 @@ from flask import Response
 from flask.ext.login import LoginManager, login_required, current_user
 from api.ordering.version0 import API
 from api.user import User
+from api.domain.config import ApiConfig
 
+api = API()
 app = Flask(__name__)
-app.debug = True
+config = ApiConfig()
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-api = API()
+if config.mode == 'dev' or os.environ.get('ESPA_DEBUG'):
+    app.debug = True
 
 @login_manager.request_loader
 def load_user(request):
