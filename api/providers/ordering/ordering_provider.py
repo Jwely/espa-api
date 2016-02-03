@@ -9,7 +9,7 @@ import re
 import copy
 import sys
 
-from api.api_logging import debug_logger as err_logger
+from api.api_logging import api_logger as logger
 
 class OrderingProvider(ProviderInterfaceV0):
 
@@ -38,7 +38,7 @@ class OrderingProvider(ProviderInterfaceV0):
             exc_type, exc_val, exc_trace = sys.exc_info()
             msg = "ERR ordering_provider fetch_user. could not find user by username\n"
             msg += "msg: {}".format(exc_val)
-            err_logger.debug(msg)
+            logger.debug(msg)
             raise exc_type, exc_val, exc_trace
 
         return userlist

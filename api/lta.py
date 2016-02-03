@@ -13,7 +13,7 @@ from suds.cache import ObjectCache
 from api.domain import sensor
 from api.domain.config import ApiConfig
 
-from api.api_logging import info_logger as logger
+from api.api_logging import api_logger as logger
 
 config = ApiConfig()
 

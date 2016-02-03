@@ -1,26 +1,26 @@
+import os
 import logging
 
 from logging import FileHandler
 from logging import Formatter
 
+if not os.path.exists("logs"):
+    os.mkdir("logs")
+
 LOG_FORMAT = ("%(asctime)s [%(levelname)s]: %(message)s in %(pathname)s:%(lineno)d")
 
-info_logger = logging.getLogger("api.info")
-debug_logger = logging.getLogger("api.debug")
+api_logger = logging.getLogger("api")
+api_logger.setLevel(logging.DEBUG)
 
-info_logger.setLevel(logging.DEBUG)
-debug_logger.setLevel(logging.DEBUG)
+ih = FileHandler("logs/api-info.log")
+dh = FileHandler("logs/api-debug.log")
 
-info_logger_file_handler = FileHandler("logs/api-info.log")
-debug_logger_file_handler = FileHandler("logs/api-debug.log")
+ih.setLevel(logging.WARN)
+dh.setLevel(logging.DEBUG)
 
-#info_logger_file_handler.setLevel(INFO_LOG_LEVEL)
-#debug_logger_file_handler.setLevel(WARN_LOG_LEVEL)
+ih.setFormatter(Formatter(LOG_FORMAT))
+dh.setFormatter(Formatter(LOG_FORMAT))
 
-info_logger_file_handler.setFormatter(Formatter(LOG_FORMAT))
-debug_logger_file_handler.setFormatter(Formatter(LOG_FORMAT))
-
-info_logger.addHandler(info_logger_file_handler)
-debug_logger.addHandler(debug_logger_file_handler)
-
+api_logger.addHandler(ih)
+api_logger.addHandler(dh)
 

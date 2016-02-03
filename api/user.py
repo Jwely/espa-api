@@ -8,8 +8,7 @@ from api.dbconnect import DBConnect
 from api.utils import api_cfg
 from validate_email import validate_email
 
-from api.api_logging import info_logger as logger
-from api.api_logging import debug_logger as err_logger
+from api.api_logging import api_logger as logger
 
 class User(UserMixin):
 
@@ -74,7 +73,7 @@ class User(UserMixin):
             msg = "ERR retrieving user from lta: \n"
             msg += "msg: {}".format(exc_val)
             msg += "stacktrace {}".format(exc_trace)
-            err_logger.debug(msg)
+            logger.debug(msg)
             raise exc_type, exc_val, exc_trace
 
         user_tup = (str(username), str(lta_user.email), str(lta_user.first_name), str(lta_user.last_name))
@@ -106,7 +105,7 @@ class User(UserMixin):
                 exc_type, exc_val, exc_trace = sys.exc_info()
                 msg = "ERR user find_or_create_user msg: {}\n".format(exc_val)
                 msg += "stacktrace: {}".format(exc_trace)
-                err_logger.debug(msg)
+                logger.debug(msg)
                 raise exc_type, exc_val, exc_trace
 
         return user_id
@@ -119,7 +118,7 @@ class User(UserMixin):
             result = db[0]
         except:
             exc_type, exc_val, exc_trace = sys.exc_info()
-            err_logger.debug("ERR retrieving roles for user. msg{0} trace{1}".format(exc_val, exc_trace))
+            logger.debug("ERR retrieving roles for user. msg{0} trace{1}".format(exc_val, exc_trace))
             raise exc_type, exc_val, exc_trace
 
         return result

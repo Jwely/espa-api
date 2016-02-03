@@ -6,8 +6,7 @@
    just logic.  Implementations are touched through the registry.
 """
 import sys
-from api.api_logging import info_logger as logger
-from api.api_logging import debug_logger as err_logger
+from api.api_logging import api_logger as logger
 
 class API(object):
     def __init__(self, providers=None):
@@ -74,7 +73,7 @@ class API(object):
             exc_type, exc_val, exc_trace = sys.exc_info()
             msg = "ERR version0 available_prods_get arg: {0}".format(product_id)
             msg += "exception type: {0}   value: {1}   trace:{2}".format(exc_type, exc_val, exc_trace)
-            err_logger.debug(msg)
+            logger.debug(msg)
             response = {"msg": "there's been a problem retrieving your information. admins have been notified"}
 
         return response
@@ -94,7 +93,7 @@ class API(object):
             exc_type, exc_val, exc_trace = sys.exc_info()
             msg = "ERR version0 fetch_user_orders arg: {0}".format(user_id)
             msg += "exception type: {0}   value: {1}   trace:{2}".format(exc_type, exc_val, exc_trace)
-            err_logger.debug(msg)
+            logger.debug(msg)
             response = {"msg": "there's been a problem retrieving your information. admins have been notified"}
 
         return response
@@ -114,7 +113,7 @@ class API(object):
             exc_type, exc_val, exc_trace = sys.exc_info()
             msg = "ERR version0 fetch_order arg: {0}".format(ordernum)
             msg += "exception type: {0}   value: {1}   trace:{2}".format(exc_type, exc_val, exc_trace)
-            err_logger.debug(msg)
+            logger.debug(msg)
             response = {"msg": "there's been a problem retrieving your information. admins have been notified"}
 
         return response
@@ -145,7 +144,7 @@ class API(object):
             exc_type, exc_val, exc_trace = sys.exc_info()
             msg = "ERR version0 place_order arg: {0}".format(order)
             msg += "exception type: {0}   value: {1}   trace:{2}".format(exc_type, exc_val, exc_trace)
-            err_logger.debug(msg)
+            logger.debug(msg)
             response = {"msg": "there's been a problem placing your order. admins have been notified"}
 
         return response
@@ -165,7 +164,7 @@ class API(object):
             exc_type, exc_val, exc_trace = sys.exc_info()
             msg = "ERR version0 list_order arg: {0}".format(username_or_email)
             msg += "exception type: {0}   value: {1}   trace:{2}".format(exc_type, exc_val, exc_trace)
-            err_logger.debug(msg)
+            logger.debug(msg)
             response = {"msg": "there's been an issue retrieving your information. admins have been notified"}
 
         return response
@@ -188,7 +187,7 @@ class API(object):
             exc_type, exc_val, exc_trace = sys.exc_info()
             msg = "ERR version0 view_order arg: {0}".format(orderid)
             msg += "exception type: {0}   value: {1}   trace:{2}".format(exc_type, exc_val, exc_trace)
-            err_logger.debug(msg)
+            logger.debug(msg)
             response = {"msg": "there's been an issue retrieving your information. admins have been notified"}
 
         return response
@@ -211,7 +210,7 @@ class API(object):
             exc_type, exc_val, exc_trace = sys.exc_info()
             msg = "ERR version0 order_status arg: {0}".format(orderid)
             msg += "exception type: {0}   value: {1}   trace:{2}".format(exc_type, exc_val, exc_trace)
-            err_logger.debug(msg)
+            logger.debug(msg)
             response = {"msg": "there's been an issue retrieving your information. admins have been notified"}
 
         return response
@@ -236,7 +235,7 @@ class API(object):
             exc_type, exc_val, exc_trace = sys.exc_info()
             msg = "ERR version0 item_status arg: {0}".format(itemid)
             msg += "exception type: {0}   value: {1}   trace:{2}".format(exc_type, exc_val, exc_trace)
-            err_logger.debug(msg)
+            logger.debug(msg)
             response = {"msg": "there's been an issue retrieving your information. admins have been notified"}
 
         return response
