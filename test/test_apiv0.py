@@ -57,7 +57,7 @@ class TestAPI(unittest.TestCase):
 
     def test_get_available_products_by_none(self):
         none_user = "foobar"
-        self.assertEqual(api.available_products(self.product_id, none_user), {})
+        self.assertIn("msg", api.available_products(self.product_id, none_user).keys())
 
     def test_fetch_user_orders_by_email_val(self):
         orders = api.fetch_user_orders(self.usermail)

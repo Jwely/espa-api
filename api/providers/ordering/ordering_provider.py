@@ -7,6 +7,9 @@ import psycopg2.extras
 import yaml
 import re
 import copy
+import sys
+
+from api.api_logging import debug_logger as err_logger
 
 class OrderingProvider(ProviderInterfaceV0):
 
@@ -28,8 +31,15 @@ class OrderingProvider(ProviderInterfaceV0):
             user_sql = "select id, username, email, is_staff, is_active, " \
                        "is_superuser from auth_user where username = %s;"
             db.select(user_sql, (username))
-        if db:
+
+        try:
             userlist = db[0]
+        except:
+            exc_type, exc_val, exc_trace = sys.exc_info()
+            msg = "ERR ordering_provider fetch_user. could not find user by username\n"
+            msg += "msg: {}".format(exc_val)
+            err_logger.debug(msg)
+            raise exc_type, exc_val, exc_trace
 
         return userlist
 
@@ -53,11 +63,10 @@ class OrderingProvider(ProviderInterfaceV0):
     def available_products(self, product_id, username):
         userlist = OrderingProvider.fetch_user(username)
         return_prods = {}
-        if userlist:
-            if userlist['is_staff']:
-                return_prods = OrderingProvider.staff_products(product_id)
-            else:
-                return_prods = OrderingProvider.pub_products(product_id)
+        if userlist['is_staff']:
+            return_prods = OrderingProvider.staff_products(product_id)
+        else:
+            return_prods = OrderingProvider.pub_products(product_id)
 
         return return_prods
 

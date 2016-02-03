@@ -1,3 +1,4 @@
+import sys
 import time
 import psycopg2
 from flask.ext.login import UserMixin
@@ -6,6 +7,9 @@ from api import lta
 from api.dbconnect import DBConnect
 from api.utils import api_cfg
 from validate_email import validate_email
+
+from api.api_logging import info_logger as logger
+from api.api_logging import debug_logger as err_logger
 
 class User(UserMixin):
 
@@ -65,12 +69,15 @@ class User(UserMixin):
         user_tup = None
         try:
             lta_user = lta.get_user_info(username, password)
-            user_tup = (str(username), str(lta_user.email), str(lta_user.first_name), str(lta_user.last_name))
-        except Exception as e:
-            raise e.message
-            #logger.exception('Exception retrieving user[{0}] from earth '
-            #                 'explorer during login'.format(username))
+        except:
+            exc_type, exc_val, exc_trace = sys.exc_info()
+            msg = "ERR retrieving user from lta: \n"
+            msg += "msg: {}".format(exc_val)
+            msg += "stacktrace {}".format(exc_trace)
+            err_logger.debug(msg)
+            raise exc_type, exc_val, exc_trace
 
+        user_tup = (str(username), str(lta_user.email), str(lta_user.first_name), str(lta_user.last_name))
         return user_tup
 
     @classmethod
@@ -93,7 +100,14 @@ class User(UserMixin):
                 db.commit()
             # user should be there now, lets try this again
             db.select(user_sql, username)
-            user_id = db[0]['id']
+            try:
+                user_id = db[0]['id']
+            except:
+                exc_type, exc_val, exc_trace = sys.exc_info()
+                msg = "ERR user find_or_create_user msg: {}\n".format(exc_val)
+                msg += "stacktrace: {}".format(exc_trace)
+                err_logger.debug(msg)
+                raise exc_type, exc_val, exc_trace
 
         return user_id
 
@@ -101,7 +115,13 @@ class User(UserMixin):
         result = None
         with DBConnect(**api_cfg()) as db:
             db.select("select is_staff, is_active, is_superuser from auth_user where id = %s;" % self.id)
-        result = db[0]
+        try:
+            result = db[0]
+        except:
+            exc_type, exc_val, exc_trace = sys.exc_info()
+            err_logger.debug("ERR retrieving roles for user. msg{0} trace{1}".format(exc_val, exc_trace))
+            raise exc_type, exc_val, exc_trace
+
         return result
 
     def is_staff(self):
