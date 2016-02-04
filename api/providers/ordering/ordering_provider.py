@@ -1,22 +1,19 @@
 from api.domain import sensor
 from api.dbconnect import DBConnect
-from api.utils import get_cfg
-from api.utils import is_empty
-from api.utils import not_empty
+from api.utils import api_cfg
+from validate_email import validate_email
+from api.providers.ordering import ProviderInterfaceV0
 import psycopg2.extras
 import yaml
 import re
 import copy
 
-
-class OrderingProvider(object):
-    cfg = get_cfg()['config']
-    cfg['cursor_factory'] = psycopg2.extras.DictCursor
-    email_reg = '(\w+[.|\w])*@(\w+[.])*([a-zA-Z]*$)'
+class OrderingProvider(ProviderInterfaceV0):
 
     @staticmethod
     def sensor_products(product_id):
-        if isinstance(product_id, str):
+        # coming from uwsgi, product_id is unicode
+        if isinstance(product_id, basestring):
             prod_list = product_id.split(",")
         else:
             prod_list = product_id
@@ -26,12 +23,12 @@ class OrderingProvider(object):
     @staticmethod
     def fetch_user(username):
         userlist = []
-        with DBConnect(**OrderingProvider.cfg) as db:
+        with DBConnect(**api_cfg()) as db:
             # username uniqueness enforced on auth_user table at database
             user_sql = "select id, username, email, is_staff, is_active, " \
                        "is_superuser from auth_user where username = %s;"
             db.select(user_sql, (username))
-        if not_empty(db):
+        if db:
             userlist = db[0]
 
         return userlist
@@ -56,7 +53,7 @@ class OrderingProvider(object):
     def available_products(self, product_id, username):
         userlist = OrderingProvider.fetch_user(username)
         return_prods = {}
-        if not_empty(userlist):
+        if userlist:
             if userlist['is_staff']:
                 return_prods = OrderingProvider.staff_products(product_id)
             else:
@@ -65,26 +62,26 @@ class OrderingProvider(object):
         return return_prods
 
     def fetch_user_orders(self, uid):
-        id_type = 'email' if re.search(OrderingProvider.email_reg, uid) else 'username'
+        id_type = 'email' if validate_email(uid) else 'username'
         order_list = []
         out_dict = {}
         user_ids = []
 
-        with DBConnect(**OrderingProvider.cfg) as db:
+        with DBConnect(**api_cfg()) as db:
             user_sql = "select id, username, email from auth_user where "
             user_sql += "email = %s;" if id_type == 'email' else "username = %s;"
             db.select(user_sql, (uid))
             # username uniqueness enforced on the db
             # not the case for emails though
-            if not_empty(db):
+            if db:
                 user_ids = [db[ind][0] for ind, val in enumerate(db)]
 
-            if not_empty(user_ids):
+            if user_ids:
                 user_tup = tuple([str(idv) for idv in user_ids])
                 sql = "select orderid from ordering_order where user_id in {};".format(user_tup)
-                sql = sql.replace(",)", ")")
+                sql = sql.replace(",)",")")
                 db.select(sql)
-                if not_empty(db):
+                if db:
                     order_list = [item[0] for item in db]
 
         out_dict["orders"] = order_list
@@ -95,17 +92,17 @@ class OrderingProvider(object):
         out_dict = {}
         opts_dict = {}
         scrub_keys = ['initial_email_sent', 'completion_email_sent', 'id', 'user_id',
-                      'ee_order_id', 'email']
+			'ee_order_id', 'email']
 
-        with DBConnect(**OrderingProvider.cfg) as db:
+        with DBConnect(**api_cfg()) as db:
             db.select(sql, (ordernum))
-            if not_empty(db):
+            if db:
                 for key, val in db[0].iteritems():
                     out_dict[key] = val
                 opts_str = db[0]['product_options']
-                opts_str = opts_str.replace("\n", "")
+                opts_str = opts_str.replace("\n","")
                 opts_dict = yaml.load(opts_str)
-                out_dict['product_options'] = opts_dict
+		out_dict['product_options'] = opts_dict
 
         for k in scrub_keys:
             if k in out_dict.keys():
@@ -114,12 +111,6 @@ class OrderingProvider(object):
         return out_dict
 
     def place_order(self, username, order):
-        pass
-
-    def list_orders(self, username_or_email):
-        pass
-
-    def view_order(self, orderid):
         pass
 
     def order_status(self, orderid):
