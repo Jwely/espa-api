@@ -8,8 +8,8 @@ import yaml
 import re
 import copy
 
-class OrderingProvider(ProviderInterfaceV0):
 
+class OrderingProvider(ProviderInterfaceV0):
     @staticmethod
     def sensor_products(product_id):
         # coming from uwsgi, product_id is unicode
@@ -79,7 +79,7 @@ class OrderingProvider(ProviderInterfaceV0):
             if user_ids:
                 user_tup = tuple([str(idv) for idv in user_ids])
                 sql = "select orderid from ordering_order where user_id in {};".format(user_tup)
-                sql = sql.replace(",)",")")
+                sql = sql.replace(",)", ")")
                 db.select(sql)
                 if db:
                     order_list = [item[0] for item in db]
@@ -92,7 +92,7 @@ class OrderingProvider(ProviderInterfaceV0):
         out_dict = {}
         opts_dict = {}
         scrub_keys = ['initial_email_sent', 'completion_email_sent', 'id', 'user_id',
-			'ee_order_id', 'email']
+                      'ee_order_id', 'email']
 
         with DBConnect(**api_cfg()) as db:
             db.select(sql, (ordernum))
@@ -100,9 +100,9 @@ class OrderingProvider(ProviderInterfaceV0):
                 for key, val in db[0].iteritems():
                     out_dict[key] = val
                 opts_str = db[0]['product_options']
-                opts_str = opts_str.replace("\n","")
+                opts_str = opts_str.replace("\n", "")
                 opts_dict = yaml.load(opts_str)
-		out_dict['product_options'] = opts_dict
+                out_dict['product_options'] = opts_dict
 
         for k in scrub_keys:
             if k in out_dict.keys():
