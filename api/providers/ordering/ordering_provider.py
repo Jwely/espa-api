@@ -3,10 +3,10 @@ from api.dbconnect import DBConnect
 from api.utils import api_cfg
 from validate_email import validate_email
 from api.providers.ordering import ProviderInterfaceV0
-import psycopg2.extras
 import yaml
-import re
 import copy
+
+from api.api_logging import api_logger as logger
 
 class OrderingProvider(ProviderInterfaceV0):
 
@@ -28,10 +28,8 @@ class OrderingProvider(ProviderInterfaceV0):
             user_sql = "select id, username, email, is_staff, is_active, " \
                        "is_superuser from auth_user where username = %s;"
             db.select(user_sql, (username))
-        if db:
-            userlist = db[0]
 
-        return userlist
+        return db[0]
 
     @staticmethod
     def staff_products(product_id):
@@ -53,11 +51,10 @@ class OrderingProvider(ProviderInterfaceV0):
     def available_products(self, product_id, username):
         userlist = OrderingProvider.fetch_user(username)
         return_prods = {}
-        if userlist:
-            if userlist['is_staff']:
-                return_prods = OrderingProvider.staff_products(product_id)
-            else:
-                return_prods = OrderingProvider.pub_products(product_id)
+        if userlist['is_staff']:
+            return_prods = OrderingProvider.staff_products(product_id)
+        else:
+            return_prods = OrderingProvider.pub_products(product_id)
 
         return return_prods
 
@@ -114,7 +111,17 @@ class OrderingProvider(ProviderInterfaceV0):
         pass
 
     def order_status(self, orderid):
-        pass
+        sql = "select orderid, status from ordering_order where orderid = %s;"
+        response = {}
+        with DBConnect(**api_cfg()) as db:
+            db.select(sql, orderid)
+            if db:
+                for i in ['orderid','status']:
+                    response[i] = db[0][i]
+            else:
+                response['msg'] = 'sorry, no orders matched orderid %s' % orderid
+
+        return response
 
     def item_status(self, orderid, itemid='ALL'):
         """

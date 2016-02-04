@@ -56,8 +56,8 @@ class TestAPI(unittest.TestCase):
             self.assertFalse(item in return_dict['etm7']['outputs'])
 
     def test_get_available_products_by_none(self):
-        none_user = "foobar"
-        self.assertEqual(api.available_products(self.product_id, none_user), {})
+        none_user = "this_is_from_testing"
+        self.assertIn("msg", api.available_products(self.product_id, none_user).keys())
 
     def test_fetch_user_orders_by_email_val(self):
         orders = api.fetch_user_orders(self.usermail)
@@ -70,6 +70,15 @@ class TestAPI(unittest.TestCase):
     def test_fetch_order_by_orderid_val(self):
         order = api.fetch_order(self.orderid)
         self.assertEqual(order['orderid'], self.orderid)
+
+    def test_fetch_order_status_valid(self):
+        response = api.order_status(self.orderid)
+        self.assertEqual(response.keys(), ['orderid', 'status'])
+
+    def test_fetch_order_status_invalid(self):
+        invalid_orderid = 'invalidorderid'
+        response = api.order_status(invalid_orderid)
+        self.assertEqual(response.keys(), ['msg'])
 
 class TestValidation(unittest.TestCase):
     good = {"inputs": ["LE70290302003123EDC00", "LT50290302002123EDC00", 'LO80290302002123EDC00'],
