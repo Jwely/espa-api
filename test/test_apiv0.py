@@ -97,13 +97,19 @@ class TestValidation(unittest.TestCase):
                 self.restricted_list = yaml.load(f.read())
 
     def test_validation_get_order_schema(self):
-        self.assertIsInstance(api.validation.schema, dict)
+        self.assertIsInstance(api.validation.fetch_order_schema(), dict)
 
-    def test_validation_get_valid_options(self):
-        self.assertIsInstance(api.validation.valid_params, dict)
+    def test_validation_get_valid_formats(self):
+        self.assertIsInstance(api.validation.fetch_formats(), dict)
+
+    def test_validation_get_valid_projections(self):
+        self.assertIsInstance(api.validation.fetch_projections(), dict)
+
+    def test_validation_get_valid_resampling(self):
+        self.assertIsInstance(api.validation.fetch_resampling(), dict)
 
     def test_validate_good_order(self):
-        self.assertTrue(api.validation(tc.build_base_order(), self.staffuser))
+        self.assertTrue(api.validation({'format': 'gtiff'}, self.staffuser))
 
     def test_validate_bad_order(self):
         pass

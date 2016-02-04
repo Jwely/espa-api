@@ -1,14 +1,17 @@
+from api.providers.validation.validation_schema import Version0Schema
+
+SCHEMA = Version0Schema().request_schema
+
+BAD_STRING = 'nope'
+BAD_NUMBER_HIGH = 9999999999
+BAD_NUMBER_LOW = -9999999999
+
 formats = ['gtiff', 'hdf-eos2', 'envi']
 resampling_methods = ['nn', 'bil', 'cc']
 
 
 def build_base_order():
-    base = {'projection': {},
-            'image_extents': {},
-            'format': 'gtiff',
-            'resize': {},
-            'resampling_method': 'nn',
-            'plot_statistics': False}
+    base = {'format': 'gtiff'}
 
     sensor_acqids = {'.A2000072.h02v09.005.2008237032813': (['MOD09A1', 'MOD09GA', 'MOD09GQ', 'MOD09Q1',
                                                              'MYD09A1', 'MYD09GA', 'MYD09GQ', 'MYD09Q1',

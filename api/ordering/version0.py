@@ -90,7 +90,7 @@ class API(object):
         """
         return self.ordering.fetch_order(ordernum)
 
-    def place_order(self, order):
+    def place_order(self, order, username):
         """Enters a new order into the system.
 
         Args:
@@ -104,7 +104,7 @@ class API(object):
             api.exceptions.InventoryException: Items were not found/unavailable
         """
         # perform validation, raises ValidationException
-        self.validation(order)
+        self.validation(order, username)
 
         # performs inventory check, raises InventoryException
         self.inventory.check(order)
