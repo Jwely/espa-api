@@ -5,7 +5,7 @@
    functions.  Don't import or include any implementation specific items here,
    just logic.  Implementations are touched through the registry.
 """
-import sys
+import traceback
 from api.api_logging import api_logger as logger
 
 class API(object):
@@ -70,10 +70,9 @@ class API(object):
         try:
             response = self.ordering.available_products(product_id, username)
         except:
-            exc_type, exc_val, exc_trace = sys.exc_info()
-            msg = "ERR version0 available_prods_get arg: {0}".format(product_id)
-            msg += "exception type: {0}   value: {1}   trace:{2}".format(exc_type, exc_val, exc_trace)
-            logger.debug(msg)
+            logger.debug("ERR version0 available_prods_get product_id: {0} " \
+                         "username: {1}\nexception {2}".format(product_id, username,
+                                                               traceback.format_exc()))
             response = {"msg": "there's been a problem retrieving your information. admins have been notified"}
 
         return response
@@ -90,10 +89,7 @@ class API(object):
         try:
             response = self.ordering.fetch_user_orders(user_id)
         except:
-            exc_type, exc_val, exc_trace = sys.exc_info()
-            msg = "ERR version0 fetch_user_orders arg: {0}".format(user_id)
-            msg += "exception type: {0}   value: {1}   trace:{2}".format(exc_type, exc_val, exc_trace)
-            logger.debug(msg)
+            logger.debug("ERR version0 fetch_user_orders arg: {0}\nexception {1}".format(user_id, traceback.format_exc()))
             response = {"msg": "there's been a problem retrieving your information. admins have been notified"}
 
         return response
@@ -110,10 +106,7 @@ class API(object):
         try:
             response = self.ordering.fetch_order(ordernum)
         except:
-            exc_type, exc_val, exc_trace = sys.exc_info()
-            msg = "ERR version0 fetch_order arg: {0}".format(ordernum)
-            msg += "exception type: {0}   value: {1}   trace:{2}".format(exc_type, exc_val, exc_trace)
-            logger.debug(msg)
+            logger.debug("ERR version0 fetch_order arg: {0}\nexception {1}".format(ordernum, traceback.format_exc()))
             response = {"msg": "there's been a problem retrieving your information. admins have been notified"}
 
         return response
@@ -141,10 +134,7 @@ class API(object):
             # capture the order
             response = self.ordering.place_order(order)
         except:
-            exc_type, exc_val, exc_trace = sys.exc_info()
-            msg = "ERR version0 place_order arg: {0}".format(order)
-            msg += "exception type: {0}   value: {1}   trace:{2}".format(exc_type, exc_val, exc_trace)
-            logger.debug(msg)
+            logger.debug("ERR version0 place_order arg: {0}\nexception {1}".format(order, traceback.format_exc()))
             response = {"msg": "there's been a problem placing your order. admins have been notified"}
 
         return response
@@ -161,10 +151,7 @@ class API(object):
         try:
             response = self.ordering.list_orders(username_or_email)
         except:
-            exc_type, exc_val, exc_trace = sys.exc_info()
-            msg = "ERR version0 list_order arg: {0}".format(username_or_email)
-            msg += "exception type: {0}   value: {1}   trace:{2}".format(exc_type, exc_val, exc_trace)
-            logger.debug(msg)
+            logger.debug("ERR version0 list_order arg: {0}\nexception {1}".format(username_or_email, traceback.format_exc()))
             response = {"msg": "there's been an issue retrieving your information. admins have been notified"}
 
         return response
@@ -184,10 +171,7 @@ class API(object):
         try:
             response = self.ordering.view_order(orderid)
         except:
-            exc_type, exc_val, exc_trace = sys.exc_info()
-            msg = "ERR version0 view_order arg: {0}".format(orderid)
-            msg += "exception type: {0}   value: {1}   trace:{2}".format(exc_type, exc_val, exc_trace)
-            logger.debug(msg)
+            logger.debug("ERR version0 view_order arg: {0}\nexception {1}".format(orderid, traceback.format_exc()))
             response = {"msg": "there's been an issue retrieving your information. admins have been notified"}
 
         return response
@@ -207,10 +191,7 @@ class API(object):
         try:
             response = self.ordering.order_status(orderid)
         except:
-            exc_type, exc_val, exc_trace = sys.exc_info()
-            msg = "ERR version0 order_status arg: {0}".format(orderid)
-            msg += "exception type: {0}   value: {1}   trace:{2}".format(exc_type, exc_val, exc_trace)
-            logger.debug(msg)
+            logger.debug("ERR version0 order_status arg: {0}\nexception {1}".format(orderid, traceback.format_exc()))
             response = {"msg": "there's been an issue retrieving your information. admins have been notified"}
 
         return response
@@ -232,10 +213,7 @@ class API(object):
         try:
             response = self.ordering.item_status(orderid, itemid)
         except:
-            exc_type, exc_val, exc_trace = sys.exc_info()
-            msg = "ERR version0 item_status arg: {0}".format(itemid)
-            msg += "exception type: {0}   value: {1}   trace:{2}".format(exc_type, exc_val, exc_trace)
-            logger.debug(msg)
+            logger.debug("ERR version0 item_status itemid {0}  orderid: {1}\nexception {2}".format(itemid, orderid, traceback.format_exc()))
             response = {"msg": "there's been an issue retrieving your information. admins have been notified"}
 
         return response

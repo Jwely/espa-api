@@ -3,11 +3,8 @@ from api.dbconnect import DBConnect
 from api.utils import api_cfg
 from validate_email import validate_email
 from api.providers.ordering import ProviderInterfaceV0
-import psycopg2.extras
 import yaml
-import re
 import copy
-import sys
 
 from api.api_logging import api_logger as logger
 
@@ -32,16 +29,7 @@ class OrderingProvider(ProviderInterfaceV0):
                        "is_superuser from auth_user where username = %s;"
             db.select(user_sql, (username))
 
-        try:
-            userlist = db[0]
-        except:
-            exc_type, exc_val, exc_trace = sys.exc_info()
-            msg = "ERR ordering_provider fetch_user. could not find user by username\n"
-            msg += "msg: {}".format(exc_val)
-            logger.debug(msg)
-            raise exc_type, exc_val, exc_trace
-
-        return userlist
+        return db[0]
 
     @staticmethod
     def staff_products(product_id):
@@ -123,7 +111,17 @@ class OrderingProvider(ProviderInterfaceV0):
         pass
 
     def order_status(self, orderid):
-        pass
+        sql = "select orderid, status from ordering_order where orderid = %s;"
+        response = {}
+        with DBConnect(**api_cfg()) as db:
+            db.select(sql, orderid)
+            if db:
+                for i in ['orderid','status']:
+                    response[i] = db[0][i]
+            else:
+                response['msg'] = 'sorry, no orders matched orderid %s' % orderid
+
+        return response
 
     def item_status(self, orderid, itemid='ALL'):
         """

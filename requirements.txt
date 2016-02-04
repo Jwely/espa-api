@@ -9,3 +9,4 @@ uWSGI==2.0.12
 flask==0.10.1
 flask-login==0.3.2
 suds==0.4
+validate_email==1.3
