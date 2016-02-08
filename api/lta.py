@@ -3,7 +3,6 @@ Purpose: lta services client module
 Author: David V. Hill
 '''
 
-import logging
 import collections
 import xml.etree.ElementTree as xml
 from cStringIO import StringIO
@@ -14,7 +13,7 @@ from suds.cache import ObjectCache
 from api.domain import sensor
 from api.domain.config import ApiConfig
 
-logger = logging.getLogger(__name__)
+from api.api_logging import api_logger as logger
 
 config = ApiConfig()
 
