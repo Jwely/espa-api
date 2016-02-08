@@ -1,7 +1,9 @@
 from decimal import Decimal
+import re
 
 import validictory
 from validictory import validator
+from validictory.validator import _str_type
 
 
 class ESPAOrderValidatorV0(validictory.SchemaValidator):
@@ -65,7 +67,6 @@ class ESPAOrderValidatorV0(validictory.SchemaValidator):
                 calc_args['ext_units'] = params['units']
 
                 count = self.calc_extent(**calc_args)
-                print count
                 if count > pixel_count:
                     self._error(': pixel count value is greater than maximum size of {} pixels'.format(pixel_count),
                                 count, fieldname, path=path)
@@ -155,25 +156,15 @@ class ESPAOrderValidatorV0(validictory.SchemaValidator):
         #         if not valid:
         #             self._error()
 
-    def validate_dependencies(self, x, fieldname, schema, path, dependencies=None):
-        if x.get(fieldname) is not None:
+    def validate_pattern(self, x, fieldname, schema, path, pattern=None):
+        """
+        Validates that the given field, if a string, matches the given regular expression.
 
-            # handle cases where dependencies is a string or list of strings
-            if isinstance(dependencies, basestring):
-                dependencies = [dependencies]
-            if isinstance(dependencies, (list, tuple)):
-                for dependency in dependencies:
-                    if dependency not in x or x[dependency] is None:
-                        self._error("Field '{dependency}' is required by field '{fieldname}'",
-                                    None, fieldname, dependency=dependency, path=path,
-                                    exctype=validator.DependencyValidationError)
-            elif isinstance(dependencies, dict):
-                # NOTE: the version 3 spec is really unclear on what this means
-                # based on the meta-schema I'm assuming that it should check
-                # that if a key exists, the appropriate value exists
-                for k, v in dependencies.items():
-                    if k in x and v not in x:
-                        self._error("Field '{k}' is required by field '{v}'", None, fieldname,
-                                    k=k, v=v, exctype=validator.DependencyValidationError, path=path)
-            else:
-                raise validator.SchemaError("'dependencies' must be a string, list of strings, or dict")
+        Modified from inherited method to ignore case
+        """
+        value = x.get(fieldname)
+        if (isinstance(value, _str_type) and (isinstance(pattern, _str_type) and not
+                re.match(pattern, value, re.IGNORECASE) or not isinstance(pattern, _str_type) and not
+                pattern.match(value))):
+            self._error("does not match regular expression '{pattern}'", value, fieldname,
+                        pattern=pattern, path=path)

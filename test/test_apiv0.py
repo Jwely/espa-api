@@ -5,6 +5,7 @@ from api.ordering.version0 import API
 from api.utils import api_cfg
 from api.dbconnect import DBConnect
 import psycopg2.extras
+import version0_testorders as testorders
 
 api = API()
 
@@ -107,12 +108,10 @@ class TestValidation(unittest.TestCase):
         self.assertIsInstance(api.validation.fetch_projections(), dict)
 
     def test_validate_good_order(self):
-        order = {'format': 'gtiff',
-                 'tm5': {'inputs': ['LT52181092013069PFS00'],
-                         'products': ['l1']}}
-        self.assertTrue(api.validation(order, self.staffuser))
+        self.assertIsNone(api.validation(testorders.build_base_order(), self.staffuser))
 
-    def test_validate_bad_order(self):
+    def test_validate_bad_orders(self):
+        # self.assertRaises()
         pass
 
 

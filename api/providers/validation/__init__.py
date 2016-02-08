@@ -1,8 +1,13 @@
 import abc
+import copy
 
 import validictory
 from validation_provider import ESPAOrderValidatorV0
 from validation_schema import Version0Schema
+
+
+class ValidationException(Exception):
+    pass
 
 
 class ValidationInterfaceV0(object):
@@ -11,31 +16,26 @@ class ValidationInterfaceV0(object):
     @abc.abstractmethod
     def validate(self, order, username):
         """Validate a given order, make sure all parameters are good"""
-        return
 
     @abc.abstractmethod
     def fetch_projections(self):
         """Return supported projections and their schemas"""
-        return
 
     @abc.abstractmethod
     def fetch_formats(self):
         """Return supported file formats"""
-        return
 
     @abc.abstractmethod
     def fetch_resampling(self):
         """Return supported resampling options"""
-        return
 
     @abc.abstractmethod
     def fetch_order_schema(self):
         """Return the validation schema"""
-        return
 
     @abc.abstractmethod
     def __call__(self):
-        return
+        pass
 
 
 class MockValidationProvider(ValidationInterfaceV0):
@@ -62,23 +62,23 @@ class ValidationProvider(ValidationInterfaceV0):
 
     def validate(self, order, username):
         try:
-            validictory.validate(order, self.schema, fail_fast=False,
+            validictory.validate(order, self.schema.request_schema, fail_fast=False,
                                  validator_cls=ESPAOrderValidatorV0, required_by_default=False)
         except validictory.MultipleValidationError as e:
-            return e
+            raise ValidationException(e)
         except validictory.SchemaError as e:
-            return e
+            raise ValidationException(e)
 
     def fetch_projections(self):
-        return self.schema.valid_params['projections']
+        return copy.deepcopy(self.schema.valid_params['projections'])
 
     def fetch_formats(self):
-        return self.schema.valid_params['formats']
+        return copy.deepcopy(self.schema.valid_params['formats'])
 
     def fetch_resampling(self):
-        return self.schema.valid_params['resampling_methods']
+        return copy.deepcopy(self.schema.valid_params['resampling_methods'])
 
     def fetch_order_schema(self):
-        return self.schema.request_schema
+        return copy.deepcopy(self.schema.request_schema)
 
     __call__ = validate
