@@ -1,178 +1,170 @@
-# TODO Look at maybe making the actual validation logic more generic and create a translation class
-# TODO that pulls the appropriate data out of the schema/order to populate the required fields for
-# TODO validation, this would better support future schema changes
+from decimal import Decimal
+import re
 
-import cerberus
-from api.domain.sensor import instance, available_products, ProductNotImplemented
-
-
-class ValidationException(Exception):
-    pass
+import validictory
+from validictory import validator
+from validictory.validator import _str_type
 
 
-class ValidationProvider(object):
-    """
-    Validation class for incoming orders
-    """
-    def __init__(self, schema_cls, size_thresh=2000000, *args, **kwargs):
-        self.validator = cerberus.Validator(schema_cls.request_schema)
+class ESPAOrderValidatorV0(validictory.SchemaValidator):
+    def __init__(self, *args, **kwargs):
+        super(ESPAOrderValidatorV0, self).__init__(*args, **kwargs)
+        self.data_source = None
 
-        self.schema_cls = schema_cls
-        self.schema = schema_cls.request_schema
-        self.valid_params = schema_cls.valid_params
+    def validate(self, data, schema):
+        self.data_source = data
+        super(ESPAOrderValidatorV0, self).validate(data, schema)
 
-        self.size_thresh = size_thresh
+    def validate_extents(self, x, fieldname, schema, path, pixel_count=200000000):
+        params = x.get(fieldname)
+        required_params = ['north', 'south', 'east', 'west', 'units']
 
-        self.order = None
-        self.errors = {}
+        calc_args = {'xmax': None,
+                     'ymax': None,
+                     'xmin': None,
+                     'ymin': None,
+                     'ext_units': None,
+                     'res_units': None,
+                     'res_pixel': None}
 
-    def _clear_errors(self):
-        self.errors = {}
+        # Since we can't predict which validation methods are called first
+        # we need to make sure that all the values are present and are of
+        # the correct type, let the other built-in validations handle the actual
+        # error output for most failures
+        if self.validate_type_object(params):
+            if not set(params.keys()).symmetric_difference(set(required_params)):
+                if 'projection' not in x or not x['projection']:
+                    return
+                if not self.validate_type_number(params['east']):
+                    return
+                if not self.validate_type_number(params['north']):
+                    return
+                if not self.validate_type_number(params['west']):
+                    return
+                if not self.validate_type_number(params['south']):
+                    return
+                if not self.validate_type_string(params['units']):
+                    return
+                if not params['units'] in schema['properties']['units']['enum']:
+                    return
+                if x['projection'] == 'lonlat' and params['units'] != 'dd':
+                    self._error('must be "dd" for projection "lonlat"', params['units'], fieldname, path=path)
+                    return
 
-    def _add_error(self, name, err_msg):
-        self.errors[name] = err_msg
+                if 'resize' in x and 'pixel_resize_units' in x['resize'] and 'pixel_size' in x['resize']:
+                    if self.validate_type_string(x['resize']['pixel_resize_units']):
+                        if self.validate_type_number(x['resize']['pixel_size']):
+                            if x['resize']['pixel_size'] <= 0:
+                                return
+                            else:
+                                calc_args['res_pixel'] = x['resize']['pixel_size']
+                                calc_args['res_units'] = x['resize']['pixel_resize_units']
 
-    def validate(self, order):
-        self._clear_errors()
-        self.order = order
+                calc_args['xmax'] = params['east']
+                calc_args['ymax'] = params['north']
+                calc_args['xmin'] = params['west']
+                calc_args['ymin'] = params['south']
+                calc_args['ext_units'] = params['units']
 
-        self._validate_orderstruct()
-        self._validate_scene_list()
+                count = self.calc_extent(**calc_args)
+                if count > pixel_count:
+                    self._error(': pixel count value is greater than maximum size of {} pixels'.format(pixel_count),
+                                count, fieldname, path=path)
+                elif count < 1:
+                    self._error(': pixel count value falls below acceptable threshold, check extent parameters',
+                                count, fieldname, path=path)
 
-        # For my sanity right now
-        print self.errors
-
-        if not self.errors:
-            return True
-        else:
-            return False
-
-    def __call__(self, *args, **kwargs):
-        return self.validate(*args, **kwargs)
-
-    def _validate_orderstruct(self):
-        """
-        Validate the incoming order structure against the schema
-        the class was initialized with
-
-        This will also validate most of the valid ranges on the
-        numeric type entries
-
-        Uses the cerberus module to perform the actual validation
-        and writes any cerberus errors to the class errors dict
-        """
-        self.validator(self.order)
-
-        if self.validator.errors:
-            self._add_error('Schema Error', self.validator.errors)
-
-    def _validate_scene_list(self):
-        """
-        Validate the scene list and requested sensors with the available products
-
-        Uses the sensor.py module to gather the available processing products for the
-        given sensors
-
-        Writes any errors to the class errors dict
-        """
-        errors = {}
-
-        results = available_products(self.order['inputs'])
-
-        if 'not_implemented' in results:
-            errors['Sensor ID Not Recognized'] = results['not_implemented']
-            results.pop('not_implemented', None)
-
-        supported_prods = []
-        for sensor in results:
-            supported_prods.extend(results[sensor]['outputs'])
-
-        unsupported = list(set(self.order['products']) - set(supported_prods))
-
-        if unsupported:
-            errors['Unsupported Product'] = unsupported
-
-        if errors:
-            self._add_error('Requested Products Error', errors)
-
-    def _validate_projection_units(self):
-        """
-        Check to make sure that requested extent units make sense
-        with the projection units
-
-        The main purpose is to make sure someone doesn't submit
-        extents given in meters for a geographic projection
-        """
-        pass
-
-    def _validate_image_extents(self):
-        """
-        Verifies that the requested image extents are valid
-
-        Coordinates given should make sense based on unit type
-        maxx > minx
-        maxy > miny
-
-        Total number of pixels do not exceed a processing threshold
-        """
-        errors = {}
-
-        maxx = self.order['image_extents']['maxx']
-        minx = self.order['image_extents']['minx']
-        maxy = self.order['image_extents']['maxy']
-        miny = self.order['image_extents']['miny']
-        units = self.order['image_extents']['units']
+    @staticmethod
+    def calc_extent(xmax, ymax, xmin, ymin, ext_units, res_units=None, res_pixel=None):
+        """Calculate a good estimate of the number of pixels contained in an extent"""
         xdif = 0
         ydif = 0
-        tot_size = 0
 
-        # Special care needs to be taken around the antemeridian where the minx
-        # could be larger than the maxx when dealing with decimal degrees
-        if units == 'dd' and minx > maxx:
-            xdif = 360 - minx + maxx
-        elif minx > maxx:
-            errors['Check X extents'] = 'Maximum X is less than minimum X'
-        else:
-            xdif = abs(maxx - minx)
+        if ext_units == 'dd' and xmin > 170 and -170 > xmax:
+            xdif = 360 - xmin + xmax
+        elif xmax > xmin:
+            xdif = xmax - xmin
 
-        if miny > maxy:
-            errors['Check Y extents'] = 'Maximum Y is less than minimum Y'
-        else:
-            ydif = abs(maxy - miny)
+        if ymax > ymin:
+            ydif = ymax - ymin
 
-        if self.order['resize']:
-            resize_units = self.order['resize']['pixel_size_units']
-            pixel_size = self.order['resize']['pixel_size']
-        else:
-            resize_units = units
-            # This is sensor/band dependant, but this should be ok for now
-            if units == 'dd':
-                pixel_size = 0.0002695
+        # Default values are actually sensor dependant and
+        # should come from sensor.py, but this should be
+        # sufficient for this purpose
+        if not res_units:
+            res_units = ext_units
+            if ext_units == 'dd':
+                res_pixel = 0.0002695
             else:
-                pixel_size = 30
+                res_pixel = 30
 
-        # Have to convert in case the resize units does not match the extent units
-        if resize_units != units:
-            if units == 'dd':
-                pixel_size /= 111317.254174397
+        # This assumes that the only two valid unit options is
+        # decimal degrees and meters
+        if res_units != ext_units:
+            if ext_units == 'dd':
+                res_pixel /= 111317.254174397
             else:
-                pixel_size *= 111317.254174397
+                res_pixel *= 111317.254174397
 
-        if xdif > pixel_size and ydif > pixel_size:
-            tot_size = xdif * ydif / pixel_size ** 2
-        else:
-            errors['Size Error'] = 'Unable to calculate output size, check extent and resize parameters'
+        return int(xdif * ydif / res_pixel ** 2)
 
-        if tot_size > self.size_thresh:
-            errors['Size Error'] = 'Requested extents exceed size threshold'
+    def validate_single_obj(self, x, fieldname, schema, path, single=False):
+        """Validates that only one dictionary object was passed in"""
+        value = x.get(fieldname)
 
-        self._add_error('Extent Validation Error', errors)
+        if isinstance(value, dict):
+            if single:
+                if len(value) > 1:
+                    self._error(': field only accepts one object',
+                                len(value), fieldname, path=path)
 
-    def _validate_role(self):
-        """
-        Not all processing products are available to everyone
+    def validate_enum_keys(self, x, fieldname, schema, path, valid_list):
+        """Validates the keys in the given object match expected keys"""
+        value = x.get(fieldname)
 
-        Exclude lists will need to be generated for each designated role
-        in the system, then compared against the incoming order
-        """
+        if value is not None:
+
+            if not hasattr(value, '__iter__'):
+                value = [value]
+
+            for field in value:
+                if field not in valid_list:
+                    self._error('Unknown key: Allowed keys {}'.format(valid_list),
+                                field, fieldname, path=path)
+
+    def validate_abs_rng(self, x, fieldname, schema, path, val_range):
+        """Validates that the absolute value of a field falls within a given range"""
+        value = x.get(fieldname)
+
+        if isinstance(value, (int, long, float, Decimal)):
+            if not val_range[0] < abs(value) < val_range[1]:
+                self._error('Absolute value must fall between {} and {}'.format(val_range[0], val_range[1]),
+                            value, fieldname, path=path)
+
+    def validate_oneormore(self, x, fieldname, schema, path, key_list):
+        """Validates that at least one value is present from the list"""
         pass
+        # if isinstance(x, dict):
+        #     if isinstance(x[fieldname], dict):
+        #         keys = x.get(fieldname).keys()
+        #
+        #         valid = False
+        #         for key in keys:
+        #             if key in key_list:
+        #                 valid = True
+        #
+        #         if not valid:
+        #             self._error()
+
+    def validate_pattern(self, x, fieldname, schema, path, pattern=None):
+        """
+        Validates that the given field, if a string, matches the given regular expression.
+
+        Modified from inherited method to ignore case
+        """
+        value = x.get(fieldname)
+        if (isinstance(value, _str_type) and (isinstance(pattern, _str_type) and not
+                re.match(pattern, value, re.IGNORECASE) or not isinstance(pattern, _str_type) and not
+                pattern.match(value))):
+            self._error("does not match regular expression '{pattern}'", value, fieldname,
+                        pattern=pattern, path=path)
