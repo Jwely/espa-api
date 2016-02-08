@@ -7,6 +7,7 @@ from api.utils import api_cfg
 from api.dbconnect import DBConnect
 import version0_testorders as testorders
 from api.providers.validation import validation_schema
+from api.providers.validation import ValidationException
 import psycopg2.extras
 
 api = API()
@@ -105,6 +106,9 @@ class TestValidation(unittest.TestCase):
         with open('api/domain/restricted.yaml') as f:
             self.restricted_list = yaml.load(f.read())
 
+        self.base_order = testorders.build_base_order()
+        self.base_schema = validation_schema.Version0Schema().request_schema
+
     def test_validation_get_order_schema(self):
         self.assertIsInstance(api.validation.fetch_order_schema(), dict)
 
@@ -118,13 +122,14 @@ class TestValidation(unittest.TestCase):
         self.assertIsInstance(api.validation.fetch_projections(), dict)
 
     def test_validate_good_order(self):
-        self.assertIsNone(api.validation(testorders.build_base_order(), self.staffuser))
+        self.assertIsNone(api.validation(self.base_order, self.staffuser))
 
     def test_validate_bad_orders(self):
-        # self.assertRaises()
+        # for bad in testorders.test_assertion_failures(self.base_order, self.base_schema):
+        #     with self.assertRaises(ValidationException):
+        #         api.validation(bad, self.staffuser)
+
         pass
-        # testorders.test_assertion_failures(testorders.build_base_order(),
-        #                                    validation_schema.Version0Schema().request_schema)
 
 
 if __name__ == '__main__':

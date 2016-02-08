@@ -110,13 +110,18 @@ def build_base_order():
 
 
 # Try to make a generator??
-def test_assertion_failures(test_order, schema, path=None):
+def test_assertion_failures(test_order, schema, path=None, top=None):
     """
     Use recursion to move through the test_order and schema to build
     bad orders that will fail validation
+
+    Take full advantage of the mutable nature of dictionaries
     """
     if not path:
         path = tuple()
+
+    if not top:
+        top = test_order
 
     base = copy.deepcopy(schema)
     for key in path:
@@ -126,18 +131,29 @@ def test_assertion_failures(test_order, schema, path=None):
         orig = copy.deepcopy(test_order[key])
 
         if isinstance(val, dict):
-            # Assert failure substitute type
-            # Assert failure insert bad value
+            constraints = base['properties'][key.lower()].keys()
+
+            test_order[key]['bad key'] = None
+            yield top
+
+            test_order[key] = 'not a dict'
+            yield top
 
             test_order[key] = copy.deepcopy(orig)
             next_path = path + (key.lower(),)
-            test_assertion_failures(val, schema, next_path)
+            test_assertion_failures(val, schema, next_path, top)
+
         if isinstance(val, list):
             constraints = base['properties'][key]
-            # Assert failure substitute type
-            # Assert failure insert bad value
+
+            test_order[key].append('bad string')
+            yield top
+
+            test_order[key] = 'not a list'
+            yield top
 
             test_order[key] = copy.deepcopy(orig)
+
         if isinstance(val, (float, int, long)):
             constraints = base['properties'][key]
             if path and path[-1] == 'image_extents':
@@ -147,6 +163,7 @@ def test_assertion_failures(test_order, schema, path=None):
             # Assert failure values out of bounds
 
             test_order[key] = copy.deepcopy(orig)
+
         if isinstance(val, (str, unicode)):
             constraints = base['properties'][key]
             # Assert failure substitute type
