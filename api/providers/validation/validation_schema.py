@@ -158,6 +158,7 @@ class BaseValidationSchema(object):
         out_schema = {}
         for key in sensor_reg:
             out_schema[key] = {'type': 'object',
+                               'enum_keys': ['inputs', 'products'],
                                'properties': {'inputs': {'type': 'array',
                                                          'required': True,
                                                          'items': {'type': 'string',

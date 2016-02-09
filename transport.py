@@ -7,6 +7,7 @@ from flask.ext.login import LoginManager, login_required, current_user
 from api.ordering.version0 import API
 from api.user import User
 from api.domain.config import ApiConfig
+from api.utils import lowercase_all
 
 api = API()
 app = Flask(__name__)
@@ -175,7 +176,7 @@ def get_user_orders():
 @app.route('/api/v0/order', methods=['POST'])
 @login_required
 def place_user_order(order):
-    response = api.place_order(order, current_user.username)
+    response = api.place_order(lowercase_all(order), current_user.username)
     return_code = 200 if response.keys()[0] != "errmsg" else 401
     return jsonify(response), return_code
 
