@@ -4,7 +4,6 @@ import yaml
 from api.ordering.version0 import API
 from api.utils import api_cfg
 from api.dbconnect import DBConnect
-import psycopg2.extras
 
 api = API()
 
