@@ -8,7 +8,6 @@ from api.dbconnect import DBConnect
 import version0_testorders as testorders
 from api.providers.validation import validation_schema
 from api.providers.validation import ValidationException
-import psycopg2.extras
 
 api = API()
 

@@ -139,43 +139,6 @@ class API(object):
 
         return response
 
-    def list_orders(self, username_or_email):
-        """Returns all the orders for the user
-
-        Args:
-            username_or_email (str): Username or email address of user
-
-        Returns:
-            list: A list of all the users orders (order ids).  May be zero length
-        """
-        try:
-            response = self.ordering.list_orders(username_or_email)
-        except:
-            logger.debug("ERR version0 list_order arg: {0}\nexception {1}".format(username_or_email, traceback.format_exc()))
-            response = {"msg": "there's been an issue retrieving your information. admins have been notified"}
-
-        return response
-
-    def view_order(self, orderid):
-        """Show details for a user order
-
-        Args:
-            orderid (str): The orderid to view
-
-        Returns:
-            api.domain.order.Order: Same information as when placing the order
-
-        Raises:
-            OrderNotFound:
-        """
-        try:
-            response = self.ordering.view_order(orderid)
-        except:
-            logger.debug("ERR version0 view_order arg: {0}\nexception {1}".format(orderid, traceback.format_exc()))
-            response = {"msg": "there's been an issue retrieving your information. admins have been notified"}
-
-        return response
-
     def order_status(self, orderid):
         """Shows an order status
 

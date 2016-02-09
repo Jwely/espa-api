@@ -92,7 +92,7 @@ class OrderingProvider(ProviderInterfaceV0):
 			'ee_order_id', 'email']
 
         with DBConnect(**api_cfg()) as db:
-            db.select(sql, (ordernum))
+            db.select(sql, (str(ordernum)))
             if db:
                 for key, val in db[0].iteritems():
                     out_dict[key] = val
@@ -114,7 +114,7 @@ class OrderingProvider(ProviderInterfaceV0):
         sql = "select orderid, status from ordering_order where orderid = %s;"
         response = {}
         with DBConnect(**api_cfg()) as db:
-            db.select(sql, orderid)
+            db.select(sql, str(orderid))
             if db:
                 for i in ['orderid','status']:
                     response[i] = db[0][i]
@@ -132,7 +132,7 @@ class OrderingProvider(ProviderInterfaceV0):
             argtup = (orderid, itemid)
             sql += " AND os.name = %s;"
         else:
-            argtup = (orderid)
+            argtup = (str(orderid))
             sql += ";"
 
         with DBConnect(**api_cfg()) as db:
