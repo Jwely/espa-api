@@ -1,9 +1,6 @@
 from decimal import Decimal
-import re
 
 import validictory
-from validictory import validator
-from validictory.validator import _str_type
 
 
 class ESPAOrderValidatorV0(validictory.SchemaValidator):
@@ -155,16 +152,3 @@ class ESPAOrderValidatorV0(validictory.SchemaValidator):
         #
         #         if not valid:
         #             self._error()
-
-    def validate_pattern(self, x, fieldname, schema, path, pattern=None):
-        """
-        Validates that the given field, if a string, matches the given regular expression.
-
-        Modified from inherited method to ignore case
-        """
-        value = x.get(fieldname)
-        if (isinstance(value, _str_type) and (isinstance(pattern, _str_type) and not
-                re.match(pattern, value, re.IGNORECASE) or not isinstance(pattern, _str_type) and not
-                pattern.match(value))):
-            self._error("does not match regular expression '{pattern}'", value, fieldname,
-                        pattern=pattern, path=path)
