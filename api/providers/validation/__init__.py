@@ -4,10 +4,7 @@ import copy
 import validictory
 from validation_provider import ESPAOrderValidatorV0
 from validation_schema import Version0Schema
-
-
-class ValidationException(Exception):
-    pass
+from api.api_except import ValidationException
 
 
 class ValidationInterfaceV0(object):
@@ -62,7 +59,7 @@ class ValidationProvider(ValidationInterfaceV0):
 
     def validate(self, order, username):
         try:
-            validictory.validate(order, self.schema.request_schema, fail_fast=False,
+            validictory.validate(order, self.schema.request_schema, fail_fast=False, disallow_unknown_properties=True,
                                  validator_cls=ESPAOrderValidatorV0, required_by_default=False)
         except validictory.MultipleValidationError as e:
             raise ValidationException(e)
