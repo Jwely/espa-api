@@ -7,6 +7,8 @@
 """
 import traceback
 from api.api_logging import api_logger as logger
+from api.api_except import ValidationException
+
 
 class API(object):
     def __init__(self, providers=None):
@@ -111,7 +113,7 @@ class API(object):
 
         return response
 
-    def place_order(self, order):
+    def place_order(self, order, username):
         """Enters a new order into the system.
 
         Args:
@@ -121,18 +123,21 @@ class API(object):
             str: The generated order id
 
         Raises:
-            api.exceptions.ValidationException: Error occurred validating params
-            api.exceptions.InventoryException: Items were not found/unavailable
+            api.api_except.ValidationException: Error occurred validating params
+            api.api_except.InventoryException: Items were not found/unavailable
         """
         try:
             # perform validation, raises ValidationException
-            self.validation(order)
+            self.validation(order, username)
             # performs inventory check, raises InventoryException
             self.inventory.check(order)
             # track metrics
             self.metrics.collect(order)
             # capture the order
             response = self.ordering.place_order(order)
+        except ValidationException as e:
+            logger.debug('ERR version0 place_order arg: {0}\nexception {1}'.format(order, traceback.format_exc()))
+            response = e
         except:
             logger.debug("ERR version0 place_order arg: {0}\nexception {1}".format(order, traceback.format_exc()))
             response = {"msg": "there's been a problem placing your order. admins have been notified"}
