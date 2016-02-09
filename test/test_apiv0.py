@@ -80,6 +80,15 @@ class TestAPI(unittest.TestCase):
         response = api.order_status(invalid_orderid)
         self.assertEqual(response.keys(), ['msg'])
 
+    def test_fetch_item_status_valid(self):
+        response = api.item_status(self.orderid)
+        self.assertEqual(response.keys(), ['orderid', 'status', 'completion_date', 'note', 'name'])
+
+    def test_fetch_item_status_invalid(self):
+        invalid_orderid = 'invalidorderid'
+        response = api.order_status(invalid_orderid)
+        self.assertEqual(response.keys(), ['msg'])
+
 class TestValidation(unittest.TestCase):
     good = {"inputs": ["LE70290302003123EDC00", "LT50290302002123EDC00", 'LO80290302002123EDC00'],
             "products": ["sr", "sr_nbr", 'toa'],
