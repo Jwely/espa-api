@@ -110,98 +110,157 @@ def build_base_order():
     return base
 
 
-def generate_failures(valid_order, schema, path=None):
-    """
-    Use recursion to move through the test_order and schema to build
-    single point bad orders that will fail validation
+class InvalidOrders(object):
+    def __init__(self, valid_order, schema, alt_fields=None):
+        self.valid_order = valid_order
+        self.schema = schema
+        self.alt_fields = alt_fields
 
-    This only works if the original dictionary passed in is a
-    valid order
-    """
-    if not path:
-        path = tuple()
+        self.invalid_list = []
+        self.invalid_list.extend(self.build_invalid_list())
 
-    results = []
-    invalid = copy.deepcopy(valid_order)
+    def __iter__(self):
+        return iter(self.invalid_list)
 
-    sch_base = schema
-    base = valid_order
-    for key in path:
-        sch_base = sch_base['properties'][key]
-        base = base[key]
+    def build_invalid_list(self, path=None):
+        if not path:
+            path = tuple()
 
-    for key, val in base.items():
-        constraints = sch_base['properties'][key]
-        sch_type = constraints['type']
-        mapping = path + (key,)
+        results = []
 
+        sch_base = self.schema
+        base = self.valid_order
+        for key in path:
+            sch_base = sch_base['properties'][key]
+            base = base[key]
+
+        for key, val in base.items():
+            constraints = sch_base['properties'][key]
+            mapping = path + (key,)
+
+            for constr_type, constr in constraints.items():
+                invalidatorname = 'invalid_' + constr_type
+                invalidator = getattr(self, invalidatorname, None)
+
+                try:
+                    results.extend(invalidator(constr, mapping))
+                except:
+                    raise Exception('{} has no associated testing'.format(constr_type))
+
+            if constraints['type'] == 'object':
+                results.extend(self.build_invalid_list(mapping))
+
+        return results
+
+    def invalid_type(self, val_type, mapping):
+        order = copy.deepcopy(self.valid_order)
+        results = []
         test_vals = []
 
-        if sch_type == 'object':
-            test_vals.append({'BAD KEY': None})
-            test_vals.append('NOT A DICTIONARY')
+        if val_type == 'string':
+            test_vals.append(9999)
 
-            results.extend(generate_failures(valid_order, schema, mapping))
+        elif val_type == 'integer':
+            test_vals.append('NOT A NUMBER')
+            test_vals.append(1.1)
 
-        elif sch_type == 'number':
-            if 'maximum' in constraints:
-                test_vals.append(constraints['maximum'] + 1)
-
-            if 'minimum' in constraints:
-                test_vals.append(constraints['minimum'] - 1)
-
+        elif val_type == 'number':
             test_vals.append('NOT A NUMBER')
 
-        elif sch_type == 'string':
-            test_vals.append(9999)
-            test_vals.append('INVALID STRING')
-
-        elif sch_type == 'array':
-            test_vals.append('NOT A LIST')
-            test_vals.append(val.append('INVALID LIST VALUE'))
-
-        elif sch_type == 'boolean':
+        elif val_type == 'boolean':
             test_vals.append('NOT A BOOL')
             test_vals.append(2)
             test_vals.append(-1)
 
-        elif sch_type == 'null':
-            test_vals.append('NOT A NULL VALUE')
+        elif val_type == 'object':
+            test_vals.append('NOT A DICTIONARY')
+
+        elif val_type == 'array':
+            test_vals.append('NOT A LIST')
+
+        elif val_type == 'null':
+            test_vals.append('NOT NONE')
+
+        elif val_type == 'any':
+            pass
 
         else:
-            raise Exception('{} has no associated test for type {}'.format(key, sch_type))
+            raise Exception('{} constraint not accounted for in testing'.format(val_type))
 
-        for test in test_vals:
-            upd = build_update_dict(mapping, test)
-            results.append(update_dict(invalid, upd))
-            invalid = copy.deepcopy(valid_order)
+        for val in test_vals:
+            upd = self.build_update_dict(mapping, val)
+            results.append(self.update_dict(order, upd))
 
-    return results
+        return results
 
+    def invalid_properties(self, val_type, mapping):
+        return []
 
-def update_dict(old, new):
-    """
-    Update a dictionary following along a defined key path
-    """
-    for key, val in new.items():
-        if isinstance(val, collections.Mapping):
-            ret = update_dict(old.get(key, {}), val)
-            old[key] = ret
-        else:
-            old[key] = new[key]
-    return old
+    def invalid_dependencies(self, val_type, mapping):
+        return []
 
+    def invalid_enum(self, val_type, mapping):
+        return []
 
-def build_update_dict(path, val):
-    """
-    Build a new dictionary following a series of keys
-    with a an endpoint value
-    """
-    ret = {}
+    def invalid_required(self, val_type, mapping):
+        return []
 
-    if len(path) > 1:
-        ret[path[0]] = build_update_dict(path[1:], val)
-    elif len(path) == 1:
-        ret[path[0]] = val
+    def invalid_maximum(self, val_type, mapping):
+        return []
 
-    return ret
+    def invalid_minimum(self, val_type, mapping):
+        return []
+
+    def invalid_uniqueItems(self, val_type, mapping):
+        return []
+
+    def invalid_items(self, val_type, mapping):
+        return []
+
+    def invalid_single_obj(self, val_type, mapping):
+        return []
+
+    def invalid_enum_keys(self, val_type, mapping):
+        return []
+
+    def invalid_extents(self, val_type, mapping):
+        return []
+
+    def update_dict(self, old, new):
+        """
+        Update a nested dictionary value following along a defined key path
+        """
+        for key, val in new.items():
+            if isinstance(val, collections.Mapping):
+                ret = self.update_dict(old.get(key, {}), val)
+                old[key] = ret
+            else:
+                old[key] = new[key]
+        return old
+
+    def build_update_dict(self, path, val):
+        """
+        Build a new nested dictionary following a series of keys
+        with a an endpoint value
+        """
+        ret = {}
+
+        if len(path) > 1:
+            ret[path[0]] = self.build_update_dict(path[1:], val)
+        elif len(path) == 1:
+            ret[path[0]] = val
+
+        return ret
+
+    def delete_key_loc(self, old, path):
+        """
+        Delete a key from a nested dictionary
+        """
+        ret = {}
+
+        if len(path) > 1:
+            ret[path[0]] = self.delete_key_loc(old.get(path[1], {}), path[1:])
+        elif len(path) == 1:
+            ret.pop(path[0], None)
+
+        return ret

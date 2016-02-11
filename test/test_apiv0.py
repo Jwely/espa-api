@@ -146,17 +146,8 @@ class TestValidation(unittest.TestCase):
         exc_type = ValidationException
         self.assertIsNone(api.validation(self.base_order, self.staffuser))
         invalid_order = copy.deepcopy(self.base_order)
-        invalid_list = []
 
-        projs = self.good_projs.keys()
-        invalid_order['projection'] = {projs[0]: self.good_projs[projs[0]]}
-
-        invalid_list.extend(testorders.generate_failures(invalid_order, self.base_schema))
-        for proj in projs:
-            invalid_order['projection'] = {proj: self.good_projs[proj]}
-            invalid_list.extend(testorders.generate_failures(invalid_order, self.base_schema,
-                                                             path=('projection',)))
-
+        invalid_list = testorders.InvalidOrders(invalid_order, self.base_schema)
         for inv in invalid_list:
             with self.assertRaises(exc_type):
                 try:

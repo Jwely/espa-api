@@ -162,9 +162,11 @@ class BaseValidationSchema(object):
                                'enum_keys': ['inputs', 'products'],
                                'properties': {'inputs': {'type': 'array',
                                                          'required': True,
+                                                         'uniqueItems': True,
                                                          'items': {'type': 'string',
                                                                    'pattern': sensor_reg[key][0]}},
                                               'products': {'type': 'array',
+                                                           'uniqueItems': True,
                                                            'required': True,
                                                            'items': {'type': 'string',
                                                                      'enum': sn.instance(
