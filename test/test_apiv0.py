@@ -148,15 +148,19 @@ class TestValidation(unittest.TestCase):
         invalid_order = copy.deepcopy(self.base_order)
 
         invalid_list = testorders.InvalidOrders(invalid_order, self.base_schema)
+        c = 0  # For initial debugging
         for inv in invalid_list:
             with self.assertRaises(exc_type):
                 try:
+                    c += 1
                     api.validation(inv, self.staffuser)
                 except:
                     raise
                 else:
                     # Help in debugging an issue
                     self.fail('{} did not raise {} Exception'.format(inv, exc_type))
+
+        print c  # For initial debugging
 
 
 if __name__ == '__main__':

@@ -139,20 +139,24 @@ class InvalidOrders(object):
             mapping = path + (key,)
 
             for constr_type, constr in constraints.items():
-                invalidatorname = 'invalid_' + constr_type
-                invalidator = getattr(self, invalidatorname, None)
+                invalidatorname = 'invalidate_' + constr_type
 
                 try:
-                    results.extend(invalidator(constr, mapping))
+                    invalidator = getattr(self, invalidatorname, None)
                 except:
                     raise Exception('{} has no associated testing'.format(constr_type))
+
+                results.extend(invalidator(constr, mapping))
 
             if constraints['type'] == 'object':
                 results.extend(self.build_invalid_list(mapping))
 
         return results
 
-    def invalid_type(self, val_type, mapping):
+    def invalidate_type(self, val_type, mapping):
+        """
+        Change the variable type
+        """
         order = copy.deepcopy(self.valid_order)
         results = []
         test_vals = []
@@ -193,38 +197,117 @@ class InvalidOrders(object):
 
         return results
 
-    def invalid_properties(self, val_type, mapping):
-        return []
+    def invalidate_properties(self, val_type, mapping):
+        order = copy.deepcopy(self.valid_order)
+        results = []
 
-    def invalid_dependencies(self, val_type, mapping):
-        return []
+        return results
 
-    def invalid_enum(self, val_type, mapping):
-        return []
+    def invalidate_dependencies(self, dependency, mapping):
+        """
+        Remove a dependency
+        """
+        order = copy.deepcopy(self.valid_order)
+        results = []
 
-    def invalid_required(self, val_type, mapping):
-        return []
+        for dep in dependency:
+            mapping = mapping[:-1] + (dep,)
+            results.append(self.delete_key_loc(order, mapping))
 
-    def invalid_maximum(self, val_type, mapping):
-        return []
+        return results
 
-    def invalid_minimum(self, val_type, mapping):
-        return []
+    def invalidate_enum(self, enums, mapping):
+        """
+        Add a value not covered in the enum list
+        """
+        order = copy.deepcopy(self.valid_order)
+        results = []
 
-    def invalid_uniqueItems(self, val_type, mapping):
-        return []
+        inv = 'NOT VALID ENUM'
 
-    def invalid_items(self, val_type, mapping):
-        return []
+        upd = self.build_update_dict(mapping, inv)
+        results.append(self.update_dict(order, upd))
+        return results
 
-    def invalid_single_obj(self, val_type, mapping):
-        return []
+    def invalidate_required(self, req, mapping):
+        """
+        If the value is required, remove it
+        """
+        order = copy.deepcopy(self.valid_order)
+        results = []
 
-    def invalid_enum_keys(self, val_type, mapping):
-        return []
+        if req:
+            results.append(self.delete_key_loc(order, mapping))
 
-    def invalid_extents(self, val_type, mapping):
-        return []
+        return results
+
+    def invalidate_maximum(self, max_val, mapping):
+        """
+        Add one to the maximum allowed value
+        """
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        upd = self.build_update_dict(mapping, max_val + 1)
+        results.append(self.update_dict(order, upd))
+        return results
+
+    def invalidate_minimum(self, min_val, mapping):
+        """
+        Subtract one from the minimum allowed value
+        """
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        upd = self.build_update_dict(mapping, min_val + 1)
+        results.append(self.update_dict(order, upd))
+        return results
+
+    def invalidate_uniqueItems(self, unique, mapping):
+        """
+        Add a duplicate entry into the list
+        """
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        if unique:
+            base = order
+
+            for key in mapping:
+                base = base[key]
+
+            base.append(base[0])
+
+            upd = self.build_update_dict(mapping, base)
+            results.append(self.update_dict(order, upd))
+
+        return results
+
+    def invalidate_items(self, val_type, mapping):
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        return results
+
+    def invalidate_single_obj(self, val_type, mapping):
+        order = copy.deepcopy(self.valid_order)
+        results = []
+        # Needs to append a valid structure
+        # Mainly pertains to the projection structure
+
+        return results
+
+    def invalidate_enum_keys(self, val_type, mapping):
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        return results
+
+    def invalidate_extents(self, val_type, mapping):
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        return results
 
     def update_dict(self, old, new):
         """
