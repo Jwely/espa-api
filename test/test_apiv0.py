@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 import unittest
 import yaml
+import copy
 
 from api.ordering.version0 import API
-from api.utils import api_cfg
+from api.utils import api_cfg, lowercase_all
 from api.dbconnect import DBConnect
 import version0_testorders as testorders
 from api.providers.validation import validation_schema
-from api.providers.validation import ValidationException
+from api.api_except import ValidationException
 import psycopg2.extras
 
 api = API()
+
 
 class TestAPI(unittest.TestCase):
     def setUp(self):
@@ -84,6 +86,7 @@ class TestAPI(unittest.TestCase):
         response = api.order_status(invalid_orderid)
         self.assertEqual(response.keys(), ['msg'])
 
+
 class TestValidation(unittest.TestCase):
     def setUp(self):
         db = DBConnect(**api_cfg())
@@ -106,8 +109,23 @@ class TestValidation(unittest.TestCase):
         with open('api/domain/restricted.yaml') as f:
             self.restricted_list = yaml.load(f.read())
 
-        self.base_order = testorders.build_base_order()
+        self.base_order = lowercase_all(testorders.build_base_order())
         self.base_schema = validation_schema.Version0Schema().request_schema
+        self.good_projs = {'aea': {'standard_parallel_1': 29.5,
+                                   'standard_parallel_2': 45.5,
+                                   'central_meridian': -96,
+                                   'latitude_of_origin': 23,
+                                   'false_easting': 0,
+                                   'false_northing': 0,
+                                   'datum': 'nad83'},
+                           'utm': {'zone': 33,
+                                   'zone_ns': 'south'},
+                           'lonlat': None,
+                           'sinu': {'central_meridian': 0,
+                                    'false_easting': 0,
+                                    'false_northing': 0},
+                           'ps': {'longitudinal_pole': 0,
+                                  'latitude_true_scale': 75}}
 
     def test_validation_get_order_schema(self):
         self.assertIsInstance(api.validation.fetch_order_schema(), dict)
@@ -125,11 +143,29 @@ class TestValidation(unittest.TestCase):
         self.assertIsNone(api.validation(self.base_order, self.staffuser))
 
     def test_validate_bad_orders(self):
-        # for bad in testorders.test_assertion_failures(self.base_order, self.base_schema):
-        #     with self.assertRaises(ValidationException):
-        #         api.validation(bad, self.staffuser)
+        exc_type = ValidationException
+        self.assertIsNone(api.validation(self.base_order, self.staffuser))
+        invalid_order = copy.deepcopy(self.base_order)
+        invalid_list = []
 
-        pass
+        projs = self.good_projs.keys()
+        invalid_order['projection'] = {projs[0]: self.good_projs[projs[0]]}
+
+        invalid_list.extend(testorders.generate_failures(invalid_order, self.base_schema))
+        for proj in projs:
+            invalid_order['projection'] = {proj: self.good_projs[proj]}
+            invalid_list.extend(testorders.generate_failures(invalid_order, self.base_schema,
+                                                             path=('projection',)))
+
+        for inv in invalid_list:
+            with self.assertRaises(exc_type):
+                try:
+                    api.validation(inv, self.staffuser)
+                except:
+                    raise
+                else:
+                    # Help in debugging an issue
+                    self.fail('{} did not raise {} Exception'.format(inv, exc_type))
 
 
 if __name__ == '__main__':

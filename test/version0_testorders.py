@@ -1,4 +1,5 @@
 import copy
+import collections
 
 import api.domain.sensor as sn
 
@@ -109,63 +110,98 @@ def build_base_order():
     return base
 
 
-# Try to make a generator??
-def test_assertion_failures(test_order, schema, path=None, top=None):
+def generate_failures(valid_order, schema, path=None):
     """
     Use recursion to move through the test_order and schema to build
-    bad orders that will fail validation
+    single point bad orders that will fail validation
 
-    Take full advantage of the mutable nature of dictionaries
+    This only works if the original dictionary passed in is a
+    valid order
     """
     if not path:
         path = tuple()
 
-    if not top:
-        top = test_order
+    results = []
+    invalid = copy.deepcopy(valid_order)
 
-    base = copy.deepcopy(schema)
+    sch_base = schema
+    base = valid_order
     for key in path:
-        base = base['properties'][key]
+        sch_base = sch_base['properties'][key]
+        base = base[key]
 
-    for key, val in test_order.items():
-        orig = copy.deepcopy(test_order[key])
+    for key, val in base.items():
+        constraints = sch_base['properties'][key]
+        sch_type = constraints['type']
+        mapping = path + (key,)
 
-        if isinstance(val, dict):
-            constraints = base['properties'][key.lower()].keys()
+        test_vals = []
 
-            test_order[key]['bad key'] = None
-            yield top
+        if sch_type == 'object':
+            test_vals.append({'BAD KEY': None})
+            test_vals.append('NOT A DICTIONARY')
 
-            test_order[key] = 'not a dict'
-            yield top
+            results.extend(generate_failures(valid_order, schema, mapping))
 
-            test_order[key] = copy.deepcopy(orig)
-            next_path = path + (key.lower(),)
-            test_assertion_failures(val, schema, next_path, top)
+        elif sch_type == 'number':
+            if 'maximum' in constraints:
+                test_vals.append(constraints['maximum'] + 1)
 
-        if isinstance(val, list):
-            constraints = base['properties'][key]
+            if 'minimum' in constraints:
+                test_vals.append(constraints['minimum'] - 1)
 
-            test_order[key].append('bad string')
-            yield top
+            test_vals.append('NOT A NUMBER')
 
-            test_order[key] = 'not a list'
-            yield top
+        elif sch_type == 'string':
+            test_vals.append(9999)
+            test_vals.append('INVALID STRING')
 
-            test_order[key] = copy.deepcopy(orig)
+        elif sch_type == 'array':
+            test_vals.append('NOT A LIST')
+            test_vals.append(val.append('INVALID LIST VALUE'))
 
-        if isinstance(val, (float, int, long)):
-            constraints = base['properties'][key]
-            if path and path[-1] == 'image_extents':
-                # Assert extents failures
-                pass
-            # Assert failure substitute type
-            # Assert failure values out of bounds
+        elif sch_type == 'boolean':
+            test_vals.append('NOT A BOOL')
+            test_vals.append(2)
+            test_vals.append(-1)
 
-            test_order[key] = copy.deepcopy(orig)
+        elif sch_type == 'null':
+            test_vals.append('NOT A NULL VALUE')
 
-        if isinstance(val, (str, unicode)):
-            constraints = base['properties'][key]
-            # Assert failure substitute type
-            # Assert failure substitute bad value
-            test_order[key] = copy.deepcopy(orig)
+        else:
+            raise Exception('{} has no associated test for type {}'.format(key, sch_type))
+
+        for test in test_vals:
+            upd = build_update_dict(mapping, test)
+            results.append(update_dict(invalid, upd))
+            invalid = copy.deepcopy(valid_order)
+
+    return results
+
+
+def update_dict(old, new):
+    """
+    Update a dictionary following along a defined key path
+    """
+    for key, val in new.items():
+        if isinstance(val, collections.Mapping):
+            ret = update_dict(old.get(key, {}), val)
+            old[key] = ret
+        else:
+            old[key] = new[key]
+    return old
+
+
+def build_update_dict(path, val):
+    """
+    Build a new dictionary following a series of keys
+    with a an endpoint value
+    """
+    ret = {}
+
+    if len(path) > 1:
+        ret[path[0]] = build_update_dict(path[1:], val)
+    elif len(path) == 1:
+        ret[path[0]] = val
+
+    return ret
