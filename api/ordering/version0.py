@@ -7,6 +7,7 @@
 """
 import traceback
 from api.api_logging import api_logger as logger
+from api.domain import default_error_message
 
 class API(object):
     def __init__(self, providers=None):
@@ -73,7 +74,7 @@ class API(object):
             logger.debug("ERR version0 available_prods_get product_id: {0} " \
                          "username: {1}\nexception {2}".format(product_id, username,
                                                                traceback.format_exc()))
-            response = {"msg": "there's been a problem retrieving your information. admins have been notified"}
+            response = default_error_message
 
         return response
 
@@ -90,7 +91,7 @@ class API(object):
             response = self.ordering.fetch_user_orders(user_id)
         except:
             logger.debug("ERR version0 fetch_user_orders arg: {0}\nexception {1}".format(user_id, traceback.format_exc()))
-            response = {"msg": "there's been a problem retrieving your information. admins have been notified"}
+            response = default_error_message
 
         return response
 
@@ -107,7 +108,7 @@ class API(object):
             response = self.ordering.fetch_order(ordernum)
         except:
             logger.debug("ERR version0 fetch_order arg: {0}\nexception {1}".format(ordernum, traceback.format_exc()))
-            response = {"msg": "there's been a problem retrieving your information. admins have been notified"}
+            response = default_error_message
 
         return response
 
@@ -135,7 +136,7 @@ class API(object):
             response = self.ordering.place_order(order)
         except:
             logger.debug("ERR version0 place_order arg: {0}\nexception {1}".format(order, traceback.format_exc()))
-            response = {"msg": "there's been a problem placing your order. admins have been notified"}
+            response = default_error_message
 
         return response
 
@@ -155,7 +156,7 @@ class API(object):
             response = self.ordering.order_status(orderid)
         except:
             logger.debug("ERR version0 order_status arg: {0}\nexception {1}".format(orderid, traceback.format_exc()))
-            response = {"msg": "there's been an issue retrieving your information. admins have been notified"}
+            response = default_error_message
 
         return response
 
@@ -177,7 +178,16 @@ class API(object):
             response = self.ordering.item_status(orderid, itemid)
         except:
             logger.debug("ERR version0 item_status itemid {0}  orderid: {1}\nexception {2}".format(itemid, orderid, traceback.format_exc()))
-            response = {"msg": "there's been an issue retrieving your information. admins have been notified"}
+            response = default_error_message
+
+        return response
+
+    def fetch_production_products(self, params):
+        try:
+            response = self.ordering.fetch_production_products(params)
+        except:
+            logger.debug("ERR version0 fetch_production_products, params: {0}\ntrace: {1}\n".format(params, traceback.format_exc()))
+            response = default_error_message
 
         return response
 

@@ -150,3 +150,189 @@ class OrderingProvider(ProviderInterfaceV0):
 
         return response
 
+    def fetch_production_products(self, params):
+        cur_params = ('priority','user','sensor')
+        invalid_params = []
+        for i in params:
+            if i not in cur_params:
+                invalid_params.append(i)
+
+        if invalid_params:
+            return {"msg": "invalid parameters: " + ", ".join(invalid_params)}
+
+
+        response = {}
+        return response
+
+    def get_products_to_process(record_limit=500,
+                                for_user=None,
+                                priority=None,
+                                product_types=['landsat', 'modis'],
+                                encode_urls=False):
+        '''Find scenes that are oncache and return them as properly formatted
+        json per the interface description between the web and processing tier'''
+
+        logger.info('Retrieving products to process...')
+        logger.debug('Record limit:{0}'.format(record_limit))
+        logger.debug('Priority:{0}'.format(priority))
+        logger.debug('For user:{0}'.format(for_user))
+        logger.debug('Product types:{0}'.format(product_types))
+        logger.debug('Encode urls:{0}'.format(encode_urls))
+
+        buff = StringIO()
+        buff.write('WITH order_queue AS ')
+        buff.write('(SELECT u.email "email", count(name) "running" ')
+        buff.write('FROM ordering_scene s ')
+        buff.write('JOIN ordering_order o ON o.id = s.order_id ')
+        buff.write('JOIN auth_user u ON u.id = o.user_id ')
+        buff.write('WHERE ')
+        buff.write('s.status in (\'queued\', \'processing\') ')
+        buff.write('GROUP BY u.email) ')
+        buff.write('SELECT ')
+        buff.write('p.contactid, ')
+        buff.write('s.name, ')
+        buff.write('s.sensor_type, ')
+        buff.write('o.orderid, ')
+        buff.write('o.product_options, ')
+        buff.write('o.priority, ')
+        buff.write('o.order_date, ')
+        buff.write('q.running ')
+        buff.write('FROM ordering_scene s ')
+        buff.write('JOIN ordering_order o ON o.id = s.order_id ')
+        buff.write('JOIN auth_user u ON u.id = o.user_id ')
+        buff.write('JOIN ordering_userprofile p ON u.id = p.user_id ')
+        buff.write('LEFT JOIN order_queue q ON q.email = u.email ')
+        buff.write('WHERE ')
+        buff.write('o.status = \'ordered\' ')
+        buff.write('AND s.status = \'oncache\' ')
+
+        if product_types is not None and len(product_types) > 0:
+            type_str = ','.join('\'{0}\''.format(x) for x in product_types)
+            buff.write('AND s.sensor_type IN ({0}) '.format(type_str))
+
+        if for_user is not None:
+            buff.write('AND u.username = \'{0}\' '.format(for_user))
+
+        if priority is not None:
+            buff.write('AND o.priority = \'{0}\' '.format(priority))
+
+        buff.write('ORDER BY q.running ASC NULLS FIRST, ')
+        buff.write('o.order_date ASC LIMIT {0}'.format(record_limit))
+
+        query = buff.getvalue()
+        buff.close()
+        logger.debug("QUERY:{0}".format(query))
+
+        query_results = None
+        cursor = connection.cursor()
+
+        if cursor is not None:
+            try:
+                cursor.execute(query)
+                query_results = utilities.dictfetchall(cursor)
+            finally:
+                if cursor is not None:
+                    cursor.close()
+
+        # Need the results reorganized by contact id so we can get dload urls from
+        # ee in bulk by id.
+        by_cid = {}
+        for result in query_results:
+            cid = result.pop('contactid')
+            # ['orderid', 'sensor_type', 'contactid', 'name', 'product_options']
+            by_cid.setdefault(cid, []).append(result)
+
+        #this will be returned to the caller
+        results = []
+        for cid in by_cid.keys():
+            cid_items = by_cid[cid]
+
+            landsat = [item['name'] for item in cid_items if item['sensor_type'] == 'landsat']
+            logger.debug('Retrieving {0} landsat download urls for cid:{1}'
+                         .format(len(landsat), cid))
+
+            start = datetime.datetime.now()
+            landsat_urls = lta.get_download_urls(landsat, cid)
+            stop = datetime.datetime.now()
+            interval = stop - start
+            logger.debug('Retrieving download urls took {0} seconds'
+                         .format(interval.seconds))
+            logger.debug('Retrieved {0} landsat urls for cid:{1}'.format(len(landsat_urls), cid))
+
+            modis = [item['name'] for item in cid_items if item['sensor_type'] == 'modis']
+            modis_urls = lpdaac.get_download_urls(modis)
+
+            logger.debug('Retrieved {0} urls for cid:{1}'.format(len(modis_urls), cid))
+
+            for item in cid_items:
+                dload_url = None
+                if item['sensor_type'] == 'landsat':
+
+                     # check to see if the product is still available
+
+                    if ('status' in landsat_urls[item['name']] and
+                            landsat_urls[item['name']]['status'] != 'available'):
+                        try:
+                            limit = config.get('retry.retry_missing_l1.retries')
+                            timeout = config.get('retry.retry_missing_l1.timeout')
+                            ts = datetime.datetime.now()
+                            after = ts + datetime.timedelta(seconds=timeout)
+
+                            logger.info('{0} for order {1} was oncache '
+                                        'but now unavailable, reordering'
+                                        .format(item['name'], item['orderid']))
+
+                            set_product_retry(item['name'],
+                                              item['orderid'],
+                                              'get_products_to_process',
+                                              'product was not available',
+                                              'reorder missing level1 product',
+                                              after, limit)
+                        except Exception:
+
+                            logger.info('Retry limit exceeded for {0} in '
+                                        'order {1}... moving to error status.'
+                                        .format(item['name'], item['orderid']))
+
+                            set_product_error(item['name'], item['orderid'],
+                                              'get_products_to_process',
+                                              ('level1 product data '
+                                               'not available after EE call '
+                                               'marked product as available'))
+                        continue
+
+                    if 'download_url' in landsat_urls[item['name']]:
+                        logger.info('download_url was in landsat_urls for {0}'.format(item['name']))
+                        dload_url = landsat_urls[item['name']]['download_url']
+                        if encode_urls:
+                            dload_url = urllib.quote(dload_url, '')
+
+                elif item['sensor_type'] == 'modis':
+                    if 'download_url' in modis_urls[item['name']]:
+                        dload_url = modis_urls[item['name']]['download_url']
+                        if encode_urls:
+                            dload_url = urllib.quote(dload_url, '')
+
+                result = {
+                    'orderid': item['orderid'],
+                    'product_type': item['sensor_type'],
+                    'scene': item['name'],
+                    'priority': item['priority'],
+                    'options': json.loads(item['product_options'])
+                }
+
+                if item['sensor_type'] == 'plot':
+                    # no dload url for plot items, just append it
+                    results.append(result)
+                elif dload_url is not None:
+                    result['download_url'] = dload_url
+                    results.append(result)
+                else:
+                    logger.info('dload_url for {0} in order {0} '
+                                'was None, skipping...'
+                                .format(item['orderid'], item['name']))
+        return results
+
+
+
+
