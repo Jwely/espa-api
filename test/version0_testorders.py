@@ -193,26 +193,31 @@ class InvalidOrders(object):
 
         for val in test_vals:
             upd = self.build_update_dict(mapping, val)
-            results.append(self.update_dict(order, upd))
+            results.append((self.update_dict(order, upd), 'type', mapping))
 
         return results
 
     def invalidate_properties(self, val_type, mapping):
-        order = copy.deepcopy(self.valid_order)
-        results = []
+        """
+        This is a pass through key in the schema
+        only affects orders in the validation processing
+        not whether an order is valid or invalid
+        """
+        # order = copy.deepcopy(self.valid_order)
+        # results = []
 
-        return results
+        return []
 
     def invalidate_dependencies(self, dependency, mapping):
         """
-        Remove a dependency
+        Remove dependencies, one at a time
         """
         order = copy.deepcopy(self.valid_order)
         results = []
 
         for dep in dependency:
             mapping = mapping[:-1] + (dep,)
-            results.append(self.delete_key_loc(order, mapping))
+            results.append((self.delete_key_loc(order, mapping), 'dependencies', mapping))
 
         return results
 
@@ -226,7 +231,7 @@ class InvalidOrders(object):
         inv = 'NOT VALID ENUM'
 
         upd = self.build_update_dict(mapping, inv)
-        results.append(self.update_dict(order, upd))
+        results.append((self.update_dict(order, upd), 'enum', mapping))
         return results
 
     def invalidate_required(self, req, mapping):
@@ -237,7 +242,7 @@ class InvalidOrders(object):
         results = []
 
         if req:
-            results.append(self.delete_key_loc(order, mapping))
+            results.append((self.delete_key_loc(order, mapping), 'required', mapping))
 
         return results
 
@@ -249,7 +254,7 @@ class InvalidOrders(object):
         results = []
 
         upd = self.build_update_dict(mapping, max_val + 1)
-        results.append(self.update_dict(order, upd))
+        results.append((self.update_dict(order, upd), 'maximum', mapping))
         return results
 
     def invalidate_minimum(self, min_val, mapping):
@@ -260,7 +265,7 @@ class InvalidOrders(object):
         results = []
 
         upd = self.build_update_dict(mapping, min_val + 1)
-        results.append(self.update_dict(order, upd))
+        results.append((self.update_dict(order, upd), 'minimum', mapping))
         return results
 
     def invalidate_uniqueItems(self, unique, mapping):
@@ -279,7 +284,7 @@ class InvalidOrders(object):
             base.append(base[0])
 
             upd = self.build_update_dict(mapping, base)
-            results.append(self.update_dict(order, upd))
+            results.append((self.update_dict(order, upd), 'uniqueItems', mapping))
 
         return results
 
@@ -289,6 +294,12 @@ class InvalidOrders(object):
 
         return results
 
+    def invalidate_minItems(self, val_type, mapping):
+        return []
+
+    def invalidate_maxItems(self, val_type, mapping):
+        return []
+
     def invalidate_single_obj(self, val_type, mapping):
         order = copy.deepcopy(self.valid_order)
         results = []
@@ -297,10 +308,18 @@ class InvalidOrders(object):
 
         return results
 
-    def invalidate_enum_keys(self, val_type, mapping):
+    def invalidate_enum_keys(self, keys, mapping):
+        """
+        Append a dictionary with a key that is not in the
+        enum list
+        """
         order = copy.deepcopy(self.valid_order)
         results = []
 
+        inv_key = {'INVALID KEY': None}
+
+        upd = self.build_update_dict(mapping, inv_key)
+        results.append((self.update_dict(order, upd), 'enum_keys', mapping))
         return results
 
     def invalidate_extents(self, val_type, mapping):
@@ -313,13 +332,14 @@ class InvalidOrders(object):
         """
         Update a nested dictionary value following along a defined key path
         """
+        ret = {k: v for k, v in old.items()}
+
         for key, val in new.items():
             if isinstance(val, collections.Mapping):
-                ret = self.update_dict(old.get(key, {}), val)
-                old[key] = ret
+                ret[key] = self.update_dict(ret.get(key, {}), val)
             else:
-                old[key] = new[key]
-        return old
+                ret[key] = new[key]
+        return ret
 
     def build_update_dict(self, path, val):
         """
@@ -339,10 +359,10 @@ class InvalidOrders(object):
         """
         Delete a key from a nested dictionary
         """
-        ret = {}
+        ret = {k: v for k, v in old.items()}
 
         if len(path) > 1:
-            ret[path[0]] = self.delete_key_loc(old.get(path[1], {}), path[1:])
+            ret[path[0]] = self.delete_key_loc(ret.get(path[1], {}), path[1:])
         elif len(path) == 1:
             ret.pop(path[0], None)
 

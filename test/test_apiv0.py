@@ -153,11 +153,12 @@ class TestValidation(unittest.TestCase):
             with self.assertRaises(exc_type):
                 try:
                     c += 1
-                    api.validation(inv, self.staffuser)
+                    api.validation(inv[0], self.staffuser)
                 except:
                     raise
                 else:
                     # Help in debugging an issue
+                    print inv[1], inv[2]
                     self.fail('{} did not raise {} Exception'.format(inv, exc_type))
 
         print c  # For initial debugging
