@@ -332,7 +332,7 @@ class InvalidOrders(object):
         """
         Update a nested dictionary value following along a defined key path
         """
-        ret = {k: v for k, v in old.items()}
+        ret = old.copy()
 
         for key, val in new.items():
             if isinstance(val, collections.Mapping):
@@ -359,7 +359,7 @@ class InvalidOrders(object):
         """
         Delete a key from a nested dictionary
         """
-        ret = {k: v for k, v in old.items()}
+        ret = old.copy()
 
         if len(path) > 1:
             ret[path[0]] = self.delete_key_loc(ret.get(path[1], {}), path[1:])
