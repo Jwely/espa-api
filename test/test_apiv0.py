@@ -145,21 +145,25 @@ class TestValidation(unittest.TestCase):
     def test_validate_bad_orders(self):
         exc_type = ValidationException
         self.assertIsNone(api.validation(self.base_order, self.staffuser))
-        invalid_order = copy.deepcopy(self.base_order)
-
-        invalid_list = testorders.InvalidOrders(invalid_order, self.base_schema)
+        invalid_order = self.base_order.copy()
         c = 0  # For initial debugging
-        for inv in invalid_list:
-            with self.assertRaises(exc_type):
-                try:
-                    c += 1
-                    api.validation(inv[0], self.staffuser)
-                except:
-                    raise
-                else:
-                    # Help in debugging an issue
-                    print inv[1], inv[2]
-                    self.fail('{} did not raise {} Exception'.format(inv, exc_type))
+
+        for proj in testorders.good_test_projections:
+            invalid_order['projection'] = {proj: testorders.good_test_projections[proj]}
+
+            invalid_list = testorders.InvalidOrders(invalid_order, self.base_schema)
+
+            for inv in invalid_list:
+                with self.assertRaises(exc_type):
+                    try:
+                        c += 1
+                        api.validation(inv[0], self.staffuser)
+                    except:
+                        raise
+                    else:
+                        # Help in debugging an issue
+                        print inv[1], inv[2]
+                        self.fail('{} did not raise {} Exception'.format(inv, exc_type))
 
         print c  # For initial debugging
 

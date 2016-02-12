@@ -146,6 +146,9 @@ class InvalidOrders(object):
                 except:
                     raise Exception('{} has no associated testing'.format(constr_type))
 
+                if not invalidator:
+                    raise Exception('{} has no associated testing'.format(constr_type))
+
                 results.extend(invalidator(constr, mapping))
 
             if constraints['type'] == 'object':
@@ -157,7 +160,7 @@ class InvalidOrders(object):
         """
         Change the variable type
         """
-        order = self.valid_order.copy()
+        order = copy.deepcopy(self.valid_order)
         results = []
         test_vals = []
 
@@ -203,7 +206,7 @@ class InvalidOrders(object):
         only affects orders in the validation processing
         not whether an order is valid or invalid
         """
-        # order = self.valid_order.copy()
+        # order = copy.deepcopy(self.valid_order)
         # results = []
 
         return []
@@ -212,7 +215,7 @@ class InvalidOrders(object):
         """
         Remove dependencies, one at a time
         """
-        order = self.valid_order.copy()
+        order = copy.deepcopy(self.valid_order)
         results = []
 
         for dep in dependency:
@@ -225,7 +228,7 @@ class InvalidOrders(object):
         """
         Add a value not covered in the enum list
         """
-        order = self.valid_order.copy()
+        order = copy.deepcopy(self.valid_order)
         results = []
 
         inv = 'NOT VALID ENUM'
@@ -238,7 +241,7 @@ class InvalidOrders(object):
         """
         If the value is required, remove it
         """
-        order = self.valid_order.copy()
+        order = copy.deepcopy(self.valid_order)
         results = []
 
         if req:
@@ -250,7 +253,7 @@ class InvalidOrders(object):
         """
         Add one to the maximum allowed value
         """
-        order = self.valid_order.copy()
+        order = copy.deepcopy(self.valid_order)
         results = []
 
         upd = self.build_update_dict(mapping, max_val + 1)
@@ -261,10 +264,10 @@ class InvalidOrders(object):
         """
         Subtract one from the minimum allowed value
         """
-        order = self.valid_order.copy()
+        order = copy.deepcopy(self.valid_order)
         results = []
 
-        upd = self.build_update_dict(mapping, min_val + 1)
+        upd = self.build_update_dict(mapping, min_val - 1)
         results.append((self.update_dict(order, upd), 'minimum', mapping))
         return results
 
@@ -272,7 +275,7 @@ class InvalidOrders(object):
         """
         Add a duplicate entry into the list
         """
-        order = self.valid_order.copy()
+        order = copy.deepcopy(self.valid_order)
         results = []
 
         if unique:
@@ -289,19 +292,37 @@ class InvalidOrders(object):
         return results
 
     def invalidate_items(self, val_type, mapping):
-        order = self.valid_order.copy()
+        order = copy.deepcopy(self.valid_order)
         results = []
 
         return results
 
     def invalidate_minItems(self, val_type, mapping):
-        return []
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        return results
 
     def invalidate_maxItems(self, val_type, mapping):
-        return []
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        return results
+
+    def invalidate_abs_rng(self, bounds, mapping):
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        test_vals = [bounds[0] - 1, bounds[1] + 1, -bounds[0] + 1, -bounds[1] - 1]
+
+        for val in test_vals:
+            upd = self.build_update_dict(mapping, val)
+            results.append((self.update_dict(order, upd), 'abs_rng', mapping))
+
+        return results
 
     def invalidate_single_obj(self, val_type, mapping):
-        order = self.valid_order.copy()
+        order = copy.deepcopy(self.valid_order)
         results = []
         # Needs to append a valid structure
         # Mainly pertains to the projection structure
@@ -313,7 +334,7 @@ class InvalidOrders(object):
         Append a dictionary with a key that is not in the
         enum list
         """
-        order = self.valid_order.copy()
+        order = copy.deepcopy(self.valid_order)
         results = []
 
         inv_key = {'INVALID KEY': None}
@@ -323,7 +344,7 @@ class InvalidOrders(object):
         return results
 
     def invalidate_extents(self, val_type, mapping):
-        order = self.valid_order.copy()
+        order = copy.deepcopy(self.valid_order)
         results = []
 
         return results
@@ -332,7 +353,7 @@ class InvalidOrders(object):
         """
         Update a nested dictionary value following along a defined key path
         """
-        ret = old.copy()
+        ret = copy.deepcopy(old)
 
         for key, val in new.items():
             if isinstance(val, collections.Mapping):
@@ -359,7 +380,7 @@ class InvalidOrders(object):
         """
         Delete a key from a nested dictionary
         """
-        ret = old.copy()
+        ret = copy.deepcopy(old)
 
         if len(path) > 1:
             ret[path[0]] = self.delete_key_loc(ret.get(path[1], {}), path[1:])
