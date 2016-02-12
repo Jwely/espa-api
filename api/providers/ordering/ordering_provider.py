@@ -6,6 +6,8 @@ from api.providers.ordering import ProviderInterfaceV0
 import yaml
 import copy
 
+from cStringIO import StringIO
+
 from api.api_logging import api_logger as logger
 
 class OrderingProvider(ProviderInterfaceV0):
@@ -150,21 +152,7 @@ class OrderingProvider(ProviderInterfaceV0):
 
         return response
 
-    def fetch_production_products(self, params):
-        cur_params = ('priority','user','sensor')
-        invalid_params = []
-        for i in params:
-            if i not in cur_params:
-                invalid_params.append(i)
-
-        if invalid_params:
-            return {"msg": "invalid parameters: " + ", ".join(invalid_params)}
-
-
-        response = {}
-        return response
-
-    def get_products_to_process(record_limit=500,
+    def get_products_to_process(self, record_limit=500,
                                 for_user=None,
                                 priority=None,
                                 product_types=['landsat', 'modis'],
@@ -173,11 +161,11 @@ class OrderingProvider(ProviderInterfaceV0):
         json per the interface description between the web and processing tier'''
 
         logger.info('Retrieving products to process...')
-        logger.debug('Record limit:{0}'.format(record_limit))
-        logger.debug('Priority:{0}'.format(priority))
-        logger.debug('For user:{0}'.format(for_user))
-        logger.debug('Product types:{0}'.format(product_types))
-        logger.debug('Encode urls:{0}'.format(encode_urls))
+        logger.warn('Record limit:{0}'.format(record_limit))
+        logger.warn('Priority:{0}'.format(priority))
+        logger.warn('For user:{0}'.format(for_user))
+        logger.warn('Product types:{0}'.format(product_types))
+        logger.warn('Encode urls:{0}'.format(encode_urls))
 
         buff = StringIO()
         buff.write('WITH order_queue AS ')
@@ -221,24 +209,31 @@ class OrderingProvider(ProviderInterfaceV0):
 
         query = buff.getvalue()
         buff.close()
-        logger.debug("QUERY:{0}".format(query))
+        logger.warn("QUERY:{0}".format(query))
 
         query_results = None
-        cursor = connection.cursor()
 
-        if cursor is not None:
-            try:
-                cursor.execute(query)
-                query_results = utilities.dictfetchall(cursor)
-            finally:
-                if cursor is not None:
-                    cursor.close()
+        with DBConnect(**api_cfg()) as db:
+            db.select(query)
+
+        query_results = db.fetcharr
+
+        #cursor = connection.cursor()
+
+        #if cursor is not None:
+        #    try:
+        #        cursor.execute(query)
+        #        query_results = utilities.dictfetchall(cursor)
+        #    finally:
+        #        if cursor is not None:
+        #            cursor.close()
 
         # Need the results reorganized by contact id so we can get dload urls from
         # ee in bulk by id.
         by_cid = {}
         for result in query_results:
-            cid = result.pop('contactid')
+            #cid = result.pop('contactid')
+            cid = result['contactid']
             # ['orderid', 'sensor_type', 'contactid', 'name', 'product_options']
             by_cid.setdefault(cid, []).append(result)
 
@@ -248,21 +243,21 @@ class OrderingProvider(ProviderInterfaceV0):
             cid_items = by_cid[cid]
 
             landsat = [item['name'] for item in cid_items if item['sensor_type'] == 'landsat']
-            logger.debug('Retrieving {0} landsat download urls for cid:{1}'
+            logger.warn('Retrieving {0} landsat download urls for cid:{1}'
                          .format(len(landsat), cid))
 
             start = datetime.datetime.now()
             landsat_urls = lta.get_download_urls(landsat, cid)
             stop = datetime.datetime.now()
             interval = stop - start
-            logger.debug('Retrieving download urls took {0} seconds'
+            logger.warn('Retrieving download urls took {0} seconds'
                          .format(interval.seconds))
-            logger.debug('Retrieved {0} landsat urls for cid:{1}'.format(len(landsat_urls), cid))
+            logger.warn('Retrieved {0} landsat urls for cid:{1}'.format(len(landsat_urls), cid))
 
             modis = [item['name'] for item in cid_items if item['sensor_type'] == 'modis']
             modis_urls = lpdaac.get_download_urls(modis)
 
-            logger.debug('Retrieved {0} urls for cid:{1}'.format(len(modis_urls), cid))
+            logger.warn('Retrieved {0} urls for cid:{1}'.format(len(modis_urls), cid))
 
             for item in cid_items:
                 dload_url = None

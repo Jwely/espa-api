@@ -46,5 +46,19 @@ class ApiConfig(object):
         key = "url.%s.registration" % self.mode
         return self.settings[key]
 
+    @property
+    def ext_cache_url(self):
+        key = "url.%s.external_cache" % self.mode
+        return self.settings[key]
+
+    @property
+    def int_cache_url(self):
+        key = "url.%s.internal_cache" % self.mode
+        return self.settings[key]
+
+
+
+
+
 
 

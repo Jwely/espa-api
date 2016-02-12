@@ -184,7 +184,7 @@ class API(object):
 
     def fetch_production_products(self, params):
         try:
-            response = self.ordering.fetch_production_products(params)
+            response = self.ordering.get_products_to_process(**params)
         except:
             logger.debug("ERR version0 fetch_production_products, params: {0}\ntrace: {1}\n".format(params, traceback.format_exc()))
             response = default_error_message
