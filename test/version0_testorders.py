@@ -132,31 +132,29 @@ class InvalidOrders(object):
 
         This is directly modeled from validictory exception handling
         """
-        path = '<obj>' + '.'.join(path)
+        path = '<obj>.' + '.'.join(path)
         params['value'] = value
         params['fieldname'] = fieldname
         message = desc.format(**params)
         err = ''
 
         if exctype == validator.FieldValidationError:
-            err = "Value {!r} for field '{}' {}".format(value, path, message)
-            # err = validator.FieldValidationError(message, fieldname, value, path)
+            # err = "Value {!r} for field '{}' {}".format(value, path, message)
+            err = validator.FieldValidationError(message, fieldname, value, path)
         elif exctype == validator.DependencyValidationError:
-            err = message
-            # err = exctype(message)
-            # err.fieldname = fieldname
-            # err.path = path
-            pass
+            # err = message
+            err = exctype(message)
+            err.fieldname = fieldname
+            err.path = path
         elif exctype == validator.RequiredFieldValidationError:
-            err = message
-            # err = exctype(message)
-            # err.fieldname = fieldname
-            # err.path = path
-            pass
+            # err = message
+            err = exctype(message)
+            err.fieldname = fieldname
+            err.path = path
 
-        msg = "{} validation errors:\n\n{}".format(1, err)
+        exc = validator.MultipleValidationError([err])
 
-        return msg
+        return exc
 
     def build_invalid_list(self, path=None):
         if not path:
@@ -231,8 +229,10 @@ class InvalidOrders(object):
             raise Exception('{} constraint not accounted for in testing'.format(val_type))
 
         for val in test_vals:
+            exc = self.build_error_msg('is not of type {fieldtype}', val, mapping[-1],
+                                       path=mapping, fieldtype=val_type)
             upd = self.build_update_dict(mapping, val)
-            results.append((self.update_dict(order, upd), 'type', mapping))
+            results.append((self.update_dict(order, upd), 'type', exc))
 
         return results
 
@@ -267,8 +267,11 @@ class InvalidOrders(object):
 
         inv = 'NOT VALID ENUM'
 
+        exc = self.build_error_msg("is not in the enumeration: {options!r}", inv, mapping[-1],
+                                   path=mapping, options=enums)
+
         upd = self.build_update_dict(mapping, inv)
-        results.append((self.update_dict(order, upd), 'enum', mapping))
+        results.append((self.update_dict(order, upd), 'enum', exc))
         return results
 
     def invalidate_required(self, req, mapping):

@@ -2,6 +2,7 @@
 import unittest
 import yaml
 import copy
+import re
 
 from api.ordering.version0 import API
 from api.utils import api_cfg, lowercase_all
@@ -158,7 +159,10 @@ class TestValidation(unittest.TestCase):
                     try:
                         c += 1
                         api.validation(inv[0], self.staffuser)
-                    except:
+                    except exc_type as e:
+                        if inv[1] == 'type':
+                            if str(e) == str(inv[2]):
+                                print 'yup'
                         raise
                     else:
                         # Help in debugging an issue
