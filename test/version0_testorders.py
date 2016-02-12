@@ -2,6 +2,8 @@ import copy
 import collections
 
 import api.domain.sensor as sn
+import validictory
+from validictory import validator
 
 
 good_test_projections = {'aea': {'standard_parallel_1': 29.5,
@@ -119,8 +121,42 @@ class InvalidOrders(object):
         self.invalid_list = []
         self.invalid_list.extend(self.build_invalid_list())
 
+        self._error = None
+
     def __iter__(self):
         return iter(self.invalid_list)
+
+    def build_error_msg(self, desc, value, fieldname, exctype=validator.FieldValidationError, path='', **params):
+        """
+        Build the expected error message for the failure
+
+        This is directly modeled from validictory exception handling
+        """
+        path = '<obj>' + '.'.join(path)
+        params['value'] = value
+        params['fieldname'] = fieldname
+        message = desc.format(**params)
+        err = ''
+
+        if exctype == validator.FieldValidationError:
+            err = "Value {!r} for field '{}' {}".format(value, path, message)
+            # err = validator.FieldValidationError(message, fieldname, value, path)
+        elif exctype == validator.DependencyValidationError:
+            err = message
+            # err = exctype(message)
+            # err.fieldname = fieldname
+            # err.path = path
+            pass
+        elif exctype == validator.RequiredFieldValidationError:
+            err = message
+            # err = exctype(message)
+            # err.fieldname = fieldname
+            # err.path = path
+            pass
+
+        msg = "{} validation errors:\n\n{}".format(1, err)
+
+        return msg
 
     def build_invalid_list(self, path=None):
         if not path:
@@ -202,14 +238,12 @@ class InvalidOrders(object):
 
     def invalidate_properties(self, val_type, mapping):
         """
-        This is a pass through key in the schema
-        only affects orders in the validation processing
-        not whether an order is valid or invalid
+        Add an unknown property key: value
         """
-        # order = copy.deepcopy(self.valid_order)
-        # results = []
+        order = copy.deepcopy(self.valid_order)
+        results = []
 
-        return []
+        return results
 
     def invalidate_dependencies(self, dependency, mapping):
         """

@@ -145,7 +145,7 @@ class TestValidation(unittest.TestCase):
     def test_validate_bad_orders(self):
         exc_type = ValidationException
         self.assertIsNone(api.validation(self.base_order, self.staffuser))
-        invalid_order = self.base_order.copy()
+        invalid_order = copy.deepcopy(self.base_order)
         c = 0  # For initial debugging
 
         for proj in testorders.good_test_projections:
