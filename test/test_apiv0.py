@@ -154,20 +154,25 @@ class TestValidation(unittest.TestCase):
 
             invalid_list = testorders.InvalidOrders(invalid_order, self.base_schema)
 
-            for inv in invalid_list:
+            for order, test, exc in invalid_list:
+                # issues getting assertRasiesRegExp to work correctly
                 with self.assertRaises(exc_type):
                     try:
                         c += 1
-                        api.validation(inv[0], self.staffuser)
+                        api.validation(order, self.staffuser)
                     except exc_type as e:
-                        if inv[1] == 'type':
-                            if str(e) == str(inv[2]):
-                                print 'yup'
-                        raise
+                        if str(exc) in str(e):
+                            raise
+                        else:
+                            self.fail('\n\nExpected in exception message:\n{}'
+                                      '\n\nException message raised:\n{}'
+                                      '\n\nUsing test {}'.format(str(exc), str(e), test))
                     else:
                         # Help in debugging an issue
-                        print inv[1], inv[2]
-                        self.fail('{} did not raise {} Exception'.format(inv, exc_type))
+                        # print test
+
+                        self.fail('\n{} Exception was not raised\nExpected exception message {}'.format(exc_type,
+                                                                                                        str(exc)))
 
         print c  # For initial debugging
 

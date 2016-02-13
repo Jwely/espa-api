@@ -5,7 +5,6 @@ import api.domain.sensor as sn
 import validictory
 from validictory import validator
 
-
 good_test_projections = {'aea': {'standard_parallel_1': 29.5,
                                  'standard_parallel_2': 45.5,
                                  'central_meridian': -96,
@@ -126,11 +125,12 @@ class InvalidOrders(object):
     def __iter__(self):
         return iter(self.invalid_list)
 
-    def build_error_msg(self, desc, value, fieldname, exctype=validator.FieldValidationError, path='', **params):
+    def build_exception(self, desc, value, fieldname, exctype=validator.FieldValidationError, path='', **params):
         """
         Build the expected error message for the failure
 
         This is directly modeled from validictory exception handling
+        and uses the module's exception handlers
         """
         path = '<obj>.' + '.'.join(path)
         params['value'] = value
@@ -151,8 +151,11 @@ class InvalidOrders(object):
             err = exctype(message)
             err.fieldname = fieldname
             err.path = path
+        elif exctype == validator.SchemaError:
+            err = exctype(message)
 
-        exc = validator.MultipleValidationError([err])
+        # exc = validator.MultipleValidationError([err])
+        exc = err
 
         return exc
 
@@ -229,7 +232,7 @@ class InvalidOrders(object):
             raise Exception('{} constraint not accounted for in testing'.format(val_type))
 
         for val in test_vals:
-            exc = self.build_error_msg('is not of type {fieldtype}', val, mapping[-1],
+            exc = self.build_exception('is not of type {fieldtype}', val, mapping[-1],
                                        path=mapping, fieldtype=val_type)
             upd = self.build_update_dict(mapping, val)
             results.append((self.update_dict(order, upd), 'type', exc))
@@ -254,7 +257,10 @@ class InvalidOrders(object):
 
         for dep in dependency:
             path = mapping[:-1] + (dep,)
-            results.append((self.delete_key_loc(order, path), 'dependencies', mapping))
+            exc = self.build_exception("Field '{dependency}' is required by field '{fieldname}'", None,
+                                       mapping[-1], dependency=dep, path=mapping,
+                                       exctype=validator.DependencyValidationError)
+            results.append((self.delete_key_loc(order, path), 'dependencies', exc))
 
         return results
 
@@ -267,7 +273,7 @@ class InvalidOrders(object):
 
         inv = 'NOT VALID ENUM'
 
-        exc = self.build_error_msg("is not in the enumeration: {options!r}", inv, mapping[-1],
+        exc = self.build_exception("is not in the enumeration: {options!r}", inv, mapping[-1],
                                    path=mapping, options=enums)
 
         upd = self.build_update_dict(mapping, inv)
@@ -282,7 +288,10 @@ class InvalidOrders(object):
         results = []
 
         if req:
-            results.append((self.delete_key_loc(order, mapping), 'required', mapping))
+            # noinspection PyTypeChecker
+            exc = self.build_exception("Required field '{fieldname}' is missing", None, mapping[-1],
+                                       path=mapping, exctype=validator.RequiredFieldValidationError)
+            results.append((self.delete_key_loc(order, mapping), 'required', exc))
 
         return results
 
@@ -293,8 +302,12 @@ class InvalidOrders(object):
         order = copy.deepcopy(self.valid_order)
         results = []
 
-        upd = self.build_update_dict(mapping, max_val + 1)
-        results.append((self.update_dict(order, upd), 'maximum', mapping))
+        val = max_val + 1
+
+        upd = self.build_update_dict(mapping, val)
+        exc = self.build_exception("is greater than maximum value: {maximum}", val, mapping[-1],
+                                   maximum=max_val, path=mapping)
+        results.append((self.update_dict(order, upd), 'maximum', exc))
         return results
 
     def invalidate_minimum(self, min_val, mapping):
@@ -304,8 +317,12 @@ class InvalidOrders(object):
         order = copy.deepcopy(self.valid_order)
         results = []
 
-        upd = self.build_update_dict(mapping, min_val - 1)
-        results.append((self.update_dict(order, upd), 'minimum', mapping))
+        val = min_val - 1
+
+        upd = self.build_update_dict(mapping, val)
+        exc = self.build_exception("is less than minimum value: {minimum}", val, mapping[-1],
+                                   minimum=min_val, path=mapping)
+        results.append((self.update_dict(order, upd), 'minimum', exc))
         return results
 
     def invalidate_uniqueItems(self, unique, mapping):
@@ -324,7 +341,8 @@ class InvalidOrders(object):
             base.append(base[0])
 
             upd = self.build_update_dict(mapping, base)
-            results.append((self.update_dict(order, upd), 'uniqueItems', mapping))
+            exc = self.build_exception("is not unique", base[0], mapping[-1], path=mapping)
+            results.append((self.update_dict(order, upd), 'uniqueItems', exc))
 
         return results
 
@@ -354,7 +372,9 @@ class InvalidOrders(object):
 
         for val in test_vals:
             upd = self.build_update_dict(mapping, val)
-            results.append((self.update_dict(order, upd), 'abs_rng', mapping))
+            exc = self.build_exception('Absolute value must fall between {} and {}'.format(bounds[0], bounds[1]),
+                                       val, mapping[-1], path=mapping)
+            results.append((self.update_dict(order, upd), 'abs_rng', exc))
 
         return results
 
@@ -374,10 +394,12 @@ class InvalidOrders(object):
         order = copy.deepcopy(self.valid_order)
         results = []
 
-        inv_key = {'INVALID KEY': None}
+        inv_key = {'INVALID KEY': 'something'}
 
         upd = self.build_update_dict(mapping, inv_key)
-        results.append((self.update_dict(order, upd), 'enum_keys', mapping))
+        exc = self.build_exception('Unknown key: Allowed keys {}'.format(keys),
+                                   'INVALID KEY', mapping[-1], path=mapping)
+        results.append((self.update_dict(order, upd), 'enum_keys', exc))
         return results
 
     def invalidate_extents(self, val_type, mapping):
@@ -394,7 +416,7 @@ class InvalidOrders(object):
 
         for key, val in new.items():
             if isinstance(val, collections.Mapping):
-                ret[key] = self.update_dict(ret.get(key, {}), val)
+                ret[key] = self.update_dict(ret[key], val)
             else:
                 ret[key] = new[key]
         return ret
@@ -420,7 +442,7 @@ class InvalidOrders(object):
         ret = copy.deepcopy(old)
 
         if len(path) > 1:
-            ret[path[0]] = self.delete_key_loc(ret.get(path[1], {}), path[1:])
+            ret[path[0]] = self.delete_key_loc(ret[path[0]], path[1:])
         elif len(path) == 1:
             ret.pop(path[0], None)
 
