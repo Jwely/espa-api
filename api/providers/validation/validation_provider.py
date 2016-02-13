@@ -44,7 +44,7 @@ class ESPAOrderValidatorV0(validictory.SchemaValidator):
                     return
                 if not params['units'] in schema['properties']['units']['enum']:
                     return
-                if x['projection'] == 'lonlat' and params['units'] != 'dd':
+                if 'lonlat' in x['projection'] and params['units'] != 'dd':
                     self._error('must be "dd" for projection "lonlat"', params['units'], fieldname, path=path)
                     return
 

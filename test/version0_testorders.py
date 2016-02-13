@@ -112,6 +112,10 @@ def build_base_order():
 
 
 class InvalidOrders(object):
+    """
+    Build a list of invalid orders and expected exception messages based on a
+    given schema
+    """
     def __init__(self, valid_order, schema, alt_fields=None):
         self.valid_order = valid_order
         self.schema = schema
@@ -242,6 +246,8 @@ class InvalidOrders(object):
     def invalidate_properties(self, val_type, mapping):
         """
         Add an unknown property key: value
+
+        This is currently caught with the disallow_unknown option
         """
         order = copy.deepcopy(self.valid_order)
         results = []
@@ -282,7 +288,7 @@ class InvalidOrders(object):
 
     def invalidate_required(self, req, mapping):
         """
-        If the value is required, remove it
+        If the key is required, remove it
         """
         order = copy.deepcopy(self.valid_order)
         results = []
@@ -365,6 +371,9 @@ class InvalidOrders(object):
         return results
 
     def invalidate_abs_rng(self, bounds, mapping):
+        """
+        Test out of bounds around the min and max allowed values
+        """
         order = copy.deepcopy(self.valid_order)
         results = []
 
@@ -402,9 +411,21 @@ class InvalidOrders(object):
         results.append((self.update_dict(order, upd), 'enum_keys', exc))
         return results
 
-    def invalidate_extents(self, val_type, mapping):
+    def invalidate_extents(self, max_pixels, mapping):
         order = copy.deepcopy(self.valid_order)
         results = []
+
+        if 'lonlat' in order['projection']:
+
+            upd = {'image_extents': {'units': 'meters'}}
+            exc = self.build_exception('must be "dd" for projection "lonlat"', 'meters', mapping[-1],
+                                       path=mapping)
+            results.append((self.update_dict(order, upd), 'extents', exc))
+
+
+
+        else:
+            pass
 
         return results
 
