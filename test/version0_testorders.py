@@ -357,18 +357,18 @@ class InvalidOrders(object):
         results = []
 
         return results
-
-    def invalidate_minItems(self, val_type, mapping):
-        order = copy.deepcopy(self.valid_order)
-        results = []
-
-        return results
-
-    def invalidate_maxItems(self, val_type, mapping):
-        order = copy.deepcopy(self.valid_order)
-        results = []
-
-        return results
+    #
+    # def invalidate_minItems(self, val_type, mapping):
+    #     order = copy.deepcopy(self.valid_order)
+    #     results = []
+    #
+    #     return results
+    #
+    # def invalidate_maxItems(self, val_type, mapping):
+    #     order = copy.deepcopy(self.valid_order)
+    #     results = []
+    #
+    #     return results
 
     def invalidate_abs_rng(self, bounds, mapping):
         """
