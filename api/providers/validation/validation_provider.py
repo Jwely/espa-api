@@ -138,6 +138,28 @@ class ESPAOrderValidatorV0(validictory.SchemaValidator):
                 self._error('Absolute value must fall between {} and {}'.format(val_range[0], val_range[1]),
                             value, fieldname, path=path)
 
+    def validate_ps_dd_rng(self, x, fieldname, schema, path, val_range):
+        """Validates the pixel size given for Decimal Degrees is within a given range"""
+        value = x.get(fieldname)
+
+        if isinstance(value, (int, long, float, Decimal)):
+            if 'pixel_size_units' in x:
+                if x['pixel_size_units'] == 'dd':
+                    if not val_range[0] <= value <= val_range[1]:
+                        self._error('Value must fall between {} and {}'.format(val_range[0], val_range[1]),
+                                    value, fieldname, path=path)
+
+    def validate_ps_meter_rng(self, x, fieldname, schema, path, val_range):
+        """Validates the pixel size given for Meters is within a given range"""
+        value = x.get(fieldname)
+
+        if isinstance(value, (int, long, float, Decimal)):
+            if 'pixel_size_units' in x:
+                if x['pixel_size_units'] == 'meters':
+                    if not val_range[0] <= value <= val_range[1]:
+                        self._error('Value must fall between {} and {}'.format(val_range[0], val_range[1]),
+                                    value, fieldname, path=path)
+
     def validate_oneormore(self, x, fieldname, schema, path, key_list):
         """Validates that at least one value is present from the list"""
         pass

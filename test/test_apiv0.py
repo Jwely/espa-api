@@ -168,12 +168,9 @@ class TestValidation(unittest.TestCase):
                                       '\n\nException message raised:\n{}'
                                       '\n\nUsing test {}'.format(str(exc), str(e), test))
                     else:
-                        # Help in debugging an issue
-                        # print test
-
-                        self.fail('\n{} Exception was not raised\nExpected exception message {}'.format(exc_type,
-                                                                                                        str(exc)))
-
+                        self.fail('\n{} Exception was not raised\n'
+                                  '\nExpected exception message:\n{}\n'
+                                  '\nUsing test: {}'.format(exc_type, str(exc), test))
         print c  # For initial debugging
 
 

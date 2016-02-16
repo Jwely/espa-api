@@ -71,7 +71,9 @@ class BaseValidationSchema(object):
                                   'enum': ['dd', 'meters']}}
 
         self.resize = {'pixel_size': {'type': 'number',
-                                      'required': True},
+                                      'required': True,
+                                      'ps_dd_rng': (0.0002695, 0.0089831),
+                                      'ps_meter_rng': (30, 1000)},
                        'pixel_size_units': {'type': 'string',
                                             'required': True,
                                             'enum': ['dd', 'meters']}}

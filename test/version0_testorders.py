@@ -416,16 +416,38 @@ class InvalidOrders(object):
         results = []
 
         if 'lonlat' in order['projection']:
-
             upd = {'image_extents': {'units': 'meters'}}
             exc = self.build_exception('must be "dd" for projection "lonlat"', 'meters', mapping[-1],
                                        path=mapping)
             results.append((self.update_dict(order, upd), 'extents', exc))
 
+        return results
 
+    def invalidate_ps_dd_rng(self, rng, mapping):
+        order = copy.deepcopy(self.valid_order)
+        results = []
 
-        else:
-            pass
+        test_vals = [rng[0] - 1, rng[1] + 1]
+
+        for val in test_vals:
+            upd = self.build_update_dict(mapping, val)
+            exc = self.build_exception('Value must fall between {} and {}'.format(rng[0], rng[1]),
+                                       val, mapping[-1], path=mapping)
+            results.append((self.update_dict(order, upd), 'ps_dd_rng', exc))
+
+        return results
+
+    def invalidate_ps_meter_rng(self, rng, mapping):
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        # test_vals = [rng[0] - 1, rng[1] + 1]
+        #
+        # for val in test_vals:
+        #     upd = self.build_update_dict(mapping, val)
+        #     exc = self.build_exception('Value must fall between {} and {}'.format(rng[0], rng[1]),
+        #                                val, mapping[-1], path=mapping)
+        #     results.append((self.update_dict(order, upd), 'ps_dd_rng', exc))
 
         return results
 
