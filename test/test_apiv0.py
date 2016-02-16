@@ -87,6 +87,15 @@ class TestAPI(unittest.TestCase):
         response = api.order_status(invalid_orderid)
         self.assertEqual(response.keys(), ['msg'])
 
+    def test_fetch_item_status_valid(self):
+        response = api.item_status(self.orderid)
+        self.assertEqual(response.keys(), ['orderid', 'status', 'completion_date', 'note', 'name'])
+
+    def test_fetch_item_status_invalid(self):
+        invalid_orderid = 'invalidorderid'
+        response = api.order_status(invalid_orderid)
+        self.assertEqual(response.keys(), ['msg'])
+
 
 class TestValidation(unittest.TestCase):
     def setUp(self):

@@ -37,7 +37,6 @@ def load_user(request):
 
     return api_user
 
-
 @app.route('/')
 def index():
     return 'Welcome to the ESPA API, please direct requests to /api'
@@ -187,6 +186,25 @@ def get_order_by_email(email):
     response = api.fetch_user_orders(str(email))
     return_code = 200 if response.keys()[0] != "errmsg" else 401
     return jsonify(response), return_code
+
+@app.route('/api/v0/order/<ordernum>', methods=['GET'])
+@login_required
+def get_order_by_ordernum(ordernum):
+    response = api.fetch_order(ordernum)
+    return jsonify(response)
+
+@app.route('/api/v0/order-status/<ordernum>', methods=['GET'])
+@login_required
+def get_order_status_by_ordernum(ordernum):
+    response = api.order_status(ordernum)
+    return jsonify(response)
+
+@app.route('/api/v0/item-status/<orderid>', methods=['GET'])
+@app.route('/api/v0/item-status/<orderid>/<itemnum>', methods=['GET'])
+@login_required
+def get_item_status(orderid, itemnum='ALL'):
+    response = api.item_status(orderid, itemnum)
+    return jsonify(response)
 
 @app.route('/api/v0/user', methods=['GET'])
 @login_required

@@ -92,7 +92,7 @@ class OrderingProvider(ProviderInterfaceV0):
 			'ee_order_id', 'email']
 
         with DBConnect(**api_cfg()) as db:
-            db.select(sql, (ordernum))
+            db.select(sql, (str(ordernum)))
             if db:
                 for key, val in db[0].iteritems():
                     out_dict[key] = val
@@ -114,7 +114,7 @@ class OrderingProvider(ProviderInterfaceV0):
         sql = "select orderid, status from ordering_order where orderid = %s;"
         response = {}
         with DBConnect(**api_cfg()) as db:
-            db.select(sql, orderid)
+            db.select(sql, str(orderid))
             if db:
                 for i in ['orderid','status']:
                     response[i] = db[0][i]
@@ -124,8 +124,29 @@ class OrderingProvider(ProviderInterfaceV0):
         return response
 
     def item_status(self, orderid, itemid='ALL'):
-        """
+        response = {}
+        sql = "select oo.orderid, os.name, os.status, os.completion_date, os.note "\
+              "from ordering_order oo left join ordering_scene os on oo.id = "\
+              "os.order_id where oo.orderid = %s"
+        if itemid is not "ALL":
+            argtup = (orderid, itemid)
+            sql += " AND os.name = %s;"
+        else:
+            argtup = (str(orderid))
+            sql += ";"
 
-        :rtype: str
-        """
-        pass
+        with DBConnect(**api_cfg()) as db:
+            db.select(sql, argtup)
+
+        if db:
+            for key in ('orderid', 'name', 'status', 'completion_date', 'note'):
+                for i in enumerate(db):
+                    val = db[i[0]][key]
+                    if key is 'completion_date':
+                        val = val.strftime("%M-%d-%y %I:%m:%S")
+                    response[key] = val
+        else:
+            response['msg'] = 'sorry, no items matched orderid %s , itemid %s' % (orderid, itemid)
+
+        return response
+
