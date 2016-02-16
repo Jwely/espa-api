@@ -164,6 +164,13 @@ class InvalidOrders(object):
         return exc
 
     def build_invalid_list(self, path=None):
+        """
+        Recursively move through the base order and the validation schema
+
+        Call invalidator methods based on the schema to build a list of invalid
+        orders and their expected error messages to be returned
+        """
+
         if not path:
             path = tuple()
 
