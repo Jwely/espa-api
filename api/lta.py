@@ -25,7 +25,7 @@ class LTAService(object):
 
     def __init__(self):
         self.xml_header = "<?xml version ='1.0' encoding='UTF-8' ?>"
-        self.url = config.service_name_url
+        self.url = config.url_for(self.service_name)
 
     def __repr__(self):
         return "LTAService:{0}".format(self.__dict__)
@@ -504,8 +504,8 @@ class OrderWrapperServiceClient(LTAService):
 
             retval = {}
 
-            ehost = config.ext_cache_url
-            ihosts = config.int_cache_url.split(',')
+            ehost = config.url_for('external_cache')
+            ihosts = config.url_for('internal_cache').split(',')
 
             for index, scene in enumerate(list(scene_elements)):
                 name = scene.find(sceneid_elem).text

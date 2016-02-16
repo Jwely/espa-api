@@ -41,24 +41,7 @@ class ApiConfig(object):
 
         return apimode
 
-    @property
-    def service_name_url(self):
-        key = "url.%s.registration" % self.mode
+    def url_for(self, service_name):
+        key = "url.{0}.{1}".format(self.mode, service_name)
         return self.settings[key]
-
-    @property
-    def ext_cache_url(self):
-        key = "url.%s.external_cache" % self.mode
-        return self.settings[key]
-
-    @property
-    def int_cache_url(self):
-        key = "url.%s.internal_cache" % self.mode
-        return self.settings[key]
-
-
-
-
-
-
 
