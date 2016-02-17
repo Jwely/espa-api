@@ -40,3 +40,8 @@ class ProductNotImplemented(NotImplementedError):
         """
         self.product_id = product_id
         super(ProductNotImplemented, self).__init__(product_id)
+
+
+class ValidationException(Exception):
+    """Exception when there is an error with validating an order"""
+    pass

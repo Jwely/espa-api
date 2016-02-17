@@ -94,3 +94,22 @@ def backup_cron():
     with open(os.path.join(bk_path, cron_file), 'w') as f:
         subprocess.call(['crontab', '-l'], stdout=f)
 
+
+def lowercase_all(indata):
+    if hasattr(indata, 'iteritems'):
+        ret = {}
+        for key, val in indata.iteritems():
+            ret[lowercase_all(key)] = lowercase_all(val)
+        return ret
+
+    elif isinstance(indata, basestring):
+        return indata.lower()
+
+    elif hasattr(indata, '__iter__'):
+        ret = []
+        for item in indata:
+            ret.append(lowercase_all(item))
+        return ret
+
+    else:
+        return indata

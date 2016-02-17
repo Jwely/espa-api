@@ -7,7 +7,7 @@ Author: David V. Hill
 import logging
 
 import re
-from api.exceptions import ProductNotImplemented
+from api.api_except import ProductNotImplemented
 
 logger = logging.getLogger(__name__)
 

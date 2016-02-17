@@ -7,6 +7,7 @@ from flask.ext.login import LoginManager, login_required, current_user
 from api.ordering.version0 import API
 from api.user import User
 from api.domain.config import ApiConfig
+from api.utils import lowercase_all
 
 api = API()
 app = Flask(__name__)
@@ -170,6 +171,15 @@ def get_user_orders():
     return_code = 200 if response.keys()[0] != "errmsg" else 401
     return jsonify(response), return_code
 
+
+@app.route('/api/v0/order', methods=['POST'])
+@login_required
+def place_user_order(order):
+    response = api.place_order(lowercase_all(order), current_user.username)
+    return_code = 200 if response.keys()[0] != "errmsg" else 401
+    return jsonify(response), return_code
+
+
 @app.route('/api/v0/orders/<email>', methods=['GET'])
 @login_required
 def get_order_by_email(email):
@@ -201,6 +211,39 @@ def get_item_status(orderid, itemnum='ALL'):
 def get_current_user():
     response = current_user.as_dict()
     return jsonify(response)
+
+
+@app.route('/api/v0/projections', methods=['GET'])
+@login_required
+def get_projections():
+    response = api.validation.fetch_projections()
+    return_code = 200 if response.keys()[0] != "errmsg" else 401
+    return jsonify(response), return_code
+
+
+@app.route('/api/v0/formats', methods=['GET'])
+@login_required
+def get_projections():
+    response = api.validation.fetch_formats()
+    return_code = 200 if response.keys()[0] != "errmsg" else 401
+    return jsonify(response), return_code
+
+
+@app.route('/api/v0/resampling-methods', methods=['GET'])
+@login_required
+def get_projections():
+    response = api.validation.fetch_resampling()
+    return_code = 200 if response.keys()[0] != "errmsg" else 401
+    return jsonify(response), return_code
+
+
+@app.route('/api/v0/order-schema', methods=['GET'])
+@login_required
+def get_projections():
+    response = api.validation.fetch_order_schema()
+    return_code = 200 if response.keys()[0] != "errmsg" else 401
+    return jsonify(response), return_code
+
 
 if __name__ == '__main__':
     app.run()

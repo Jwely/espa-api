@@ -1,7 +1,9 @@
 import copy
+import collections
 
 import api.domain.sensor as sn
-
+import validictory
+from validictory import validator
 
 good_test_projections = {'aea': {'standard_parallel_1': 29.5,
                                  'standard_parallel_2': 45.5,
@@ -109,63 +111,389 @@ def build_base_order():
     return base
 
 
-# Try to make a generator??
-def test_assertion_failures(test_order, schema, path=None, top=None):
+class InvalidOrders(object):
     """
-    Use recursion to move through the test_order and schema to build
-    bad orders that will fail validation
-
-    Take full advantage of the mutable nature of dictionaries
+    Build a list of invalid orders and expected exception messages based on a
+    given schema
     """
-    if not path:
-        path = tuple()
+    def __init__(self, valid_order, schema, alt_fields=None):
+        self.valid_order = valid_order
+        self.schema = schema
+        self.alt_fields = alt_fields
 
-    if not top:
-        top = test_order
+        self.invalid_list = []
+        self.invalid_list.extend(self.build_invalid_list())
 
-    base = copy.deepcopy(schema)
-    for key in path:
-        base = base['properties'][key]
+        self._error = None
 
-    for key, val in test_order.items():
-        orig = copy.deepcopy(test_order[key])
+    def __iter__(self):
+        return iter(self.invalid_list)
 
-        if isinstance(val, dict):
-            constraints = base['properties'][key.lower()].keys()
+    def build_exception(self, desc, value, fieldname, exctype=validator.FieldValidationError, path='', **params):
+        """
+        Build the expected error message for the failure
 
-            test_order[key]['bad key'] = None
-            yield top
+        This is directly modeled from validictory exception handling
+        and uses the module's exception handlers
+        """
+        path = '<obj>.' + '.'.join(path)
+        params['value'] = value
+        params['fieldname'] = fieldname
+        message = desc.format(**params)
+        err = ''
 
-            test_order[key] = 'not a dict'
-            yield top
+        if exctype == validator.FieldValidationError:
+            # err = "Value {!r} for field '{}' {}".format(value, path, message)
+            err = validator.FieldValidationError(message, fieldname, value, path)
+        elif exctype == validator.DependencyValidationError:
+            # err = message
+            err = exctype(message)
+            err.fieldname = fieldname
+            err.path = path
+        elif exctype == validator.RequiredFieldValidationError:
+            # err = message
+            err = exctype(message)
+            err.fieldname = fieldname
+            err.path = path
+        elif exctype == validator.SchemaError:
+            err = exctype(message)
 
-            test_order[key] = copy.deepcopy(orig)
-            next_path = path + (key.lower(),)
-            test_assertion_failures(val, schema, next_path, top)
+        # exc = validator.MultipleValidationError([err])
+        exc = err
 
-        if isinstance(val, list):
-            constraints = base['properties'][key]
+        return exc
 
-            test_order[key].append('bad string')
-            yield top
+    def build_invalid_list(self, path=None):
+        """
+        Recursively move through the base order and the validation schema
 
-            test_order[key] = 'not a list'
-            yield top
+        Call invalidator methods based on the schema to build a list of invalid
+        orders and their expected error messages to be returned
+        """
 
-            test_order[key] = copy.deepcopy(orig)
+        if not path:
+            path = tuple()
 
-        if isinstance(val, (float, int, long)):
-            constraints = base['properties'][key]
-            if path and path[-1] == 'image_extents':
-                # Assert extents failures
-                pass
-            # Assert failure substitute type
-            # Assert failure values out of bounds
+        results = []
 
-            test_order[key] = copy.deepcopy(orig)
+        sch_base = self.schema
+        base = self.valid_order
+        for key in path:
+            sch_base = sch_base['properties'][key]
+            base = base[key]
 
-        if isinstance(val, (str, unicode)):
-            constraints = base['properties'][key]
-            # Assert failure substitute type
-            # Assert failure substitute bad value
-            test_order[key] = copy.deepcopy(orig)
+        for key, val in base.items():
+            constraints = sch_base['properties'][key]
+            mapping = path + (key,)
+
+            for constr_type, constr in constraints.items():
+                invalidatorname = 'invalidate_' + constr_type
+
+                try:
+                    invalidator = getattr(self, invalidatorname, None)
+                except:
+                    raise Exception('{} has no associated testing'.format(constr_type))
+
+                if not invalidator:
+                    raise Exception('{} has no associated testing'.format(constr_type))
+
+                results.extend(invalidator(constr, mapping))
+
+            if constraints['type'] == 'object':
+                results.extend(self.build_invalid_list(mapping))
+
+        return results
+
+    def invalidate_type(self, val_type, mapping):
+        """
+        Change the variable type
+        """
+        order = copy.deepcopy(self.valid_order)
+        results = []
+        test_vals = []
+
+        if val_type == 'string':
+            test_vals.append(9999)
+
+        elif val_type == 'integer':
+            test_vals.append('NOT A NUMBER')
+            test_vals.append(1.1)
+
+        elif val_type == 'number':
+            test_vals.append('NOT A NUMBER')
+
+        elif val_type == 'boolean':
+            test_vals.append('NOT A BOOL')
+            test_vals.append(2)
+            test_vals.append(-1)
+
+        elif val_type == 'object':
+            test_vals.append('NOT A DICTIONARY')
+
+        elif val_type == 'array':
+            test_vals.append('NOT A LIST')
+
+        elif val_type == 'null':
+            test_vals.append('NOT NONE')
+
+        elif val_type == 'any':
+            pass
+
+        else:
+            raise Exception('{} constraint not accounted for in testing'.format(val_type))
+
+        for val in test_vals:
+            exc = self.build_exception('is not of type {fieldtype}', val, mapping[-1],
+                                       path=mapping, fieldtype=val_type)
+            upd = self.build_update_dict(mapping, val)
+            results.append((self.update_dict(order, upd), 'type', exc))
+
+        return results
+
+    def invalidate_properties(self, val_type, mapping):
+        """
+        Add an unknown property key: value
+
+        This is currently caught with the disallow_unknown option
+        """
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        return results
+
+    def invalidate_dependencies(self, dependency, mapping):
+        """
+        Remove dependencies, one at a time
+        """
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        for dep in dependency:
+            path = mapping[:-1] + (dep,)
+            exc = self.build_exception("Field '{dependency}' is required by field '{fieldname}'", None,
+                                       mapping[-1], dependency=dep, path=mapping,
+                                       exctype=validator.DependencyValidationError)
+            results.append((self.delete_key_loc(order, path), 'dependencies', exc))
+
+        return results
+
+    def invalidate_enum(self, enums, mapping):
+        """
+        Add a value not covered in the enum list
+        """
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        inv = 'NOT VALID ENUM'
+
+        exc = self.build_exception("is not in the enumeration: {options!r}", inv, mapping[-1],
+                                   path=mapping, options=enums)
+
+        upd = self.build_update_dict(mapping, inv)
+        results.append((self.update_dict(order, upd), 'enum', exc))
+        return results
+
+    def invalidate_required(self, req, mapping):
+        """
+        If the key is required, remove it
+        """
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        if req:
+            # noinspection PyTypeChecker
+            exc = self.build_exception("Required field '{fieldname}' is missing", None, mapping[-1],
+                                       path=mapping, exctype=validator.RequiredFieldValidationError)
+            results.append((self.delete_key_loc(order, mapping), 'required', exc))
+
+        return results
+
+    def invalidate_maximum(self, max_val, mapping):
+        """
+        Add one to the maximum allowed value
+        """
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        val = max_val + 1
+
+        upd = self.build_update_dict(mapping, val)
+        exc = self.build_exception("is greater than maximum value: {maximum}", val, mapping[-1],
+                                   maximum=max_val, path=mapping)
+        results.append((self.update_dict(order, upd), 'maximum', exc))
+        return results
+
+    def invalidate_minimum(self, min_val, mapping):
+        """
+        Subtract one from the minimum allowed value
+        """
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        val = min_val - 1
+
+        upd = self.build_update_dict(mapping, val)
+        exc = self.build_exception("is less than minimum value: {minimum}", val, mapping[-1],
+                                   minimum=min_val, path=mapping)
+        results.append((self.update_dict(order, upd), 'minimum', exc))
+        return results
+
+    def invalidate_uniqueItems(self, unique, mapping):
+        """
+        Add a duplicate entry into the list
+        """
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        if unique:
+            base = order
+
+            for key in mapping:
+                base = base[key]
+
+            base.append(base[0])
+
+            upd = self.build_update_dict(mapping, base)
+            exc = self.build_exception("is not unique", base[0], mapping[-1], path=mapping)
+            results.append((self.update_dict(order, upd), 'uniqueItems', exc))
+
+        return results
+
+    def invalidate_items(self, val_type, mapping):
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        return results
+    #
+    # def invalidate_minItems(self, val_type, mapping):
+    #     order = copy.deepcopy(self.valid_order)
+    #     results = []
+    #
+    #     return results
+    #
+    # def invalidate_maxItems(self, val_type, mapping):
+    #     order = copy.deepcopy(self.valid_order)
+    #     results = []
+    #
+    #     return results
+
+    def invalidate_abs_rng(self, bounds, mapping):
+        """
+        Test out of bounds around the min and max allowed values
+        """
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        test_vals = [bounds[0] - 1, bounds[1] + 1, -bounds[0] + 1, -bounds[1] - 1]
+
+        for val in test_vals:
+            upd = self.build_update_dict(mapping, val)
+            exc = self.build_exception('Absolute value must fall between {} and {}'.format(bounds[0], bounds[1]),
+                                       val, mapping[-1], path=mapping)
+            results.append((self.update_dict(order, upd), 'abs_rng', exc))
+
+        return results
+
+    def invalidate_single_obj(self, val_type, mapping):
+        order = copy.deepcopy(self.valid_order)
+        results = []
+        # Needs to append a valid structure
+        # Mainly pertains to the projection structure
+
+        return results
+
+    def invalidate_enum_keys(self, keys, mapping):
+        """
+        Append a dictionary with a key that is not in the
+        enum list
+        """
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        inv_key = {'INVALID KEY': 'something'}
+
+        upd = self.build_update_dict(mapping, inv_key)
+        exc = self.build_exception('Unknown key: Allowed keys {}'.format(keys),
+                                   'INVALID KEY', mapping[-1], path=mapping)
+        results.append((self.update_dict(order, upd), 'enum_keys', exc))
+        return results
+
+    def invalidate_extents(self, max_pixels, mapping):
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        if 'lonlat' in order['projection']:
+            upd = {'image_extents': {'units': 'meters'}}
+            exc = self.build_exception('must be "dd" for projection "lonlat"', 'meters', mapping[-1],
+                                       path=mapping)
+            results.append((self.update_dict(order, upd), 'extents', exc))
+
+        return results
+
+    def invalidate_ps_dd_rng(self, rng, mapping):
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        test_vals = [rng[0] - 1, rng[1] + 1]
+
+        for val in test_vals:
+            upd = self.build_update_dict(mapping, val)
+            exc = self.build_exception('Value must fall between {} and {}'.format(rng[0], rng[1]),
+                                       val, mapping[-1], path=mapping)
+            results.append((self.update_dict(order, upd), 'ps_dd_rng', exc))
+
+        return results
+
+    def invalidate_ps_meter_rng(self, rng, mapping):
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        # test_vals = [rng[0] - 1, rng[1] + 1]
+        #
+        # for val in test_vals:
+        #     upd = self.build_update_dict(mapping, val)
+        #     exc = self.build_exception('Value must fall between {} and {}'.format(rng[0], rng[1]),
+        #                                val, mapping[-1], path=mapping)
+        #     results.append((self.update_dict(order, upd), 'ps_dd_rng', exc))
+
+        return results
+
+    def update_dict(self, old, new):
+        """
+        Update a nested dictionary value following along a defined key path
+        """
+        ret = copy.deepcopy(old)
+
+        for key, val in new.items():
+            if isinstance(val, collections.Mapping):
+                ret[key] = self.update_dict(ret[key], val)
+            else:
+                ret[key] = new[key]
+        return ret
+
+    def build_update_dict(self, path, val):
+        """
+        Build a new nested dictionary following a series of keys
+        with a an endpoint value
+        """
+        ret = {}
+
+        if len(path) > 1:
+            ret[path[0]] = self.build_update_dict(path[1:], val)
+        elif len(path) == 1:
+            ret[path[0]] = val
+
+        return ret
+
+    def delete_key_loc(self, old, path):
+        """
+        Delete a key from a nested dictionary
+        """
+        ret = copy.deepcopy(old)
+
+        if len(path) > 1:
+            ret[path[0]] = self.delete_key_loc(ret[path[0]], path[1:])
+        elif len(path) == 1:
+            ret.pop(path[0], None)
+
+        return ret

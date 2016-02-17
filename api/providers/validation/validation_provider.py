@@ -1,9 +1,6 @@
 from decimal import Decimal
-import re
 
 import validictory
-from validictory import validator
-from validictory.validator import _str_type
 
 
 class ESPAOrderValidatorV0(validictory.SchemaValidator):
@@ -47,7 +44,7 @@ class ESPAOrderValidatorV0(validictory.SchemaValidator):
                     return
                 if not params['units'] in schema['properties']['units']['enum']:
                     return
-                if x['projection'] == 'lonlat' and params['units'] != 'dd':
+                if 'lonlat' in x['projection'] and params['units'] != 'dd':
                     self._error('must be "dd" for projection "lonlat"', params['units'], fieldname, path=path)
                     return
 
@@ -141,6 +138,28 @@ class ESPAOrderValidatorV0(validictory.SchemaValidator):
                 self._error('Absolute value must fall between {} and {}'.format(val_range[0], val_range[1]),
                             value, fieldname, path=path)
 
+    def validate_ps_dd_rng(self, x, fieldname, schema, path, val_range):
+        """Validates the pixel size given for Decimal Degrees is within a given range"""
+        value = x.get(fieldname)
+
+        if isinstance(value, (int, long, float, Decimal)):
+            if 'pixel_size_units' in x:
+                if x['pixel_size_units'] == 'dd':
+                    if not val_range[0] <= value <= val_range[1]:
+                        self._error('Value must fall between {} and {}'.format(val_range[0], val_range[1]),
+                                    value, fieldname, path=path)
+
+    def validate_ps_meter_rng(self, x, fieldname, schema, path, val_range):
+        """Validates the pixel size given for Meters is within a given range"""
+        value = x.get(fieldname)
+
+        if isinstance(value, (int, long, float, Decimal)):
+            if 'pixel_size_units' in x:
+                if x['pixel_size_units'] == 'meters':
+                    if not val_range[0] <= value <= val_range[1]:
+                        self._error('Value must fall between {} and {}'.format(val_range[0], val_range[1]),
+                                    value, fieldname, path=path)
+
     def validate_oneormore(self, x, fieldname, schema, path, key_list):
         """Validates that at least one value is present from the list"""
         pass
@@ -155,16 +174,3 @@ class ESPAOrderValidatorV0(validictory.SchemaValidator):
         #
         #         if not valid:
         #             self._error()
-
-    def validate_pattern(self, x, fieldname, schema, path, pattern=None):
-        """
-        Validates that the given field, if a string, matches the given regular expression.
-
-        Modified from inherited method to ignore case
-        """
-        value = x.get(fieldname)
-        if (isinstance(value, _str_type) and (isinstance(pattern, _str_type) and not
-                re.match(pattern, value, re.IGNORECASE) or not isinstance(pattern, _str_type) and not
-                pattern.match(value))):
-            self._error("does not match regular expression '{pattern}'", value, fieldname,
-                        pattern=pattern, path=path)
