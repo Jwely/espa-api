@@ -88,6 +88,22 @@ class TestAPI(unittest.TestCase):
         response = api.order_status(invalid_orderid)
         self.assertEqual(response.keys(), ['msg'])
 
+    def test_fetch_production_products(self):
+        parms = {'for_user': self.username}
+        response = api.fetch_production_products(parms)
+        self.assertIsInstance(response, list)
+
+    def test_get_production_key_valid(self):
+        valid_key = 'sensor.LT4.name'
+        response = api.get_production_key(valid_key)
+        self.assertEqual(response, {valid_key: 'tm'})
+
+    def test_get_production_key_invalid(self):
+        bad_key = 'foobar'
+        response = api.get_production_key(bad_key)
+        self.assertEqual(response.keys(), ['msg'])
+
+
 class TestValidation(unittest.TestCase):
     good = {"inputs": ["LE70290302003123EDC00", "LT50290302002123EDC00", 'LO80290302002123EDC00'],
             "products": ["sr", "sr_nbr", 'toa'],

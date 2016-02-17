@@ -8,6 +8,7 @@
 import traceback
 from api.api_logging import api_logger as logger
 from api.domain import default_error_message
+from api.domain.config import ApiConfig
 
 class API(object):
     def __init__(self, providers=None):
@@ -183,6 +184,18 @@ class API(object):
         return response
 
     def fetch_production_products(self, params):
+        """Returns products ready for production
+
+        Arg:
+            dict with the following keys:
+                for_user (str): username on the order
+                priority (str): 'high' | 'normal' | 'low'
+                product_types (str): 'modis,landsat'
+                encode_urls (bool): True | False
+
+        Returns:
+            list: list of products
+        """
         try:
             response = self.ordering.get_products_to_process(**params)
         except:
@@ -191,4 +204,31 @@ class API(object):
 
         return response
 
+    def update_product_details(self, action, params=None):
+        try:
+            response = self.ordering.update_product(action, **params)
+        except:
+            logger.debug("ERR version0 update_product_details, params: {0}\ntrace: {1}\n".format(params, traceback.format_exc()))
+            response = default_error_message
+
+        return response
+
+    def get_production_key(self, key):
+        """Returns value for given configuration key
+
+        Arg:
+            str representation of key
+
+        Returns:
+            dict: of key and value
+        """
+        try:
+            response = {"msg": "'{0}' is not a valid key".format(key)}
+            if key in ApiConfig().settings.keys():
+                response = {key: ApiConfig().settings[key]}
+        except:
+            logger.debug("ERR version0 get_production_key, arg: {0}\ntrace: {1}\n".format(key, traceback.format_exc()))
+            response = default_error_message
+
+        return response
 

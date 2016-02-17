@@ -3,6 +3,8 @@ from api.dbconnect import DBConnect
 from api.utils import api_cfg
 from validate_email import validate_email
 from api.providers.ordering import ProviderInterfaceV0
+from api import errors
+
 import yaml
 import copy
 
@@ -218,21 +220,10 @@ class OrderingProvider(ProviderInterfaceV0):
 
         query_results = db.fetcharr
 
-        #cursor = connection.cursor()
-
-        #if cursor is not None:
-        #    try:
-        #        cursor.execute(query)
-        #        query_results = utilities.dictfetchall(cursor)
-        #    finally:
-        #        if cursor is not None:
-        #            cursor.close()
-
         # Need the results reorganized by contact id so we can get dload urls from
         # ee in bulk by id.
         by_cid = {}
         for result in query_results:
-            #cid = result.pop('contactid')
             cid = result['contactid']
             # ['orderid', 'sensor_type', 'contactid', 'name', 'product_options']
             by_cid.setdefault(cid, []).append(result)
@@ -327,6 +318,111 @@ class OrderingProvider(ProviderInterfaceV0):
                                 'was None, skipping...'
                                 .format(item['orderid'], item['name']))
         return results
+
+    def update_status(self, name=None, orderid=None,
+                        processing_loc=None, status=None):
+        sql_list = ["update ordering_scene set "]
+        comm_sep = ""
+        if processing_loc:
+            sql_list.append(" processing_location = '%s' " % processing_loc)
+            comm_sep = ", "
+        if status:
+            sql_list.append(comm_sep)
+            sql_list.append(" status = '%s'" % status)
+
+        sql_list.append(" where name = '{0}' AND order_id = '{1}';".format(name, orderid))
+        sql = " ".join(sql_list)
+
+        try:
+            with DBConnect(**api_cfg()) as db:
+                db.execute(sql)
+                db.commit()
+        except:
+            logger.debug("err ordering_provider update_status sql: {0}\n".format(sql))
+            raise #propogate DBConnectException
+
+    def set_product_error(self, name=None, orderid=None,
+                            processing_loc=None, error=None):
+
+        sql_list = ["update ordering_scene set "]
+        resolution = errors.resolve(error, name)
+
+        if resolution is not None:
+            if resolution.status == 'submitted':
+                sql_list.append(" status = 'submitted', note = '' ")
+            elif resolution.status == 'unavailable':
+                now = datetime.datetime.now()
+                sql_list.append(" status = 'unavailable', processing_location = '{0}', "\
+                                "completion_date = {1}, log_file_contents = '{2}', "\
+                                "note = '{3}' ".format(processing_loc, now, error, resolution.reason))
+
+                ee_order_id = Scene.get('ee_order_id', name=name, order_id=orderid)
+                ee_unit_id = Scene.get('ee_unit_id', name=name, order_id=orderid)
+                lta.update_order_status(ee_order_id, ee_unit_id, 'R')
+
+            elif resolution.status == 'retry':
+                pass
+        else:
+            status = 'error'
+            sql_list.append(" status = '{0}', processing_location = '{1}',"\
+                            " log_file_contents = '{2}' ".format(status, processing_loc, error))
+
+        sql_list.append(" where name = '{0}' AND order_id = '{1}';".format(name, orderid))
+        sql = " ".join(sql_list)
+
+        try:
+            with DBConnect(**api_cfg()) as db:
+                db.execute(sql)
+                db.commit()
+        except:
+            logger.debug("err ordering_provider set_product_error\nsql: {0}".format(sql))
+            raise #propogate DBConnectException
+
+    def set_product_unavailable(self, name=None, orderid=None,
+                                processing_loc=None, completed_scene_location=None):
+        return {"orderid": orderid}
+
+    def mark_product_complete(self, name=None, orderid=None, processing_loc=None,
+                                completed_scene_location=None, cksum_file_location=None,
+                                log_file_contents_binary=None):
+        return {"name": name}
+
+    def update_product(self, action, name=None, orderid=None, processing_loc=None,
+                        status=None, error=None, note=None,
+                        completed_scene_location=None,
+                        cksum_file_location=None,
+                        log_file_contents_binary=None):
+
+        permitted_actions = ('update_status', 'set_product_error',
+                            'set_product_unavailable', 'mark_product_complete')
+
+        if action not in permitted_actions:
+            return {"msg": "{0} is not an accepted action for update_product".format(action)}
+
+        if action == 'update_status':
+            result = self.update_status(name=name, orderid=orderid,
+                                        processing_loc=processing_loc, status=status)
+        if action == 'set_product_error':
+            result = self.set_product_error(name=name, orderid=orderid,
+                                            processing_loc=processing_loc, error=error)
+        if action == 'set_product_unavailable':
+            result = self.set_product_unavailable(name=name, orderid=orderid,
+                                                    processing_loc=processing_loc,
+                                                    completed_scene_location=completed_scene_location)
+        if action == 'mark_product_complete':
+            result = self.mark_product_complete(name=name, orderid=orderid,
+                                                processing_loc=processing_loc,
+                                                completed_scene_location=completed_scene_location,
+                                                cksum_file_location=cksum_file_location,
+                                                log_file_contents_binary=log_file_contents_binary)
+
+        return result
+
+
+
+# ?? core.handle_orders
+# ??  queue_products          (order_name_tuple_list, processing_loc, job_name)
+
 
 
 

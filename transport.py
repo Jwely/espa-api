@@ -151,11 +151,13 @@ def get_production_api_products():
 
 @app.route('/production-api/v0/<orderid>/<productid>', methods=['PUT'])
 def update_product(orderid, productid):
-    pass
+    response = api.update_product_details(request.args)
+    return jsonify(response)
 
 @app.route('/production-api/v0/configuration/<key>', methods=['GET'])
 def get_production_api_config(key):
-    pass
+    response = api.get_production_config(key)
+    return jsonify(response)
 
 ### End Production ###
 
