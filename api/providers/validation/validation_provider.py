@@ -1,16 +1,20 @@
 from decimal import Decimal
 
 import validictory
+import api.providers.ordering.ordering_provider as ordering
 
 
-class ESPAOrderValidatorV0(validictory.SchemaValidator):
+class OrderValidatorV0(validictory.SchemaValidator):
     def __init__(self, *args, **kwargs):
-        super(ESPAOrderValidatorV0, self).__init__(*args, **kwargs)
+        self.username = kwargs.pop('username')
+        super(OrderValidatorV0, self).__init__(*args, **kwargs)
         self.data_source = None
+        self.base_schema = None
 
     def validate(self, data, schema):
         self.data_source = data
-        super(ESPAOrderValidatorV0, self).validate(data, schema)
+        self.base_schema = schema
+        super(OrderValidatorV0, self).validate(data, schema)
 
     def validate_extents(self, x, fieldname, schema, path, pixel_count=200000000):
         params = x.get(fieldname)
@@ -159,6 +163,36 @@ class ESPAOrderValidatorV0(validictory.SchemaValidator):
                     if not val_range[0] <= value <= val_range[1]:
                         self._error('Value must fall between {} and {}'.format(val_range[0], val_range[1]),
                                     value, fieldname, path=path)
+
+    def validate_role_restricted(self, x, fieldname, schema, path, restricted):
+        if not restricted:
+            return
+
+        # Like extents, we need to do some initial validation of the input up front,
+        # and let those individual validators output the errors
+        if 'inputs' not in x:
+            return
+        if not self.validate_type_array(x['inputs']):
+            return
+
+        req_prods = x.get(fieldname)
+
+        if not req_prods:
+            return
+
+        acq = x['inputs'][0]
+        avail_prods = ordering.OrderingProvider().available_products(acq, self.username)
+
+        if 'not_implemented' in avail_prods:
+            return
+
+        for key in avail_prods:
+            avail_prods = avail_prods[key]['outputs']
+
+        dif = set(req_prods) - set(avail_prods)
+        if dif:
+            self._error('The requested product(s) is not available at this time', list(dif), fieldname, path=path)
+
 
     def validate_oneormore(self, x, fieldname, schema, path, key_list):
         """Validates that at least one value is present from the list"""

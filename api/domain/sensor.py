@@ -391,13 +391,13 @@ def instance(product_id):
         'tm5': (r'^lt5\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$',
                 Landsat5TM),
 
-        'etm': (r'^le7\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
+        'etm7': (r'^le7\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
                 Landsat7ETM),
 
-        'olitirs': (r'^lc8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
+        'olitirs8': (r'^lc8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
                     Landsat8OLITIRS),
 
-        'oli': (r'^lo8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
+        'oli8': (r'^lo8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
                 Landsat8OLI),
 
         'mod09a1': (r'^mod09a1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
@@ -451,7 +451,9 @@ def instance(product_id):
 
     for key in instances.iterkeys():
         if re.match(instances[key][0], _id):
-            return instances[key][1](product_id.strip())
+            inst = instances[key][1](product_id.strip())
+            inst.shortname = key
+            return inst
 
     msg = u"[{0:s}] is not a supported sensor product".format(product_id)
     raise ProductNotImplemented(msg)
@@ -479,7 +481,7 @@ def available_products(input_products):
     for product in input_products:
         try:
             inst = instance(product)
-            name = inst.sensor_name
+            name = inst.shortname
             if name not in result:
                 result[name] = {'outputs': inst.products,
                                 'inputs': [product]}

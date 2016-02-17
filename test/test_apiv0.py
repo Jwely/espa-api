@@ -99,43 +99,18 @@ class TestAPI(unittest.TestCase):
 
 class TestValidation(unittest.TestCase):
     def setUp(self):
-        db = DBConnect(**api_cfg())
-        uidsql = "select user_id, orderid from ordering_order limit 1;"
-        unmsql = "select username, email from auth_user where id = %s;"
-        db.select(uidsql)
-        self.userid = db[0]['user_id']
-        self.orderid = db[0]['orderid']
-        db.select(unmsql % self.userid)
-        self.username = db[0]['username']
-        self.usermail = db[0]['email']
-        self.product_id = 'LT50150401987120XXX02'
-        self.staff_product_id = 'LE70450302003206EDC01'
-        staffusersql = "select username, email, is_staff from auth_user where is_staff = True limit 1;"
-        pubusersql = "select username, email, is_staff from auth_user where is_staff = False limit 1;"
-        db.select(staffusersql)
-        self.staffuser = db[0]['username']
-        db.select(pubusersql)
-        self.pubuser = db[0]['username']
-        with open('api/domain/restricted.yaml') as f:
-            self.restricted_list = yaml.load(f.read())
+        with DBConnect(**api_cfg()) as db:
+            staffusersql = "select username, email, is_staff from auth_user where is_staff = True limit 1;"
+            pubusersql = "select username, email, is_staff from auth_user where is_staff = False limit 1;"
+
+            db.select(staffusersql)
+            self.staffuser = db[0]['username']
+
+            db.select(pubusersql)
+            self.pubuser = db[0]['username']
 
         self.base_order = lowercase_all(testorders.build_base_order())
         self.base_schema = validation_schema.Version0Schema().request_schema
-        self.good_projs = {'aea': {'standard_parallel_1': 29.5,
-                                   'standard_parallel_2': 45.5,
-                                   'central_meridian': -96,
-                                   'latitude_of_origin': 23,
-                                   'false_easting': 0,
-                                   'false_northing': 0,
-                                   'datum': 'nad83'},
-                           'utm': {'zone': 33,
-                                   'zone_ns': 'south'},
-                           'lonlat': None,
-                           'sinu': {'central_meridian': 0,
-                                    'false_easting': 0,
-                                    'false_northing': 0},
-                           'ps': {'longitudinal_pole': 0,
-                                  'latitude_true_scale': 75}}
 
     def test_validation_get_order_schema(self):
         self.assertIsInstance(api.validation.fetch_order_schema(), dict)

@@ -170,6 +170,7 @@ class BaseValidationSchema(object):
                                               'products': {'type': 'array',
                                                            'uniqueItems': True,
                                                            'required': True,
+                                                           'role_restricted': True,
                                                            'items': {'type': 'string',
                                                                      'enum': sn.instance(
                                                                          sensor_reg[key][1]).products}}}}
