@@ -1,11 +1,10 @@
 """ Module to glue interfaces to implementations """
 
-from api.providers.inventory import MockInventoryProvider
-from api.providers.metrics import MockMetricsProvider
+from api.providers.inventory import MockInventoryProvider, InventoryProvider
+from api.providers.metrics import MockMetricsProvider, MetricsProvider
 from api.providers.ordering import MockOrderingProvider
-from api.providers.validation import MockValidationProvider
+from api.providers.validation import MockValidationProvider, ValidationProvider
 from api.providers.ordering.ordering_provider import OrderingProvider
-from api.providers.validation import ValidationProvider
 
 
 class DefaultProviders(object):
@@ -19,9 +18,9 @@ class DefaultProviders(object):
 
     validation = ValidationProvider()
 
-    metrics = MockMetricsProvider()
+    metrics = MetricsProvider()
 
-    inventory = MockInventoryProvider()
+    inventory = InventoryProvider()
 
 
 class MockProviders(object):
