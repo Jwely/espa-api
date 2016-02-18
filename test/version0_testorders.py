@@ -116,10 +116,13 @@ class InvalidOrders(object):
     Build a list of invalid orders and expected exception messages based on a
     given schema
     """
-    def __init__(self, valid_order, schema, alt_fields=None):
+    def __init__(self, valid_order, schema, alt_fields=None, abreviated=False):
         self.valid_order = valid_order
         self.schema = schema
         self.alt_fields = alt_fields
+
+        self.abreviated = abreviated
+        self.abr = []
 
         self.invalid_list = []
         self.invalid_list.extend(self.build_invalid_list())
@@ -187,6 +190,11 @@ class InvalidOrders(object):
             mapping = path + (key,)
 
             for constr_type, constr in constraints.items():
+                if self.abreviated and constr_type in self.abr:
+                    continue
+                elif self.abreviated:
+                    self.abr.append(constr_type)
+
                 invalidatorname = 'invalidate_' + constr_type
 
                 try:

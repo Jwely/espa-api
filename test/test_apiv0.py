@@ -136,7 +136,7 @@ class TestValidation(unittest.TestCase):
         for proj in testorders.good_test_projections:
             invalid_order['projection'] = {proj: testorders.good_test_projections[proj]}
 
-            invalid_list = testorders.InvalidOrders(invalid_order, self.base_schema)
+            invalid_list = testorders.InvalidOrders(invalid_order, self.base_schema, abreviated=True)
 
             for order, test, exc in invalid_list:
                 # issues getting assertRasiesRegExp to work correctly
