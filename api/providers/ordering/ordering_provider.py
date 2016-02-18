@@ -4,6 +4,7 @@ from api.utils import api_cfg
 from validate_email import validate_email
 from api.providers.ordering import ProviderInterfaceV0
 from api import errors
+from api import lpdaac
 
 import yaml
 import copy
@@ -11,6 +12,9 @@ import copy
 from cStringIO import StringIO
 
 from api.api_logging import api_logger as logger
+
+class OrderingProviderException(Exception):
+    pass
 
 class OrderingProvider(ProviderInterfaceV0):
 
@@ -153,6 +157,91 @@ class OrderingProvider(ProviderInterfaceV0):
             response['msg'] = 'sorry, no items matched orderid %s , itemid %s' % (orderid, itemid)
 
         return response
+
+    def set_product_retry(self, name, orderid, processing_loc,
+                        error, note, retry_after, retry_limit=None):
+        """ Set a product to retry status """
+        order_id = Scene.get('order_id', name=name, orderid=orderid)
+        retry_count = Scene.get('retry_count', name=name, orderid=orderid)
+        curr_limit = Scene.get('retry_limit', name=name, orderid=orderid)
+
+        sql_list = ["update ordering_scene set "]
+        comm_sep = ""
+        if retry_limit is not None:
+            comm_sep = ", "
+            sql_list.append("retry_limit = {0}".format(retry_limit))
+            curr_limit = retry_limit
+
+        if retry_count + 1 <= curr_limit:
+            sql_list.append(comm_sep)
+            sql_list.append(" status = 'retry', ")
+            sql_list.append(" retry_count = {0}, ".format(retry_count + 1))
+            sql_list.append(" retry_after = {0}, ".format(retry_after))
+            sql_list.append(" log_file_contents = '{0}', ".format(error))
+            sql_list.append(" processing_loc = '{0}', ".format(processing_loc))
+            sql_list.append(" note = '{0}'".format(note))
+        else:
+            raise OrderingProviderException("Exception Retry limit exceeded, name: {0}".format(name))
+
+        sql_list.append(" where name = '{0}' AND order_id = {1};".format(name, order_id)
+        sql = " ".join(sql_list)
+        try:
+            with DBConnect(**api_cfg()) as db:
+                db.execute(sql)
+                db.commit()
+        except DBConnectException, e:
+            message = "DBConnectException set_product_retry. message: {0}\nsql: {1}".format(e.message, sql)
+            raise OrderingProviderException(message)
+
+        return True
+
+    def set_product_error(self, name=None, orderid=None,
+                            processing_loc=None, error=None):
+
+        sql_list = ["update ordering_scene set "]
+        resolution = errors.resolve(error, name)
+        order_id = Scene.get('order_id', name=name, orderid=orderid)
+
+        if resolution is not None:
+            if resolution.status == 'submitted':
+                sql_list.append(" status = 'submitted', note = '' ")
+            elif resolution.status == 'unavailable':
+                now = datetime.datetime.now()
+                sql_list.append(" status = 'unavailable', processing_location = '{0}', "\
+                                "completion_date = {1}, log_file_contents = '{2}', "\
+                                "note = '{3}' ".format(processing_loc, now, error, resolution.reason))
+
+                ee_order_id = Scene.get('ee_order_id', name=name, orderid=orderid)
+                ee_unit_id = Scene.get('ee_unit_id', name=name, orderid=orderid)
+                lta.update_order_status(ee_order_id, ee_unit_id, 'R')
+
+            elif resolution.status == 'retry':
+                try:
+                    set_product_retry(name, orderid, processing_loc, error,
+                                        resolution.reason,
+                                        resolution.extra['retry_after'],
+                                        resolution.extra['retry_limit'])
+                except Exception, e:
+                    logger.debug("Exception setting {0} to retry:{1}".format(name, e))
+                    sql_list.append(" status = 'error', processing_location = '{0}',"\
+                                    " log_file_contents = {1} ".format(processing_loc, error))
+        else:
+            status = 'error'
+            sql_list.append(" status = '{0}', processing_location = '{1}',"\
+                            " log_file_contents = '{2}' ".format(status, processing_loc, error))
+
+        sql_list.append(" where name = '{0}' AND order_id = {1};".format(name, order_id))
+        sql = " ".join(sql_list)
+
+        try:
+            with DBConnect(**api_cfg()) as db:
+                db.execute(sql)
+                db.commit()
+        except DBConnectException, e:
+            message = "DBConnectException set_product_error. message: {0}\nsql: {1}".format(e.message, sql)
+            raise OrderingProviderException(message)
+
+        return True
 
     def get_products_to_process(self, record_limit=500,
                                 for_user=None,
@@ -321,6 +410,7 @@ class OrderingProvider(ProviderInterfaceV0):
 
     def update_status(self, name=None, orderid=None,
                         processing_loc=None, status=None):
+        order_id = Scene.get('ee_order_id', name=name, orderid=orderid)
         sql_list = ["update ordering_scene set "]
         comm_sep = ""
         if processing_loc:
@@ -330,53 +420,18 @@ class OrderingProvider(ProviderInterfaceV0):
             sql_list.append(comm_sep)
             sql_list.append(" status = '%s'" % status)
 
-        sql_list.append(" where name = '{0}' AND order_id = '{1}';".format(name, orderid))
+        sql_list.append(" where name = '{0}' AND order_id = {1};".format(name, order_id))
         sql = " ".join(sql_list)
 
         try:
             with DBConnect(**api_cfg()) as db:
                 db.execute(sql)
                 db.commit()
-        except:
-            logger.debug("err ordering_provider update_status sql: {0}\n".format(sql))
-            raise #propogate DBConnectException
+        except DBConnectException, e:
+            message = "DBConnect Exception ordering_provider update_status sql: {0}\nmessage: {1}".format(sql, e.message)
+            raise OrderingProviderException(message)
 
-    def set_product_error(self, name=None, orderid=None,
-                            processing_loc=None, error=None):
-
-        sql_list = ["update ordering_scene set "]
-        resolution = errors.resolve(error, name)
-
-        if resolution is not None:
-            if resolution.status == 'submitted':
-                sql_list.append(" status = 'submitted', note = '' ")
-            elif resolution.status == 'unavailable':
-                now = datetime.datetime.now()
-                sql_list.append(" status = 'unavailable', processing_location = '{0}', "\
-                                "completion_date = {1}, log_file_contents = '{2}', "\
-                                "note = '{3}' ".format(processing_loc, now, error, resolution.reason))
-
-                ee_order_id = Scene.get('ee_order_id', name=name, order_id=orderid)
-                ee_unit_id = Scene.get('ee_unit_id', name=name, order_id=orderid)
-                lta.update_order_status(ee_order_id, ee_unit_id, 'R')
-
-            elif resolution.status == 'retry':
-                pass
-        else:
-            status = 'error'
-            sql_list.append(" status = '{0}', processing_location = '{1}',"\
-                            " log_file_contents = '{2}' ".format(status, processing_loc, error))
-
-        sql_list.append(" where name = '{0}' AND order_id = '{1}';".format(name, orderid))
-        sql = " ".join(sql_list)
-
-        try:
-            with DBConnect(**api_cfg()) as db:
-                db.execute(sql)
-                db.commit()
-        except:
-            logger.debug("err ordering_provider set_product_error\nsql: {0}".format(sql))
-            raise #propogate DBConnectException
+        return True
 
     def set_product_unavailable(self, name=None, orderid=None,
                                 processing_loc=None, completed_scene_location=None):
@@ -402,13 +457,16 @@ class OrderingProvider(ProviderInterfaceV0):
         if action == 'update_status':
             result = self.update_status(name=name, orderid=orderid,
                                         processing_loc=processing_loc, status=status)
+
         if action == 'set_product_error':
             result = self.set_product_error(name=name, orderid=orderid,
                                             processing_loc=processing_loc, error=error)
+
         if action == 'set_product_unavailable':
             result = self.set_product_unavailable(name=name, orderid=orderid,
                                                     processing_loc=processing_loc,
                                                     completed_scene_location=completed_scene_location)
+
         if action == 'mark_product_complete':
             result = self.mark_product_complete(name=name, orderid=orderid,
                                                 processing_loc=processing_loc,

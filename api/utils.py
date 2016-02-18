@@ -4,6 +4,7 @@ import ConfigParser
 import os
 import datetime
 import subprocess
+import datetime
 
 from dbconnect import DBConnect
 import psycopg2.extras
@@ -93,4 +94,16 @@ def backup_cron():
 
     with open(os.path.join(bk_path, cron_file), 'w') as f:
         subprocess.call(['crontab', '-l'], stdout=f)
+
+def date_from_doy(year, doy):
+    '''Returns a python date object given a year and day of year'''
+
+    d = datetime.datetime(int(year), 1, 1) + datetime.timedelta(int(doy) - 1)
+
+    if int(d.year) != int(year):
+        raise Exception("doy [%s] must fall within the specified year [%s]" %
+                        (doy, year))
+    else:
+        return d
+
 
