@@ -1,5 +1,7 @@
 from api.domain import sensor
-from api.dbconnect import DBConnect
+from api.domain.scene import Scene
+from api.domain.config import ApiConfig
+from api.dbconnect import DBConnect, DBConnectException
 from api.utils import api_cfg
 from validate_email import validate_email
 from api.providers.ordering import ProviderInterfaceV0
@@ -12,6 +14,8 @@ import copy
 from cStringIO import StringIO
 
 from api.api_logging import api_logger as logger
+
+config = ApiConfig()
 
 class OrderingProviderException(Exception):
     pass
@@ -348,8 +352,8 @@ class OrderingProvider(ProviderInterfaceV0):
                     if ('status' in landsat_urls[item['name']] and
                             landsat_urls[item['name']]['status'] != 'available'):
                         try:
-                            limit = config.get('retry.retry_missing_l1.retries')
-                            timeout = config.get('retry.retry_missing_l1.timeout')
+                            limit = config.settings['retry.retry_missing_l1.retries']
+                            timeout = config.settings['retry.retry_missing_l1.timeout']
                             ts = datetime.datetime.now()
                             after = ts + datetime.timedelta(seconds=timeout)
 
@@ -410,7 +414,7 @@ class OrderingProvider(ProviderInterfaceV0):
 
     def update_status(self, name=None, orderid=None,
                         processing_loc=None, status=None):
-        order_id = Scene.get('ee_order_id', name=name, orderid=orderid)
+        order_id = Scene.get('order_id', name=name, orderid=orderid)
         sql_list = ["update ordering_scene set "]
         comm_sep = ""
         if processing_loc:
@@ -434,19 +438,84 @@ class OrderingProvider(ProviderInterfaceV0):
         return True
 
     def set_product_unavailable(self, name=None, orderid=None,
-                                processing_loc=None, completed_scene_location=None):
-        return {"orderid": orderid}
+                                processing_loc=None, error=None, note=None):
+
+        order_id = Scene.get('order_id', name=name, orderid=orderid)
+        order_source = Scene.get('order_source', name=name, orderid=orderid)
+        sql_list = ["update ordering_scene set "]
+        sql_list.append(" status = 'unavailable', ")
+        sql_list.append(" processing_location = '{0}', ".format(processing_loc))
+        sql_list.append(" completion_date = {0}, ".format(datetime.datetime.now()))
+        sql_list.append(" log_file_contents = '{0}', ".format(error))
+        sql_list.append(" note = '{0}' ".format(note))
+        sql_list.append(" where name = '{0}' AND order_id = {1};".format(name, order_id))
+        sql = " ".join(sql_list)
+
+        if order_source == 'ee':
+            # update EE
+            ee_order_id = Scene.get('ee_order_id', name=name, orderid=orderid)
+            ee_unit_id = Scene.get('ee_unit_id', name=name, orderid=orderid)
+            lta.update_order_status(ee_order_id, ee_unit_id, 'R')
+
+        try:
+            with DBConnect(**api_cfg()) as db:
+                db.execute(sql)
+                db.commit()
+        except DBConnectException, e:
+            message = "DBConnect Exception ordering_provider set_product_unavailable sql: {0}\nmessage: {1}".format(sql, e.message)
+            raise OrderingProviderException(message)
+
+        return True
 
     def mark_product_complete(self, name=None, orderid=None, processing_loc=None,
-                                completed_scene_location=None, cksum_file_location=None,
-                                log_file_contents_binary=None):
-        return {"name": name}
+                                completed_file_location=None, destination_cksum_file=None,
+                                log_file_contents=None):
+
+        order_id = Scene.get('order_id', name=name, orderid=orderid)
+        order_source = Scene.get('order_source', name=name, orderid=orderid)
+        base_url = config.url_for('distribution.cache')
+
+        product_file_parts = completed_file_location.split('/')
+        product_file = product_file_parts[len(product_file_parts) - 1]
+        cksum_file_parts = destination_cksum_file.split('/')
+        cksum_file = cksum_file_parts[len(cksum_file_parts) - 1]
+
+        product_dload_url = ('%s/orders/%s/%s') % (base_url, orderid, product_file)
+        cksum_download_url = ('%s/orders/%s/%s') % (base_url, orderid, cksum_file)
+
+        sql_list = ["update ordering_scene set "]
+        sql_list.append(" status = 'complete', ")
+        sql_list.append(" processing_location = '{0}', ".format(processing_loc))
+        sql_list.append(" product_distro_location = '{0}', ".format(completed_file_location))
+        sql_list.append(" completion_date = {0}, ".format(datetime.datetime.now()))
+        sql_list.append(" cksum_distro_location = '{0}', ".format(destination_cksum_file))
+        sql_list.append(" log_file_contents = '{0}', ".format(log_file_contents))
+        sql_list.append(" product_dload_url = '{0}', ".format(product_dload_url))
+        sql_list.append(" cksum_download_url = '{0}' ".format(cksum_download_url))
+        sql_list.append(" where name = '{0}' AND order_id = {1};".format(name, order_id))
+        sql = " ".join(sql_list)
+
+        if order_source == 'ee':
+            # update EE
+            ee_order_id = Scene.get('ee_order_id', name=name, orderid=orderid)
+            ee_unit_id = Scene.get('ee_unit_id', name=name, orderid=orderid)
+            lta.update_order_status(ee_order_id, ee_unit_id, 'C')
+
+        try:
+            with DBConnect(**api_cfg()) as db:
+                db.execute(sql)
+                db.commit()
+        except DBConnectException, e:
+            message = "DBConnect Exception ordering_provider set_product_unavailable sql: {0}\nmessage: {1}".format(sql, e.message)
+            raise OrderingProviderException(message)
+
+        return True
 
     def update_product(self, action, name=None, orderid=None, processing_loc=None,
                         status=None, error=None, note=None,
-                        completed_scene_location=None,
+                        completed_file_location=None,
                         cksum_file_location=None,
-                        log_file_contents_binary=None):
+                        log_file_contents=None):
 
         permitted_actions = ('update_status', 'set_product_error',
                             'set_product_unavailable', 'mark_product_complete')
@@ -465,14 +534,14 @@ class OrderingProvider(ProviderInterfaceV0):
         if action == 'set_product_unavailable':
             result = self.set_product_unavailable(name=name, orderid=orderid,
                                                     processing_loc=processing_loc,
-                                                    completed_scene_location=completed_scene_location)
+                                                    error=error, note=note)
 
         if action == 'mark_product_complete':
             result = self.mark_product_complete(name=name, orderid=orderid,
                                                 processing_loc=processing_loc,
-                                                completed_scene_location=completed_scene_location,
-                                                cksum_file_location=cksum_file_location,
-                                                log_file_contents_binary=log_file_contents_binary)
+                                                completed_file_location=completed_file_location,
+                                                destination_cksum_file=destination_cksum_file,
+                                                log_file_contents=log_file_contents)
 
         return result
 
