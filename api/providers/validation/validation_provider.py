@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 import validictory
+from validictory.validator import RequiredFieldValidationError
 import api.providers.ordering.ordering_provider as ordering
 
 
@@ -194,17 +195,14 @@ class OrderValidatorV0(validictory.SchemaValidator):
             self._error('The requested product(s) is not available at this time', list(dif), fieldname, path=path)
 
 
-    def validate_oneormore(self, x, fieldname, schema, path, key_list):
+    def validate_oneormoreobjects(self, x, fieldname, schema, path, key_list):
         """Validates that at least one value is present from the list"""
-        pass
-        # if isinstance(x, dict):
-        #     if isinstance(x[fieldname], dict):
-        #         keys = x.get(fieldname).keys()
-        #
-        #         valid = False
-        #         for key in keys:
-        #             if key in key_list:
-        #                 valid = True
-        #
-        #         if not valid:
-        #             self._error()
+        val = x.get(fieldname)
+
+        if self.validate_type_object(val):
+            for key in key_list:
+                if key in val:
+                    return
+
+            self._error('No requests for products were submitted', None, None, path=path,
+                        exctype=RequiredFieldValidationError)

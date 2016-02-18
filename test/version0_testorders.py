@@ -185,6 +185,10 @@ class InvalidOrders(object):
             sch_base = sch_base['properties'][key]
             base = base[key]
 
+        if not path and 'oneormoreobjects' in sch_base:
+            constr = sch_base['oneormoreobjects']
+            results.extend(self.invalidate_oneormoreobjects(constr, path))
+
         for key, val in base.items():
             constraints = sch_base['properties'][key]
             mapping = path + (key,)
@@ -497,6 +501,27 @@ class InvalidOrders(object):
                                    ['restricted_prod'], mapping[-1], path=mapping)
 
         results.append((self.update_dict(order, upd), 'role_restricted', exc))
+
+        return results
+
+    def invalidate_oneormoreobjects(self, keys, mapping):
+        """
+        Remove any matching keys, so that nothing matches
+        """
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        loc = order
+        for key in mapping:
+            loc = loc[key]
+
+        for key in keys:
+            order = self.delete_key_loc(order, mapping + (key,))
+
+        exc = self.build_exception('No requests for products were submitted', None, None, path=mapping,
+                                   exctype=validator.RequiredFieldValidationError)
+
+        results.append((order, 'oneormoreobjects', exc))
 
         return results
 

@@ -161,7 +161,6 @@ class TestValidation(unittest.TestCase):
         abbreviated=True - test each constraint type once
         abbreviated=False - test each constraint on each value location in the nested structure
         """
-
         exc_type = ValidationException
         self.assertIsNone(api.validation(self.base_order, self.staffuser))
         invalid_order = copy.deepcopy(self.base_order)

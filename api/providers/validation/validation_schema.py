@@ -101,7 +101,7 @@ class BaseValidationSchema(object):
         sensor_schema = self.build_sensor_schema()
 
         self.request_schema['properties'].update(sensor_schema)
-        self.request_schema['oneormore'] = sensor_schema.keys()
+        self.request_schema['oneormoreobjects'] = sensor_schema.keys()
 
         self.valid_params = {'formats': {'formats': self.formats},
                              'resampling_methods': {'resampling_methods': self.resampling_methods},
