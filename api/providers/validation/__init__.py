@@ -4,7 +4,7 @@ import copy
 import validictory
 from validation_provider import OrderValidatorV0
 from validation_schema import Version0Schema
-from api.api_except import ValidationException
+from api.api_exceptions import ValidationException
 
 
 class ValidationInterfaceV0(object):
@@ -67,9 +67,9 @@ class ValidationProvider(ValidationInterfaceV0):
             # validictory.validate(order, self.schema.request_schema, fail_fast=False, disallow_unknown_properties=True,
             #                      validator_cls=OrderValidatorV0, required_by_default=False)
         except validictory.MultipleValidationError as e:
-            raise ValidationException(e)
+            raise ValidationException(e.message)
         except validictory.SchemaError as e:
-            raise ValidationException(e)
+            raise ValidationException(e.message)
 
     def fetch_projections(self):
         return copy.deepcopy(self.schema.valid_params['projections'])

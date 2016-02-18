@@ -7,7 +7,7 @@ Author: David V. Hill
 import logging
 
 import re
-from api.api_except import ProductNotImplemented
+from api.api_exceptions import ProductNotImplemented
 
 logger = logging.getLogger(__name__)
 
@@ -464,7 +464,7 @@ def instance(product_id):
         product_id = product_id[0:index]
         _id = _id[0:index]
 
-    instances = SensorCONST().instances
+    instances = SensorCONST.instances
 
     for key in instances.iterkeys():
         if re.match(instances[key][0], _id):

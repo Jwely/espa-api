@@ -8,7 +8,7 @@ from api.utils import api_cfg, lowercase_all
 from api.dbconnect import DBConnect
 import version0_testorders as testorders
 from api.providers.validation import validation_schema
-from api.api_except import ValidationException
+from api.api_exceptions import ValidationException
 import psycopg2.extras
 
 api = API()
@@ -189,6 +189,10 @@ class TestValidation(unittest.TestCase):
                                   '\nExpected exception message:\n{}\n'
                                   '\nUsing test: {}'.format(exc_type, str(exc), test))
         print c  # For initial debugging
+
+
+class TestInventory(unittest.TestCase):
+    pass
 
 
 if __name__ == '__main__':

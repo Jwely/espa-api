@@ -1,6 +1,6 @@
 """ Module to glue interfaces to implementations """
 
-from api.providers.inventory import MockInventoryProvider, InventoryProvider
+from api.providers.inventory.inventory_provider import MockInventoryProvider, InventoryProvider
 from api.providers.metrics import MockMetricsProvider, MetricsProvider
 from api.providers.ordering import MockOrderingProvider
 from api.providers.validation import MockValidationProvider, ValidationProvider
