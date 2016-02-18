@@ -2,7 +2,6 @@
 import unittest
 import yaml
 import copy
-import re
 
 from api.ordering.version0 import API
 from api.utils import api_cfg, lowercase_all
@@ -36,6 +35,7 @@ class TestAPI(unittest.TestCase):
         self.pubuser = db[0]['username']
         with open('api/domain/restricted.yaml') as f:
             self.restricted_list = yaml.load(f.read())
+            self.restricted_list['internal_only'].remove('restricted_prod')
 
     def tearDown(self):
         # close the connection
@@ -113,21 +113,55 @@ class TestValidation(unittest.TestCase):
         self.base_schema = validation_schema.Version0Schema().request_schema
 
     def test_validation_get_order_schema(self):
+        """
+        Make sure the ordering schema is retrievable as a dict
+        """
         self.assertIsInstance(api.validation.fetch_order_schema(), dict)
 
     def test_validation_get_valid_formats(self):
+        """
+        Make sure the file format options are retrievable as a dict
+        """
         self.assertIsInstance(api.validation.fetch_formats(), dict)
 
     def test_validation_get_valid_resampling(self):
+        """
+        Make sure the resampling options are retrievable as a dict
+        """
         self.assertIsInstance(api.validation.fetch_resampling(), dict)
 
     def test_validation_get_valid_projections(self):
+        """
+        Make sure the projection options are retrievable as a dict
+        """
         self.assertIsInstance(api.validation.fetch_projections(), dict)
 
     def test_validate_good_order(self):
-        self.assertIsNone(api.validation(self.base_order, self.staffuser))
+        """
+        Test a series of known good orders
+        """
+        valid_order = copy.deepcopy(self.base_order)
+
+        for proj in testorders.good_test_projections:
+            valid_order['projection'] = {proj: testorders.good_test_projections[proj]}
+
+            self.assertIsNone(api.validation(valid_order, self.staffuser))
 
     def test_validate_bad_orders(self):
+        """
+        Build a series of invalid orders to try and catch any potential errors in a
+        submitted order
+
+        Check to make sure the invalid order raises ValidationException, then check
+        the exception message for the expected error message
+
+        The abbreviated flag for the InvalidOrders class changes the number of invalid
+        orders that will get tested.
+
+        abbreviated=True - test each constraint type once
+        abbreviated=False - test each constraint on each value location in the nested structure
+        """
+
         exc_type = ValidationException
         self.assertIsNone(api.validation(self.base_order, self.staffuser))
         invalid_order = copy.deepcopy(self.base_order)
@@ -136,7 +170,7 @@ class TestValidation(unittest.TestCase):
         for proj in testorders.good_test_projections:
             invalid_order['projection'] = {proj: testorders.good_test_projections[proj]}
 
-            invalid_list = testorders.InvalidOrders(invalid_order, self.base_schema, abreviated=True)
+            invalid_list = testorders.InvalidOrders(invalid_order, self.base_schema, abbreviated=True)
 
             for order, test, exc in invalid_list:
                 # issues getting assertRasiesRegExp to work correctly
