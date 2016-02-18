@@ -8,7 +8,8 @@
 import traceback
 from api.api_logging import api_logger as logger
 from api.api_except import ValidationException
-
+from api.domain import default_error_message
+from api.domain.config import ApiConfig
 
 class API(object):
     def __init__(self, providers=None):
@@ -75,7 +76,7 @@ class API(object):
             logger.debug("ERR version0 available_prods_get product_id: {0} " \
                          "username: {1}\nexception {2}".format(product_id, username,
                                                                traceback.format_exc()))
-            response = {"msg": "there's been a problem retrieving your information. admins have been notified"}
+            response = default_error_message
 
         return response
 
@@ -92,7 +93,7 @@ class API(object):
             response = self.ordering.fetch_user_orders(user_id)
         except:
             logger.debug("ERR version0 fetch_user_orders arg: {0}\nexception {1}".format(user_id, traceback.format_exc()))
-            response = {"msg": "there's been a problem retrieving your information. admins have been notified"}
+            response = default_error_message
 
         return response
 
@@ -109,7 +110,7 @@ class API(object):
             response = self.ordering.fetch_order(ordernum)
         except:
             logger.debug("ERR version0 fetch_order arg: {0}\nexception {1}".format(ordernum, traceback.format_exc()))
-            response = {"msg": "there's been a problem retrieving your information. admins have been notified"}
+            response = default_error_message
 
         return response
 
@@ -140,7 +141,7 @@ class API(object):
             response = e
         except:
             logger.debug("ERR version0 place_order arg: {0}\nexception {1}".format(order, traceback.format_exc()))
-            response = {"msg": "there's been a problem placing your order. admins have been notified"}
+            response = default_error_message
 
         return response
 
@@ -160,7 +161,7 @@ class API(object):
             response = self.ordering.order_status(orderid)
         except:
             logger.debug("ERR version0 order_status arg: {0}\nexception {1}".format(orderid, traceback.format_exc()))
-            response = {"msg": "there's been an issue retrieving your information. admins have been notified"}
+            response = default_error_message
 
         return response
 
@@ -182,8 +183,56 @@ class API(object):
             response = self.ordering.item_status(orderid, itemid)
         except:
             logger.debug("ERR version0 item_status itemid {0}  orderid: {1}\nexception {2}".format(itemid, orderid, traceback.format_exc()))
-            response = {"msg": "there's been an issue retrieving your information. admins have been notified"}
+            response = default_error_message
 
         return response
 
+    def fetch_production_products(self, params):
+        """Returns products ready for production
+
+        Arg:
+            dict with the following keys:
+                for_user (str): username on the order
+                priority (str): 'high' | 'normal' | 'low'
+                product_types (str): 'modis,landsat'
+                encode_urls (bool): True | False
+
+        Returns:
+            list: list of products
+        """
+        try:
+            response = self.ordering.get_products_to_process(**params)
+        except:
+            logger.debug("ERR version0 fetch_production_products, params: {0}\ntrace: {1}\n".format(params, traceback.format_exc()))
+            response = default_error_message
+
+        return response
+
+    def update_product_details(self, action, params=None):
+        try:
+            response = self.ordering.update_product(action, **params)
+        except:
+            logger.debug("ERR version0 update_product_details, params: {0}\ntrace: {1}\n".format(params, traceback.format_exc()))
+            response = default_error_message
+
+        return response
+
+    def get_production_key(self, key):
+        """Returns value for given configuration key
+
+        Arg:
+            str representation of key
+
+        Returns:
+            dict: of key and value
+        """
+        try:
+            response = {"msg": "'{0}' is not a valid key".format(key)}
+            if key in ApiConfig().settings.keys():
+                response = {key: ApiConfig().settings[key]}
+        except:
+            logger.debug("ERR version0 get_production_key, arg: {0}\ntrace: {1}\n".format(key, traceback.format_exc()))
+            response = default_error_message
+
+        return response
 

@@ -8,6 +8,8 @@ from api.ordering.version0 import API
 from api.user import User
 from api.domain.config import ApiConfig
 from api.utils import lowercase_all
+from api.domain import api_operations_v0
+from functools import wraps
 
 api = API()
 app = Flask(__name__)
@@ -31,11 +33,28 @@ def load_user(request):
         if (user_entry is not None):
             # user has successfully authenticated with EE
             # lets find or create them on our side
-            user = User(user_entry[0],user_entry[1],user_entry[2],user_entry[3])
+            #user = User(user_entry[0],user_entry[1],user_entry[2],user_entry[3])
+            user = User(*user_entry)
             if user.id:
                 api_user = user
 
     return api_user
+
+# request.remote_addr for controlling access by ip address
+# for the production-api calls
+# remote = request.remote_addr
+# if remote not in trusted_proxies:
+#     abort(403) #forbidden
+def requires_role(cur_user, role):
+    def wrapper(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            if role == 'staff' and cur_user.is_staff() is not True:
+                return jsonify({'msg': 'access denied'})
+            return f(*args, **kwargs)
+        return wrapped
+    return wrapper
+
 
 @app.route('/')
 def index():
@@ -49,98 +68,8 @@ def api_versions():
 @app.route('/api/v<version>')
 @login_required
 def api_info(version):
-    info_dict = {
-        '0': {
-            'description': 'Version 0 of the ESPA API',
-            'operations': {
-                "/api": {
-                    'function': "list versions",
-                    'methods': [
-                        "HEAD",
-                        "GET"
-                    ]
-                },
-                "/api/v0": {
-                    'function': "list operations",
-                    'methods': [
-                        "HEAD",
-                        "GET"
-                    ]
-                },
-                "/api/v0/available-products/<product_ids>": {
-                    'function': "list available products per sceneid",
-                    'comments': "comma separated ids supported",
-                    'methods': [
-                        "HEAD",
-                        "GET"
-                    ]
-                },
-                "/api/v0/available-products": {
-                    'function': "list available products per sceneid",
-                    'comments': 'sceneids should be delivered in the product_ids parameter, comma separated if more than one',
-                    'methods': [
-                        "HEAD",
-                        "POST"
-                    ]
-                },
-                "/api/v0/projections": {
-                    'function': "list available projections",
-                    'methods': [
-                        "HEAD",
-                        "GET"
-                    ]
-                },
-                "/api/v0/formats": {
-                    'function': "list available output formats",
-                    'methods': [
-                        "HEAD",
-                        "GET"
-                    ]
-                },
-                "/api/v0/resampling-methods": {
-                    'function': "list available resampling methods",
-                    'methods': [
-                        "HEAD",
-                        "GET"
-                    ]
-                },
-                "/api/v0/orders": {
-                    'function': "list orders for authenticated user",
-                    'methods': [
-                        "HEAD",
-                        "GET"
-                    ]
-                },
-                "/api/v0/orders/<email>": {
-                    'function': "list orders for supplied email, for user collaboration",
-                    'methods': [
-                        "HEAD",
-                        "GET"
-                    ]
-                },
-                "/api/v0/order/<ordernum>": {
-                    'function': "retrieves a submitted order",
-                    'methods': [
-                        "HEAD",
-                        "GET"
-                    ]
-                },
-                "/api/v0/request/<ordernum>": {
-                    'function': "retrieve order sent to server",
-                    'methods': [
-                        "HEAD",
-                        "GET"
-                    ]
-                },
-                "/api/v0/order": {
-                    'function': "point for accepting processing requests via HTTP POST with JSON body. Errors are returned to user, successful validation returns an orderid",
-                    'methods': [
-                        "POST"
-                    ]
-                },
-            }
-        }
-    }
+
+    info_dict = api_operations_v0['user']
 
     if info_dict.__contains__(version):
         response = info_dict[version]
@@ -244,6 +173,34 @@ def get_projections():
     return_code = 200 if response.keys()[0] != "errmsg" else 401
     return jsonify(response), return_code
 
+### Production API ###
+
+@app.route('/production-api', methods=['GET'])
+#@login_required
+#@requires_role(current_user, 'staff')
+def get_production_api():
+    return jsonify(api.api_versions())
+
+@app.route('/production-api/v0', methods=['GET'])
+def get_production_api_ops():
+    return jsonify(api_operations_v0['production'])
+
+@app.route('/production-api/v0/products', methods=['GET'])
+def get_production_api_products():
+    response = api.fetch_production_products(request.args) # request.args is a dict
+    return jsonify(response)
+
+@app.route('/production-api/v0/<orderid>/<productid>', methods=['PUT'])
+def update_product(orderid, productid):
+    response = api.update_product_details(request.args)
+    return jsonify(response)
+
+@app.route('/production-api/v0/configuration/<key>', methods=['GET'])
+def get_production_api_config(key):
+    response = api.get_production_config(key)
+    return jsonify(response)
+
+### End Production ###
 
 if __name__ == '__main__':
     app.run()
