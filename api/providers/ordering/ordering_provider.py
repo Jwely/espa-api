@@ -187,7 +187,7 @@ class OrderingProvider(ProviderInterfaceV0):
         else:
             raise OrderingProviderException("Exception Retry limit exceeded, name: {0}".format(name))
 
-        sql_list.append(" where name = '{0}' AND order_id = {1};".format(name, order_id)
+        sql_list.append(" where name = '{0}' AND order_id = {1};".format(name, order_id))
         sql = " ".join(sql_list)
         try:
             with DBConnect(**api_cfg()) as db:
