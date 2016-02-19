@@ -191,11 +191,11 @@ class API(object):
         """Returns products ready for production
 
         Arg:
-            dict with the following keys:
-                for_user (str): username on the order
-                priority (str): 'high' | 'normal' | 'low'
-                product_types (str): 'modis,landsat'
-                encode_urls (bool): True | False
+            params (dict): with the following keys:
+                        for_user (str): username on the order
+                        priority (str): 'high' | 'normal' | 'low'
+                        product_types (str): 'modis,landsat'
+                        encode_urls (bool): True | False
 
         Returns:
             list: list of products
@@ -209,10 +209,59 @@ class API(object):
         return response
 
     def update_product_details(self, action, params=None):
+        """Update product details
+
+        Args:
+            action (str): name of the action to peform. valid values include:
+                            update_status, set_product_error,
+                            set_product_unavailable,
+                            mark_product_complete
+            params (dict): args for the action. valid keys: name, orderid,
+                            processing_loc, status, error, note,
+                            completed_file_location, cksum_file_location,
+                            log_file_contents
+
+        Returns:
+            True if successful
+        """
         try:
             response = self.ordering.update_product(action, **params)
         except:
             logger.debug("ERR version0 update_product_details, params: {0}\ntrace: {1}\n".format(params, traceback.format_exc()))
+            response = default_error_message
+
+        return response
+
+    def handle_orders():
+        """Handler for accepting orders and products into the processing system
+
+        Args:
+            none
+
+        Returns:
+            True if successful
+        """
+        try:
+            response = self.ordering.handle_orders()
+        except:
+            logger.debug("ERR version0 handle_orders. trace: {0}".format(traceback.format_exc()))
+            response = default_error_message
+
+        return response
+
+    def queue_products(params):
+        """Place products into queued status in bulk
+
+        Args:
+            params (dict): {'order_name_list':[], 'processing_loc': '', 'job_name': ''}
+
+        Returns:
+            True if successful
+        """
+        try:
+            response = self.ordering.queue_products(params)
+        except:
+            logger.debug("ERR version0 queue_products params: {0}\ntrace: {1}".format(params, traceback.format_exc()))
             response = default_error_message
 
         return response

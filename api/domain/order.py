@@ -1,44 +1,69 @@
 """ Holds domain objects for orders and the items attached to them """
 
-class Order(object):
-    """ x """
+from api.utils import api_cfg
+from api.dbconnect import DBConnect
+import datetime
 
-    def __init__(self, username, input_products, output_products,
-                 projection=None, pixel_size=None, image_extents=None,
-                 resampling_method=None, output_format=None):
+cfg = api_cfg()
+
+class Order(object):
+    """ Class for interacting with the ordering_order table """
+
+    def __init__(self, oid):
         """
         Args:
-        username (str): User this order is for
-        input_products (list): input product ids to process
-        output_products (list): conventionalized output products
-        projection (dict): dictionary of projection information
-        pixel_size (float): requested output pixel size
-        pixel_size_units (str): meters or dd
-        image_extents (dict): north, south, east, west boundaries as floats
-        image_extents_units (str): meters or dd
-        resampling_method (str): nn, bi or cc
-        output_format (str): gtiff, envi, hdf-eos2, or envi-bip
+        id (int): primary key for the order to be retrieved
         """
-        self.username = username
-        self.input_products = input_products
-        self.output_products = output_products
-        self.projection = projection
-        self.pixel_size = pixel_size
-        self.image_extents = image_extents
-        self.resampling_method = resampling_method
-        self.output_format = output_format
-        self.validate()
+        obj = None
+        with DBConnect(**cfg) as db:
+            sql = "select * from ordering_order where id = {0};".format(oid)
+            db.select(sql)
+            obj = db[0]
+
+        for k, v in obj.iteritems():
+            setattr(self, k, v)
+
+    def __repr__(self):
+        return "Order:{0}".format(self.__dict__)
 
     def to_dict(self):
         """ x """
         pass
 
+    @classmethod
+    def where(cls, att=None, val=None):
+        sql = "select id from ordering_order where {0} = "
+        if isinstance(val, str):
+            sql += "'{1}';"
+        else:
+            sql += "{1};"
+        sql = sql.format(att, val)
+        with DBConnect(**cfg) as db:
+            db.select(sql)
+            returnlist = []
+            for i in db:
+                obj = Order(i['id'])
+                returnlist.append(obj)
+
+        return returnlist
+
+    def user_email(self):
+        sql = "select email from auth_user where id = {0};".format(self.user_id)
+        with DBConnect(**cfg) as db:
+            db.select(sql)
+            return db[0]['email']
+
+    def update(self, att, val):
+        if isinstance(val, str) or isinstance(val, datetime.datetime):
+            val = "'{0}'".format(val)
+        sql = "update ordering_order set {0} = {1} where id = {2};".format(att, val, self.id)
+        with DBConnect(**cfg) as db:
+            db.execute(sql)
+            db.commit()
+
     @staticmethod
     def from_dict(dadsf):
         """ x """
-        pass
-
-    def __repr__(self):
         pass
 
     def validate(self):

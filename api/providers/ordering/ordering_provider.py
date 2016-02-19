@@ -10,12 +10,14 @@ from api import lpdaac
 
 import yaml
 import copy
+import memcache
 
 from cStringIO import StringIO
 
 from api.api_logging import api_logger as logger
 
 config = ApiConfig()
+cache = memcache.Client(['127.0.0.1:11211'], debug=0)
 
 class OrderingProviderException(Exception):
     pass
@@ -545,9 +547,56 @@ class OrderingProvider(ProviderInterfaceV0):
 
         return result
 
+    def send_initial_emails(self):
+        return emails.Emails().send_all_initial() 
+
+    def handle_onorder_landsat_products(self):
+        pass
+
+    def handle_retry_products(self):
+        pass
+
+    def load_ee_orders(self):
+        pass
+
+    def handle_submitted_products(self):
+        pass
+
+    def finalize_orders(self):
+        pass
+
+    def purge_orders(send_email=False):
+        pass
+
+    def handle_orders(self):
+        '''Logic handler for how we accept orders + products into the system'''
+        send_initial_emails()
+        handle_onorder_landsat_products()
+        handle_retry_products()
+        load_ee_orders()
+        handle_submitted_products()
+        finalize_orders()
+
+        cache_key = 'orders_last_purged'
+        result = cache.get(cache_key)
+
+        # dont run this unless the cached lock has expired
+        if result is None:
+            logger.info('Purge lock expired... running')
+
+            # first thing, populate the cached lock field
+            timeout = int(config.settings['system.run_order_purge_every'])
+            cache.set(cache_key, datetime.datetime.now(), timeout)
+
+            #purge the orders from disk now
+            purge_orders(send_email=True)
+        else:
+            logger.info('Purge lock detected... skipping')
+        return True
 
 
-# ?? core.handle_orders
+
+
 # ??  queue_products          (order_name_tuple_list, processing_loc, job_name)
 
 

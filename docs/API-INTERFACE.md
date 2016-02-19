@@ -503,8 +503,18 @@ The Production API is intended to be used by the system or systems that are fulf
 **GET /production-api/v0/products?priority=['high'|'normal'|'low']&user='username'&sensor=['modis'|'landsat'|'plot']**
 * Returns products ready for production
 
-**PUT /production-api/v0/\<orderid\>/\<productid\>**
-* Update product status, completed file locations, etc
+**POST /production-api/v0/\<action\>**
+* Update product status, completed file locations, etc.
+* Valid actions: update_status, set_product_error, set_product_unavailable, mark_product_complete
+* Valid parameters: name, orderid, processing_loc, status, error, note,
+                    completed_file_location, cksum_file_location, log_file_contents
+
+**POST /production-api/v0/handle-orders**
+* Handler for accepting orders and products in the system
+
+**POST /production-api/v0/queue-products**
+* Place products into queued status in bulk
+* Required parameters: order_name_list, processing_loc, job_name
 
 **GET /production-api/v0/configuration/\<key\>**
 * Lists information for specified configuration key  
