@@ -548,7 +548,7 @@ class OrderingProvider(ProviderInterfaceV0):
         return result
 
     def send_initial_emails(self):
-        return emails.Emails().send_all_initial() 
+        return emails.Emails().send_all_initial()
 
     def handle_onorder_landsat_products(self):
         pass

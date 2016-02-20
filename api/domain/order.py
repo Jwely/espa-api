@@ -56,6 +56,7 @@ class Order(object):
     def update(self, att, val):
         if isinstance(val, str) or isinstance(val, datetime.datetime):
             val = "'{0}'".format(val)
+        self.__setattr_(att, val)
         sql = "update ordering_order set {0} = {1} where id = {2};".format(att, val, self.id)
         with DBConnect(**cfg) as db:
             db.execute(sql)

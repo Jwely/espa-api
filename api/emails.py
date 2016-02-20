@@ -130,11 +130,11 @@ class Emails(object):
         m.append("Requested products\n")
         m.append("-------------------------------------------\n")
 
-        #scenes = Scene.objects.filter(order__id=order.id)
+        scenes = Scene.where('order_id', order.id)
 
-        products = order.scene_set.all()
+        #products = order.scene_set.all()
 
-        for product in products:
+        for product in scenes:
             name = product.name
 
             if name == 'plot':
@@ -149,12 +149,12 @@ class Emails(object):
     def send_completion(self, order):
 
         if isinstance(order, str):
-            order = Order.objects.get(orderid=order)
+            order = Order.where('orderid', order)
         elif isinstance(order, int):
-            order = Order.objects.get(id=order)
+            order = Order(id)
 
-        if not isinstance(order, models.order.Order):
-            msg = 'order must be str, int or instance of models.Order'
+        if not isinstance(order, Order):
+            msg = 'order must be str, int or instance of Order'
             raise TypeError(msg)
 
         email = order.user.email
@@ -171,9 +171,10 @@ class Emails(object):
         m.append("Requested products\n")
         m.append("-------------------------------------------\n")
 
-        products = order.scene_set.filter(status='complete')
+        #products = order.scene_set.filter(status='complete')
+        scenes = Scene.where("status", "complete")
 
-        for product in products:
+        for product in scenes:
             line = product.name
             if line == 'plot':
                 line = "Plotting & Statistics"
@@ -191,11 +192,11 @@ class Emails(object):
         for order in orders:
             buffer.write('{0}\n'.format(order))
         order_str = buffer.getvalue()
-        buffer.close()               
+        buffer.close()
 
         body = '''===================================
         Disk usage before purge
-        Capacity:{start_capacity} Used:{start_used} Available:{start_available} Percent Used:{start_percent_free} 
+        Capacity:{start_capacity} Used:{start_used} Available:{start_available} Percent Used:{start_percent_free}
 
         ===================================
         Disk usage after purge
@@ -241,4 +242,4 @@ class Emails(object):
 
 def send_purge_report(start_capacity, end_capacity, orders):
     return Emails().send_purge_report(start_capacity, end_capacity, orders)
-    
+
