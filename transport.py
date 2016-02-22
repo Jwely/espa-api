@@ -152,7 +152,7 @@ def get_projections():
 
 @app.route('/api/v0/formats', methods=['GET'])
 @login_required
-def get_projections():
+def get_formats():
     response = api.validation.fetch_formats()
     return_code = 200 if response.keys()[0] != "errmsg" else 401
     return jsonify(response), return_code
@@ -160,7 +160,7 @@ def get_projections():
 
 @app.route('/api/v0/resampling-methods', methods=['GET'])
 @login_required
-def get_projections():
+def get_resampling():
     response = api.validation.fetch_resampling()
     return_code = 200 if response.keys()[0] != "errmsg" else 401
     return jsonify(response), return_code
@@ -168,7 +168,7 @@ def get_projections():
 
 @app.route('/api/v0/order-schema', methods=['GET'])
 @login_required
-def get_projections():
+def get_order_schema():
     response = api.validation.fetch_order_schema()
     return_code = 200 if response.keys()[0] != "errmsg" else 401
     return jsonify(response), return_code
