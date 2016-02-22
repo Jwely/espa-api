@@ -3,23 +3,22 @@ Purpose: lpdaac services client module
 Author: David V. Hill
 '''
 
-import logging
 import requests
 import os
 
-from ordering.models.configuration import Configuration as config
+from api.domain import sensor
+from api import utils
 
-from ordering import sensor
-from ordering import utilities
+from api.domain.config import ApiConfig
+from api.api_logging import api_logger as logger
 
-logger = logging.getLogger(__name__)
-
+config = ApiConfig()
 
 class LPDAACService(object):
 
     def __init__(self):
-        self.datapool = config.url_for('modis.datapool')        
-        
+        self.datapool = config.url_for('modis.datapool')
+
     def verify_products(self, products):
         response = {}
 
@@ -123,20 +122,20 @@ class LPDAACService(object):
             product = sensor.instance(product)
 
         if isinstance(product, sensor.Aqua):
-            base_path = config.get('path.aqua_base_source')
+            base_path = config.settings['path.aqua_base_source']
         elif isinstance(product, sensor.Terra):
-            base_path = config.get('path.terra_base_source')
+            base_path = config.settings['path.terra_base_source']
         else:
             msg = "Cant build input file path for unknown LPDAAC product:%s"
             raise Exception(msg % product.product_id)
 
-        date = utilities.date_from_doy(product.year, product.doy)
+        date = utils.date_from_doy(product.year, product.doy)
 
         path_date = "%s.%s.%s" % (date.year,
                                   str(date.month).zfill(2),
                                   str(date.day).zfill(2))
 
-        input_extension = config.get('file.extension.modis.input.filename')
+        input_extension = config.settings['file.extension.modis.input.filename']
 
         input_file_name = "%s%s" % (product.product_id, input_extension)
 

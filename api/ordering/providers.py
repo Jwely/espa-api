@@ -10,7 +10,7 @@ from api.providers.ordering.ordering_provider import OrderingProvider
 class DefaultProviders(object):
     api_versions = {"versions":
                         {"0":
-                            {"description": "demo access points for development"}
+                            {"description": "First release of the ESPA API"}
                         }
                     }
 
