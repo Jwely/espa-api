@@ -113,7 +113,7 @@ class TransportTestCase(unittest.TestCase):
         url = '/api/v0/projections'
         response = self.app.get(url, headers=self.headers)
         resp_json = json.loads(response.get_data())
-        assert 'projections' in resp_json.keys()
+        assert 'aea' in resp_json.keys()
 
     def test_get_formats(self):
         url = '/api/v0/formats'
