@@ -11,6 +11,7 @@ from api.utils import lowercase_all
 from api.domain import api_operations_v0
 from functools import wraps
 import base64
+import json
 
 api = API()
 app = Flask(__name__)
@@ -20,8 +21,8 @@ login_manager.init_app(app)
 
 app.secret_key = config.cfg['key']
 
-if config.mode == 'dev' or os.environ.get('ESPA_DEBUG'):
-    app.debug = True
+# if config.mode == 'dev' or os.environ.get('ESPA_DEBUG'):
+#     app.debug = True
 
 
 @login_manager.request_loader
@@ -114,8 +115,26 @@ def get_user_orders():
 
 @app.route('/api/v0/order', methods=['POST'])
 @login_required
-def place_user_order(order):
-    response = api.place_order(lowercase_all(order), current_user.username)
+def place_user_order():
+    order = {}
+    try:
+        if request.headers['Content-Type'] == u'application/json':
+            order = request.get_json()
+        elif request.headers['Content-Type'] == u'text/plain':
+            order = json.loads(request.data)
+        elif request.headers['Content-Type'] == u'application/x-www-form-urlencoded':
+            order = json.loads(request.form.keys()[0])
+    except Exception as e:
+        # LOG ME
+        pass
+
+    if not order:
+        response = {"errmsg": "Please ensure your order follows json conventions. If you believe"
+                              " this message is in error please email customer service"}
+    else:
+        order = lowercase_all(order)
+        response = api.place_order(order, current_user.username)
+
     return_code = 200 if response.keys()[0] != "errmsg" else 401
     return jsonify(response), return_code
 
