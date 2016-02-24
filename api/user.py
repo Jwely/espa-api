@@ -65,7 +65,7 @@ class User(UserMixin):
 
 
     @classmethod
-    def get(cls,username,password):
+    def get(cls, username, password):
         user_tup = None
         try:
             lta_user = lta.get_user_info(username, password)

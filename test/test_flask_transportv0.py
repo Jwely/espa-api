@@ -109,6 +109,30 @@ class TransportTestCase(unittest.TestCase):
         resp_json = json.loads(response.get_data())
         assert 'username' in resp_json.keys()
 
+    def test_get_projections(self):
+        url = '/api/v0/projections'
+        response = self.app.get(url, headers=self.headers)
+        resp_json = json.loads(response.get_data())
+        assert 'projections' in resp_json.keys()
+
+    def test_get_formats(self):
+        url = '/api/v0/formats'
+        response = self.app.get(url, headers=self.headers)
+        resp_json = json.loads(response.get_data())
+        assert 'formats' in resp_json.keys()
+
+    def test_get_resampling(self):
+        url = '/api/v0/resampling-methods'
+        response = self.app.get(url, headers=self.headers)
+        resp_json = json.loads(response.get_data())
+        assert 'resampling_methods' in resp_json.keys()
+
+    def test_get_order_schema(self):
+        url = '/api/v0/order-schema'
+        response = self.app.get(url, headers=self.headers)
+        resp_json = json.loads(response.get_data())
+        assert 'properties' in resp_json.keys()
+
 if __name__ == '__main__':
     unittest.main()
 
