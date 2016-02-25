@@ -773,10 +773,69 @@ class ProductionProvider(object):
                 logger.exception(msg)
 
     def handle_submitted_modis_products(self):
-        pass
+        ''' Moves all submitted modis products to oncache if true '''
+
+        logger.info("Handling submitted modis products...")
+
+        modis_products = Scene.where("status = 'submitted' AND sensor_type = 'modis'")
+
+        logger.debug("Found {0} submitted modis products"
+                     .format(len(modis_products)))
+
+        if len(modis_products) > 0:
+            for product in modis_products:
+                if lpdaac.input_exists(product.name) is True:
+                    product.update('status', 'oncache')
+                    logger.debug('{0} is on cache'.format(product.name))
+                else:
+                    product.update('status', 'unavailable')
+                    product.update('note', 'not found in modis data pool')
+                    logger.debug('{0} was not found in the modis data pool'
+                                 .format(product.name))
 
     def handle_submitted_plot_products(self):
-        pass
+        ''' Moves plot products from submitted to oncache status once all
+            their underlying rasters are complete or unavailable '''
+
+        logger.info("Handling submitted plot products...")
+
+        plot_orders = Order.where("status = 'ordered' AND order_type = 'lpcs'")
+
+        logger.debug("Found {0} submitted plot orders"
+                     .format(len(plot_orders)))
+
+        for order in plot_orders:
+            products = order.scenes()
+            product_count = len(products)
+
+            complete_products = order.scenes(["status = 'complete'"])
+            complete_count = len(complete_products)
+
+            unavailable_products = order.scenes(["status = 'unavailable'"])
+            unavailable_count = len(unavailable_products)
+
+            #if this is an lpcs order and there is only 1 product left that
+            #is not done, it must be the plot product.  Will verify this
+            #in next step.  Plotting cannot run unless everything else
+            #is done.
+
+            if product_count - (unavailable_count + complete_count) == 1:
+                plot = order.scenes(["status = 'submitted'", "sensor_type = 'plot'"])
+                if len(plot) >= 1:
+                    for p in plot:
+                        if complete_count == 0:
+                            p.update('status','unavailable')
+                            note = 'No input products were available for '\
+                                    'plotting and statistics'
+                            p.update('note', note)
+                            logger.info('No input products available for '
+                                         'plotting in order {0}'
+                                         .format(order.orderid))
+                        else:
+                            p.update('status', 'oncache')
+                            p.update('note', '')
+                            logger.debug("{0} plot is on cache"
+                                         .format(order.orderid))
 
     def handle_submitted_products(self):
         ''' handles all submitted products in the system '''
@@ -786,8 +845,61 @@ class ProductionProvider(object):
         handle_submitted_modis_products()
         handle_submitted_plot_products()
 
+    def send_completion_email(order):
+        ''' public interface to send the completion email '''
+        return emails.Emails().send_completion(order)
+
+    def update_order_if_complete(order):
+        '''Method to send out the order completion email
+        for orders if the completion of a scene
+        completes the order
+
+        Keyword args:
+        orderid -- id of the order
+
+        '''
+        if type(order) == str:
+            #will raise Order.DoesNotExist
+            order = Order.where("orderid = '{0}'".format(order))[0]
+        elif type(order) == int:
+            order = Order.where("id = {0}".format(order))[0]
+
+        if not type(order) == Order:
+            msg = "%s must be of type Order, int or str" % order
+            raise TypeError(msg)
+
+        # find all scenes that are not complete
+        scenes = order.scenes(["status NOT IN ('complete', 'unavailable')"])
+        if len(scenes) == 0:
+
+            logger.info('Completing order: {0}'.format(order.orderid))
+            order.update('status', 'complete')
+            order.update('completion_date', datetime.datetime.now())
+
+            #only send the email if this was an espa order.
+            if order.order_source == 'espa' and not order.completion_email_sent:
+                try:
+                    sent = None
+                    sent = send_completion_email(order)
+                    if sent is None:
+                        logger.debug('Completeion email not sent for {0}'
+                                         .format(order.orderid))
+                        raise Exception("Completion email not sent")
+                    else:
+                        order.completion_email_sent = datetime.datetime.now()
+                        order.save()
+                except Exception, e:
+                    #msg = "Error calling send_completion_email:{0}".format(e)
+                    logger.debug('Error calling send_completion_email')
+                    raise e
+
     def finalize_orders(self):
-        pass
+        '''Checks all open orders in the system and marks them complete if all
+        required scene processing is done'''
+
+        orders = Order.where("status = 'ordered'")
+        [update_order_if_complete(o) for o in orders]
+        return True
 
     def purge_orders(send_email=False):
         ''' Will move any orders older than X days to purged status and will also
@@ -843,12 +955,64 @@ class ProductionProvider(object):
 
         return True
 
+    def purge_orders(send_email=False):
+        ''' Will move any orders older than X days to purged status and will also
+        remove the files from disk'''
+
+        days = config.settings['policy.purge_orders_after']
+
+        logger.info('Using purge policy of {0} days'.format(days))
+
+        cutoff = datetime.datetime.now() - datetime.timedelta(days=int(days))
+
+        orders = Order.where("status = 'complete' AND completion_date < '{0}'".format(cutoff))
+
+        logger.info('Purging {0} orders from the active record.'
+            .format(len(orders)))
+
+        start_capacity = onlinecache.capacity()
+        logger.info('Starting cache capacity:{0}'.format(start_capacity))
+
+        for order in orders:
+            try:
+                #with transaction.atomic():
+                order.update('status', 'purged')
+                for product in order.scenes():
+                    product.update('status ', 'purged')
+                    product.update('log_file_contents ', '')
+                    product.update('product_distro_location ', '')
+                    product.update('product_dload_url ', '')
+                    product.update('cksum_distro_location ', '')
+                    product.update('cksum_download_url ', '')
+                    product.update('job_name ', '')
+
+                # bulk update product status, delete unnecessary field data
+                logger.info('Deleting {0} from online cache disk'
+                   .format(order.orderid))
+
+                onlinecache.delete(order.orderid)
+            except onlinecache.OnlineCacheException:
+                logger.exception('Could not delete {0} from the online cache'
+                    .format(order.orderid))
+            except Exception:
+                logger.exception('Exception purging {0}'
+                    .format(order.orderid))
+
+        end_capacity = onlinecache.capacity()
+        logger.info('Ending cache capacity:{0}'.format(end_capacity))
+
+        if send_email is True:
+            logger.info('Sending purge report')
+            emails.send_purge_report(start_capacity, end_capacity, orders)
+
+        return True
+
     def handle_orders(self):
         '''Logic handler for how we accept orders + products into the system'''
-        send_initial_emails() #
-        handle_onorder_landsat_products() #
-        handle_retry_products() #
-        load_ee_orders() #
+        send_initial_emails()
+        handle_onorder_landsat_products()
+        handle_retry_products()
+        load_ee_orders()
         handle_submitted_products()
         finalize_orders()
 
@@ -864,7 +1028,7 @@ class ProductionProvider(object):
             cache.set(cache_key, datetime.datetime.now(), timeout)
 
             #purge the orders from disk now
-            purge_orders(send_email=True)  #
+            purge_orders(send_email=True)
         else:
             logger.info('Purge lock detected... skipping')
         return True
