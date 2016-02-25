@@ -1,7 +1,7 @@
 from decimal import Decimal
 
 import validictory
-from validictory.validator import RequiredFieldValidationError
+from validictory.validator import RequiredFieldValidationError, SchemaError, DependencyValidationError
 import api.providers.ordering.ordering_provider as ordering
 
 
@@ -11,10 +11,12 @@ class OrderValidatorV0(validictory.SchemaValidator):
         super(OrderValidatorV0, self).__init__(*args, **kwargs)
         self.data_source = None
         self.base_schema = None
+        self._itemcount = None
 
     def validate(self, data, schema):
         self.data_source = data
         self.base_schema = schema
+        self._itemcount = {}
         super(OrderValidatorV0, self).validate(data, schema)
 
     def validate_extents(self, x, fieldname, schema, path, pixel_count=200000000):
@@ -192,7 +194,8 @@ class OrderValidatorV0(validictory.SchemaValidator):
 
         dif = set(req_prods) - set(avail_prods)
         if dif:
-            self._error('The requested product(s) is not available at this time', list(dif), fieldname, path=path)
+            self._error('The requested product(s) is not available at this time', list(dif),
+                        fieldname, path=path)
 
 
     def validate_oneormoreobjects(self, x, fieldname, schema, path, key_list):
@@ -206,3 +209,29 @@ class OrderValidatorV0(validictory.SchemaValidator):
 
             self._error('No requests for products were submitted', None, None, path=path,
                         exctype=RequiredFieldValidationError)
+
+    def validate_set_ItemCount(self, x, fieldname, schema, path, (key, val)):
+        """Sets item count limits for multiple arrays across a potential order"""
+        if key in self._itemcount:
+            raise SchemaError('ItemCount {} set multiple times'.format(key))
+        if not self.validate_type_integer(val):
+            raise SchemaError('Max value for {} must be an integer'.format(key))
+
+        self._itemcount[key] = {'count': 0, 'max': val}
+
+    def validate_ItemCount(self, x, fieldname, schema, path, key):
+        """
+        Increment the count for the specified key
+
+        Make sure the total count for the category does not exceed a max value
+        """
+        vals = x.get(fieldname)
+
+        if not self.validate_type_array(vals):
+            return
+
+        self._itemcount[key]['count'] += len(vals)
+
+        if self._itemcount[key]['count'] > self._itemcount[key]['max']:
+            self._error('Count exceeds size limit of {max} for {key}', None, None,
+                        exctype=DependencyValidationError, max=self._itemcount[key]['max'], key=key)
