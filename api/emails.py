@@ -100,7 +100,7 @@ class Emails(object):
         '''Finds all the orders that have not had their initial emails sent and
         sends them'''
 
-        orders = Order.where('status', 'ordered')
+        orders = Order.where(["status = 'ordered'"])
         for o in orders:
             if not o.initial_email_sent:
                 self.send_initial(o)
@@ -109,7 +109,7 @@ class Emails(object):
     def send_initial(self, order):
 
         if isinstance(order, str):
-            order = Order.where('orderid', order)[0]
+            order = Order.where(['orderid = {0}'.format(order)])[0]
         elif isinstance(order, int):
             order = Order(order)
 
@@ -130,8 +130,8 @@ class Emails(object):
         m.append("Requested products\n")
         m.append("-------------------------------------------\n")
 
-        scenes = Scene.where('order_id', order.id)
-
+        scene_params = ["order_id = {0}".format(order.id)]
+        scenes = Scene.where(scene_params)
         #products = order.scene_set.all()
 
         for product in scenes:
@@ -149,9 +149,9 @@ class Emails(object):
     def send_completion(self, order):
 
         if isinstance(order, str):
-            order = Order.where('orderid', order)
+            order = Order.where(["orderid = '{0}'".format(order)])
         elif isinstance(order, int):
-            order = Order(id)
+            order = Order.where(["id = {0}".format(order)])
 
         if not isinstance(order, Order):
             msg = 'order must be str, int or instance of Order'
@@ -172,7 +172,7 @@ class Emails(object):
         m.append("-------------------------------------------\n")
 
         #products = order.scene_set.filter(status='complete')
-        scenes = Scene.where("status", "complete")
+        scenes = Scene.where("status = 'complete'")
 
         for product in scenes:
             line = product.name

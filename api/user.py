@@ -11,13 +11,21 @@ from validate_email import validate_email
 
 from api.api_logging import api_logger as logger
 
+class UserException(Exception):
+    pass
+
 class User(UserMixin):
 
-    def __init__(self, username, email, first_name, last_name):
+    base_sql = "SELECT username, email, first_name, last_name, contactid "\
+                "FROM auth_user JOIN ordering_userprofile ON auth_user.id "\
+                "= ordering_userprofile.user_id WHERE "
+
+    def __init__(self, username, email, first_name, last_name, contactid):
         self.username = username
         self.email = email
         self.first_name = first_name
         self.last_name = last_name
+        self.contactid = contactid
 
         @property
         def username(self):
@@ -61,7 +69,7 @@ class User(UserMixin):
 
         # check if user exists in our DB, if
         # not create them, and assign self.id
-        self.id = User.find_or_create_user(self.username, self.email, self.first_name, self.last_name)
+        self.id = User.find_or_create_user(self.username, self.email, self.first_name, self.last_name, self.contactid)
 
 
     @classmethod
@@ -69,15 +77,16 @@ class User(UserMixin):
         user_tup = None
         try:
             lta_user = lta.get_user_info(username, password)
+            contactid = lta.login_user(username, password)
         except:
             exc_type, exc_val, exc_trace = sys.exc_info()
             logger.debug("ERR retrieving user from lta, username: {0}\n exception {1}".format(username, traceback.format_exc()))
             raise exc_type, exc_val, exc_trace
 
-        return (str(username), str(lta_user.email), str(lta_user.first_name), str(lta_user.last_name))
+        return (str(username), str(lta_user.email), str(lta_user.first_name), str(lta_user.last_name), str(contactid))
 
     @classmethod
-    def find_or_create_user(cls, username, email, first_name, last_name):
+    def find_or_create_user(cls, username, email, first_name, last_name, contactid):
         user_id = None
         nownow = time.strftime('%Y-%m-%d %H:%M:%S')
         insert_stmt = "insert into auth_user (username, " \
@@ -105,7 +114,48 @@ class User(UserMixin):
                                                            last_name, traceback.format_exc()))
                 raise exc_type, exc_val, exc_trace
 
+            # now lets make sure contactid exists in ordering_userprofile
+            # ideally we just move this field into the auth_user table in
+            # the future
+            cselect = "select contactid from ordering_userprofile where "\
+                        "user_id = {0};".format(user_id)
+            db.select(cselect)
+            if not db:
+                # we need to store the users contactid
+                cinsert = "INSERT INTO ordering_userprofile(user_id, contactid) "\
+                            "VALUES ({0}, '{1}');".format(user_id, contactid)
+                try:
+                    db.execute(cinsert)
+                    db.commit()
+                except dbconnect.DBConnectException, e:
+                    db.rollback()
+                    emsg = "Error adding record to ordering_userprofile. "\
+                            "msg: {0}".format(e.message)
+                    raise UserException(emsg)
+
         return user_id
+
+    @classmethod
+    def where(cls, params):
+        sql = [str(cls.base_sql)]
+        if isinstance(params, list):
+            param_str = " AND ".join(params)
+            sql.append(param_str)
+        elif isinstance(params, str):
+            sql.append(params)
+        else:
+            raise UserException("User.where arg needs to be a list or a str")
+
+        sql.append(";")
+        sql = " ".join(sql)
+        with DBConnect(**api_cfg()) as db:
+            db.select(sql)
+            returnlist = []
+            for i in db:
+                obj = User(i["username"], i["email"], i["first_name"], i["last_name"], i["contactid"])
+                returnlist.append(obj)
+
+        return returnlist
 
     def roles(self):
         result = None
@@ -147,3 +197,4 @@ class User(UserMixin):
                 "last_name": self.last_name,
                 "username": self.username,
                 "roles": self.role_list()}
+

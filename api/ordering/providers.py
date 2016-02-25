@@ -6,7 +6,7 @@ from api.providers.ordering import MockOrderingProvider
 from api.providers.validation import MockValidationProvider
 from api.providers.ordering.ordering_provider import OrderingProvider
 from api.providers.validation import ValidationProvider
-
+from api.providers.ordering.production_provider import ProductionProvider
 
 class DefaultProviders(object):
     api_versions = {"versions":
@@ -23,6 +23,7 @@ class DefaultProviders(object):
 
     inventory = MockInventoryProvider()
 
+    production = ProductionProvider()
 
 class MockProviders(object):
     ordering = MockOrderingProvider()

@@ -23,6 +23,7 @@ class API(object):
         self.inventory = self.providers.inventory
         self.validation = self.providers.validation
         self.metrics = self.providers.metrics
+        self.production = self.providers.production
 
     def api_versions(self):
         """
@@ -186,7 +187,9 @@ class API(object):
             response = default_error_message
 
         return response
-
+    ###
+    # Prouction API
+    ###
     def fetch_production_products(self, params):
         """Returns products ready for production
 
@@ -201,7 +204,7 @@ class API(object):
             list: list of products
         """
         try:
-            response = self.ordering.get_products_to_process(**params)
+            response = self.production.get_products_to_process(**params)
         except:
             logger.debug("ERR version0 fetch_production_products, params: {0}\ntrace: {1}\n".format(params, traceback.format_exc()))
             response = default_error_message
@@ -225,7 +228,7 @@ class API(object):
             True if successful
         """
         try:
-            response = self.ordering.update_product(action, **params)
+            response = self.production.update_product(action, **params)
         except:
             logger.debug("ERR version0 update_product_details, params: {0}\ntrace: {1}\n".format(params, traceback.format_exc()))
             response = default_error_message
@@ -242,7 +245,7 @@ class API(object):
             True if successful
         """
         try:
-            response = self.ordering.handle_orders()
+            response = self.production.handle_orders()
         except:
             logger.debug("ERR version0 handle_orders. trace: {0}".format(traceback.format_exc()))
             response = default_error_message
@@ -259,7 +262,7 @@ class API(object):
             True if successful
         """
         try:
-            response = self.ordering.queue_products(params)
+            response = self.production.queue_products(params)
         except:
             logger.debug("ERR version0 queue_products params: {0}\ntrace: {1}".format(params, traceback.format_exc()))
             response = default_error_message
