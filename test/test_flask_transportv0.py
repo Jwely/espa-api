@@ -5,8 +5,10 @@ import json
 import unittest
 import tempfile
 import transport
+import version0_testorders as testorders
+import copy
 
-from api.utils import api_cfg
+from api.utils import api_cfg, lowercase_all
 from api.dbconnect import DBConnect
 
 
@@ -33,6 +35,7 @@ class TransportTestCase(unittest.TestCase):
         ordersql = "select orderid from ordering_order where id = {};".format(itemorderid)
         db.select(ordersql)
         self.itemorderid = db[0][0]
+        self.base_order = lowercase_all(testorders.build_base_order())
 
     def tearDown(self):
         pass
@@ -132,6 +135,15 @@ class TransportTestCase(unittest.TestCase):
         response = self.app.get(url, headers=self.headers)
         resp_json = json.loads(response.get_data())
         assert 'properties' in resp_json.keys()
+
+    def test_post_order(self):
+        pass
+        # url = '/api/v0/order'
+        #
+        # header = copy.deepcopy(self.headers)
+        #
+        #
+        # response = self.app.get(url)
 
 if __name__ == '__main__':
     unittest.main()

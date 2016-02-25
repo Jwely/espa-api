@@ -120,17 +120,18 @@ def place_user_order():
     try:
         if request.headers['Content-Type'] == u'application/json':
             order = request.get_json()
-        elif request.headers['Content-Type'] == u'text/plain':
-            order = json.loads(request.data)
         elif request.headers['Content-Type'] == u'application/x-www-form-urlencoded':
             order = json.loads(request.form.keys()[0])
+        else:
+            order = json.loads(request.data)
     except Exception as e:
         # LOG ME
         pass
 
     if not order:
-        response = {"errmsg": "Please ensure your order follows json conventions. If you believe"
-                              " this message is in error please email customer service"}
+        response = {"errmsg": "Unable to parse POST json data."
+                              "Please ensure your order follows json conventions and your http call is correct."
+                              " If you believe this message is in error please email customer service"}
     else:
         order = lowercase_all(order)
         response = api.place_order(order, current_user.username)
