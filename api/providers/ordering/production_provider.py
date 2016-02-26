@@ -31,6 +31,44 @@ class ProductionProviderException(Exception):
 
 class ProductionProvider(object):
 
+    def queue_products(order_name_tuple_list, processing_location, job_name):
+        ''' Allows the caller to place products into queued status in bulk '''
+
+        if not isinstance(order_name_tuple_list, list):
+            msg = list()
+            msg.append("queue_products expects a list of ")
+            msg.append("tuples(order_id, product_id) for the first argument")
+            raise TypeError(''.join(msg))
+
+        # this should be a dictionary of lists, with order as the key and
+        # the scenes added to the list
+        orders = {}
+
+        for order, product_name in order_name_tuple_list:
+            if not order in orders:
+                orders[order] = list()
+            orders[order].append(product_name)
+
+        # now use the orders dict we built to update the db
+        for order in orders:
+            products = orders[order]
+
+            product_tup = tuple(products)
+            order = Order.where("orderid = '{0}'".format(orderid)[0]
+            scene_filters = ["name in {0}".format(product_tup)]
+            scene_filters.append("order_id = {0}".format(order.id)
+            scenes = Scene.where(scene_filters)
+
+            for scene in scenes:
+                scene.status = 'queued'
+                scene.processing_location = processing_location
+                scene.log_file_contents = ''
+                scene.note = ''
+                scene.job_name = job_name
+                scene.save()
+
+        return True
+
     def mark_product_complete(self, name=None, orderid=None, processing_loc=None,
                                 completed_file_location=None, destination_cksum_file=None,
                                 log_file_contents=None):
