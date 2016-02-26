@@ -3,6 +3,8 @@
 from api.utils import api_cfg
 from api.dbconnect import DBConnect
 from api.domain.scene import Scene
+from api.api_logging import api_logger as logger
+from psycopg2.extras import Json
 import datetime
 
 cfg = api_cfg()
@@ -19,11 +21,8 @@ class Order(object):
                 "completion_email_sent, product_opts FROM ordering_order WHERE "
 
     def __init__(self, atts):
-        odict = {}
         for key, value in atts.iteritems():
             setattr(self, key, value)
-            odict[key] = value
-        self._as_dict = odict
 
     def __repr__(self):
         return "Order:{0}".format(self.__dict__)
@@ -241,11 +240,59 @@ class Order(object):
             db.select(sql)
             return db[0]['email']
 
+    def save(self):
+        sql_list = ["UPDATE ordering_order SET "]
+        attr_tup = ('orderid', 'status', 'order_source', 'product_options', 'product_opts',
+                    'order_type', 'initial_email_sent', 'completion_email_sent',
+                    'note', 'completion_date', 'order_date', 'user_id', 'ee_order_id',
+                    'email', 'priority')
+        null_fields = ('ordering_date', 'completion_date', 'initial_email_sent',
+                        'completion_email_sent', 'product_opts')
+        for idx, attr in enumerate(attr_tup):
+            val = self.__getattribute__(attr)
+            if val is None:
+                if attr in null_fields:
+                    sql_snip = "{0} = {1}, "
+                    val = 'null'
+                else:
+                    sql_snip = "{0} = '{1}', "
+                    val = ''
+            else:
+                if attr == "user_id":
+                    sql_snip = "{0} = {1}, "
+                elif attr == "product_opts":
+                    sql_snip = "{0} = {1},  "
+                    # subsequent call to order.product_opts returns Json object
+                    # only way could get the insert into the db. method for
+                    # returning str from that is getquoted()
+                    val = Json(self.product_opts)
+                else:
+                    sql_snip = "{0} = '{1}', "
+
+            if idx == len(attr_tup) - 1:
+                sql_snip = sql_snip.replace(",", "")
+
+            sql_snip = sql_snip.format(attr, val)
+
+            sql_list.append(sql_snip)
+
+        sql_list.append("WHERE id = {0};".format(self.id))
+
+        sql = " ".join(sql_list)
+        logger.info("saving updates to order {0}\n sql: {1}\n\n".format(self.orderid, sql))
+        #return sql
+
+        with DBConnect(**cfg) as db:
+            db.execute(sql)
+            db.commit()
+        return True
+
     def update(self, att, val):
         self.__setattr__(att, val)
         if isinstance(val, str) or isinstance(val, datetime.datetime):
             val = "\'{0}\'".format(val)
         sql = "update ordering_order set {0} = {1} where id = {2};".format(att, val, self.id)
+        #return sql
         with DBConnect(**cfg) as db:
             db.execute(sql)
             db.commit()

@@ -54,9 +54,9 @@ class ProductionProvider(object):
             products = orders[order]
 
             product_tup = tuple(products)
-            order = Order.where("orderid = '{0}'".format(orderid)[0]
+            order = Order.where("orderid = '{0}'".format(orderid)[0])
             scene_filters = ["name in {0}".format(product_tup)]
-            scene_filters.append("order_id = {0}".format(order.id)
+            scene_filters.append("order_id = {0}".format(order.id))
             scenes = Scene.where(scene_filters)
 
             for scene in scenes:
@@ -119,14 +119,14 @@ class ProductionProvider(object):
 
         order_id = Scene.get('order_id', name=name, orderid=orderid)
         order_source = Scene.get('order_source', name=name, orderid=orderid)
-        sql_list = ["update ordering_scene set "]
-        sql_list.append(" status = 'unavailable', ")
-        sql_list.append(" processing_location = '{0}', ".format(processing_loc))
-        sql_list.append(" completion_date = {0}, ".format(datetime.datetime.now()))
-        sql_list.append(" log_file_contents = '{0}', ".format(error))
-        sql_list.append(" note = '{0}' ".format(note))
-        sql_list.append(" where name = '{0}' AND order_id = {1};".format(name, order_id))
-        sql = " ".join(sql_list)
+
+        scene = Scene.where("name = '{0}' and order_id = {1}".format(name, order_id))[0]
+        scene.status = 'unavailable'
+        scene.processing_location = processing_loc
+        scene.completion_date = datetime.datetime.now()
+        scene.log_file_contents = error
+        scene.note = note
+        scene.save()
 
         if order_source == 'ee':
             # update EE
@@ -156,9 +156,10 @@ class ProductionProvider(object):
                 raise TypeError()
 
         for p in products:
-            p.update('status', 'unavailable')
-            p.update('completion_date', datetime.datetime.now())
-            p.update('note', reason)
+            p.status = 'unavailable'
+            p.completion_date = datetime.datetime.now()
+            p.note = reason
+            p.save()
 
             if p.order_attr('order_source') == 'ee':
                 lta.update_order_status(p.order.ee_order_id, p.ee_unit_id, 'R')
@@ -647,8 +648,9 @@ class ProductionProvider(object):
 
         if len(products) > 0:
             for product in products:
-                product.update('status', 'submitted')
-                product.update('note', '')
+                product.status = 'submitted'
+                product.note = ''
+                product.save()
 
     def handle_onorder_landsat_products(self):
         ''' handles landsat products still on order '''
@@ -694,8 +696,9 @@ class ProductionProvider(object):
         if len(available) > 0:
             products = Scene.where(filters)
             for product in products:
-                product.update('status', 'oncache')
-                product.update('note', '')
+                product.status = 'oncache'
+                product.note = ''
+                product.save()
 
     def send_initial_emails(self):
         return emails.Emails().send_all_initial()
@@ -775,15 +778,17 @@ class ProductionProvider(object):
             if 'available' in results and len(results['available']) > 0:
                 available_product_list = [product for product in product_list if product.name in results['available']]
                 for product in available_product_list:
-                    product.update('status', 'oncache')
-                    product.update('note','')
+                    product.status = 'oncache'
+                    product.note = ''
+                    product.save()
 
             if 'ordered' in results and len(results['ordered']) > 0:
                 ordered_product_list = [product for product in product_list if product.name in results['ordered']]
                 for product in ordered_product_list:
-                    product.update('status', 'onorder')
-                    product.update('tram_order_id', results['lta_order_id'])
-                    product.update('note', '')
+                    product.status = 'onorder'
+                    product.tram_order_id = results['lta_order_id']
+                    product.note = ''
+                    product.save()
 
             if 'invalid' in results and len(results['invalid']) > 0:
                 #look to see if they are ee orders.  If true then update the
@@ -823,13 +828,14 @@ class ProductionProvider(object):
         if len(modis_products) > 0:
             for product in modis_products:
                 if lpdaac.input_exists(product.name) is True:
-                    product.update('status', 'oncache')
+                    product.status = 'oncache'
                     logger.debug('{0} is on cache'.format(product.name))
                 else:
-                    product.update('status', 'unavailable')
-                    product.update('note', 'not found in modis data pool')
+                    product.status = 'unavailable'
+                    product.note = 'not found in modis data pool'
                     logger.debug('{0} was not found in the modis data pool'
                                  .format(product.name))
+                product.save()
 
     def handle_submitted_plot_products(self):
         ''' Moves plot products from submitted to oncache status once all
@@ -862,18 +868,19 @@ class ProductionProvider(object):
                 if len(plot) >= 1:
                     for p in plot:
                         if complete_count == 0:
-                            p.update('status','unavailable')
+                            p.status = 'unavailable'
                             note = 'No input products were available for '\
                                     'plotting and statistics'
-                            p.update('note', note)
+                            p.note = note
                             logger.info('No input products available for '
                                          'plotting in order {0}'
                                          .format(order.orderid))
                         else:
-                            p.update('status', 'oncache')
-                            p.update('note', '')
+                            p.status = 'oncache'
+                            p.note = ''
                             logger.debug("{0} plot is on cache"
                                          .format(order.orderid))
+                        p.save()
 
     def handle_submitted_products(self):
         ''' handles all submitted products in the system '''
@@ -911,9 +918,9 @@ class ProductionProvider(object):
         if len(scenes) == 0:
 
             logger.info('Completing order: {0}'.format(order.orderid))
-            order.update('status', 'complete')
-            order.update('completion_date', datetime.datetime.now())
-
+            order.status = 'complete'
+            order.completion_date = datetime.datetime.now()
+            order.save()
             #only send the email if this was an espa order.
             if order.order_source == 'espa' and not order.completion_email_sent:
                 try:
@@ -964,13 +971,14 @@ class ProductionProvider(object):
                 order.update('status', 'purged')
                 products = Scene.where("order_id = {0}".format(order.id))
                 for product in products:
-                    product.update('status', 'purged')
-                    product.update('log_file_contents', '')
-                    product.update('product_distro_location', '')
-                    product.update('product_dload_url', '')
-                    product.update('cksum_distro_location', '')
-                    product.update('cksum_download_url', '')
-                    product.update('job_name', '')
+                    product.status = 'purged'
+                    product.log_file_contents = ''
+                    product.product_distro_location = ''
+                    product.product_dload_url = ''
+                    product.cksum_distro_location = ''
+                    product.cksum_download_url = ''
+                    product.job_name = ''
+                    product.save()
 
                 # bulk update product status, delete unnecessary field data
                 logger.info('Deleting {0} from online cache disk'
@@ -1016,13 +1024,14 @@ class ProductionProvider(object):
                 #with transaction.atomic():
                 order.update('status', 'purged')
                 for product in order.scenes():
-                    product.update('status ', 'purged')
-                    product.update('log_file_contents ', '')
-                    product.update('product_distro_location ', '')
-                    product.update('product_dload_url ', '')
-                    product.update('cksum_distro_location ', '')
-                    product.update('cksum_download_url ', '')
-                    product.update('job_name ', '')
+                    product.status = 'purged'
+                    product.log_file_contents = ''
+                    product.product_distro_location = ''
+                    product.product_dload_url = ''
+                    product.cksum_distro_location = ''
+                    product.cksum_download_url = ''
+                    product.job_name = ''
+                    product.save()
 
                 # bulk update product status, delete unnecessary field data
                 logger.info('Deleting {0} from online cache disk'
@@ -1070,10 +1079,5 @@ class ProductionProvider(object):
         else:
             logger.info('Purge lock detected... skipping')
         return True
-
-
-
-
-# ??  queue_products          (order_name_tuple_list, processing_loc, job_name)
 
 
