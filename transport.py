@@ -240,9 +240,19 @@ def get_production_api_products():
     response = api.fetch_production_products(request.args) # request.args is a dict
     return jsonify(response)
 
-@app.route('/production-api/v0/<orderid>/<productid>', methods=['PUT'])
-def update_product(orderid, productid):
-    response = api.update_product_details(request.args)
+@app.route('/production-api/v0/<action>', methods=['POST'])
+def update_product(action):
+    response = api.update_product_details(action, request.form)
+    return jsonify(response)
+
+@app.route('/production-api/v0/handle-orders', methods=['POST'])
+def handle_orders():
+    response = api.handle_orders()
+    return jsonify(response)
+
+@app.route('/production-api/v0/queue-products', methods=['POST'])
+def queue_products():
+    response = api.queue_products(request.form)
     return jsonify(response)
 
 @app.route('/production-api/v0/configuration/<key>', methods=['GET'])
