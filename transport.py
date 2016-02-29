@@ -29,10 +29,11 @@ app.secret_key = config.cfg['key']
 def load_user(request):
     token = request.headers.get('Authorization')
     api_user = None
-    if token is None:
+
+    if not token:
         token = request.args.get('token')
 
-    if token is not None:
+    if token:
         token = token.replace('Basic ', '', 1)
 
         try:
@@ -42,15 +43,24 @@ def load_user(request):
 
         username, password = token.split(":")  # naive token
         user_entry = User.get(username, password)
-        if user_entry is not None:
-            # user has successfully authenticated with EE
-            # lets find or create them on our side
-            #user = User(user_entry[0],user_entry[1],user_entry[2],user_entry[3])
+        if user_entry:
             user = User(*user_entry)
             if user.id:
                 api_user = user
 
     return api_user
+
+
+@app.errorhandler(500)
+def internal_error(e):
+    return jsonify({'error': str(e),
+                    'status': 500})
+
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return jsonify({'error': str(e),
+                    'status': 404})
 
 # request.remote_addr for controlling access by ip address
 # for the production-api calls
@@ -72,10 +82,12 @@ def requires_role(cur_user, role):
 def index():
     return 'Welcome to the ESPA API, please direct requests to /api'
 
+
 @app.route('/api')
 @login_required
 def api_versions():
   return jsonify(api.api_versions())
+
 
 @app.route('/api/v<version>')
 @login_required
@@ -94,16 +106,19 @@ def api_info(version):
 
     return jsonify(response), return_code
 
+
 @app.route('/api/v0/available-products/<product_id>', methods=['GET'])
 @login_required
 def available_prods_get(product_id):
     return jsonify(api.available_products(product_id, current_user.username))
+
 
 @app.route('/api/v0/available-products', methods=['POST'])
 @login_required
 def available_prods_post():
     x = request.form['product_ids']
     return jsonify(api.available_products(x, current_user.username))
+
 
 @app.route('/api/v0/orders', methods=['GET'])
 @login_required
@@ -129,14 +144,14 @@ def place_user_order():
         pass
 
     if not order:
-        response = {"errmsg": "Unable to parse POST json data."
+        response = {"errmsg": "Unable to parse json data."
                               "Please ensure your order follows json conventions and your http call is correct."
                               " If you believe this message is in error please email customer service"}
     else:
         order = lowercase_all(order)
         response = api.place_order(order, current_user.username)
 
-    return_code = 200 if response.keys()[0] != "errmsg" else 401
+    return_code = 202 if response.keys()[0] != "errmsg" else 406
     return jsonify(response), return_code
 
 
@@ -147,11 +162,13 @@ def get_order_by_email(email):
     return_code = 200 if response.keys()[0] != "errmsg" else 401
     return jsonify(response), return_code
 
+
 @app.route('/api/v0/order/<ordernum>', methods=['GET'])
 @login_required
 def get_order_by_ordernum(ordernum):
     response = api.fetch_order(ordernum)
     return jsonify(response)
+
 
 @app.route('/api/v0/order-status/<ordernum>', methods=['GET'])
 @login_required
@@ -159,12 +176,14 @@ def get_order_status_by_ordernum(ordernum):
     response = api.order_status(ordernum)
     return jsonify(response)
 
+
 @app.route('/api/v0/item-status/<orderid>', methods=['GET'])
 @app.route('/api/v0/item-status/<orderid>/<itemnum>', methods=['GET'])
 @login_required
 def get_item_status(orderid, itemnum='ALL'):
     response = api.item_status(orderid, itemnum)
     return jsonify(response)
+
 
 @app.route('/api/v0/user', methods=['GET'])
 @login_required

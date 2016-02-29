@@ -54,7 +54,9 @@ class OrderingProvider(ProviderInterfaceV0):
         with open('api/domain/restricted.yaml') as f:
             restricted_list = yaml.load(f.read())
         for prod in restricted_list['internal_only']:
-            for sensor_type in pub_prods.keys():
+            for sensor_type in pub_prods:
+                if sensor_type == 'not_implemented':
+                    continue
                 if prod in pub_prods[sensor_type]['outputs']:
                     pub_prods[sensor_type]['outputs'].remove(prod)
 

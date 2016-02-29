@@ -74,10 +74,11 @@ class API(object):
         try:
             response = self.ordering.available_products(product_id, username)
         except:
-            logger.debug("ERR version0 available_prods_get product_id: {0} " \
+            logger.debug("ERR version0 available_prods_get product_id: {0} "
                          "username: {1}\nexception {2}".format(product_id, username,
                                                                traceback.format_exc()))
             response = default_error_message
+            raise
 
         return response
 
