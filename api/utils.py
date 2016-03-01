@@ -17,7 +17,7 @@ def get_cfg(cfgfile=".cfgnfo"):
     :return: dict
     """
     if cfgfile == ".cfgnfo" or cfgfile == '.cfgnfo-test':
-        cfg_path = os.path.join(os.path.expanduser('~'), '.cfgnfo')
+        cfg_path = os.path.join(os.path.expanduser('~'), cfgfile)
     else:
         cfg_path = cfgfile
 
