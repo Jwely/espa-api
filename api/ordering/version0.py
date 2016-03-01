@@ -193,9 +193,13 @@ class API(object):
             response = default_error_message
 
         return response
-    ###
-    # Prouction API
-    ###
+
+    ####################
+    ####################
+    ## Production API ##
+    ####################
+    ####################
+
     def fetch_production_products(self, params):
         """Returns products ready for production
 
@@ -241,7 +245,7 @@ class API(object):
 
         return response
 
-    def handle_orders():
+    def handle_orders(self):
         """Handler for accepting orders and products into the processing system
 
         Args:

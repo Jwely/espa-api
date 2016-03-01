@@ -20,9 +20,32 @@ class Order(object):
                 "completion_date, note, initial_email_sent,"\
                 "completion_email_sent, product_opts FROM ordering_order WHERE "
 
-    def __init__(self, atts):
-        for key, value in atts.iteritems():
-            setattr(self, key, value)
+    def __init__(self, orderid=None, status=None, order_source=None, order_type=None,
+                product_options=None, product_opts=None, initial_email_sent=None,
+                completion_email_sent=None, note=None, completion_date=None,
+                order_date=None, user_id=None, ee_order_id=None, email=None,
+                priority=None):
+                self.orderid = orderid
+                self.status = status
+                self.order_source = order_source
+                self.order_type = order_type
+                self.product_options = product_options
+                self.product_opts = product_opts
+                self.initial_email_sent = initial_email_sent
+                self.completion_email_sent = completion_email_sent
+                self.note = note
+                self.completion_date = completion_date
+                self.order_date = order_date
+                self.user_id = user_id
+                self.ee_order_id = ee_order_id
+                self.email = email
+                self.priority = priority
+                with DBConnect(**cfg) as db:
+                    db.select("select id from ordering_order where orderid = '{0}';".format(orderid))
+                    if db:
+                        self.id = db[0]['id']
+                    else:
+                        self.id = None
 
     def __repr__(self):
         return "Order:{0}".format(self.__dict__)
@@ -62,12 +85,19 @@ class Order(object):
 
         sql.append(";")
         sql = " ".join(sql)
+        results = []
         with DBConnect(**cfg) as db:
             db.select(sql)
             returnlist = []
             for i in db:
-                obj = Order(i)
-                returnlist.append(obj)
+                results.append(i)
+
+        returnlist = []
+        for i in results:
+            od = dict(i)
+            del od["id"]
+            order = Order(**od)
+            returnlist.append(order)
 
         return returnlist
 
@@ -241,45 +271,66 @@ class Order(object):
             return db[0]['email']
 
     def save(self):
-        sql_list = ["UPDATE ordering_order SET "]
         attr_tup = ('orderid', 'status', 'order_source', 'product_options', 'product_opts',
                     'order_type', 'initial_email_sent', 'completion_email_sent',
                     'note', 'completion_date', 'order_date', 'user_id', 'ee_order_id',
                     'email', 'priority')
         null_fields = ('ordering_date', 'completion_date', 'initial_email_sent',
                         'completion_email_sent', 'product_opts')
+
+        if self.id:
+            # this is an existing order
+            sql_list = ["UPDATE ordering_order SET "]
+            snip_pre = "{0} = "
+        else:
+            # this is a new order
+            sql_list = ["INSERT INTO ordering_order "]
+            sql_list.append(" {0} VALUES (".format(attr_tup))
+            snip_pre = "{0}"
+
+
         for idx, attr in enumerate(attr_tup):
             val = self.__getattribute__(attr)
             if val is None:
                 if attr in null_fields:
-                    sql_snip = "{0} = {1}, "
+                    sql_snip = "{1}, "
                     val = 'null'
                 else:
-                    sql_snip = "{0} = '{1}', "
+                    sql_snip = "'{1}', "
                     val = ''
             else:
                 if attr == "user_id":
-                    sql_snip = "{0} = {1}, "
+                    sql_snip = "{1}, "
                 elif attr == "product_opts":
-                    sql_snip = "{0} = {1},  "
+                    sql_snip = "{1},  "
                     # subsequent call to order.product_opts returns Json object
                     # only way could get the insert into the db. method for
                     # returning str from that is getquoted()
                     val = Json(self.product_opts)
                 else:
-                    sql_snip = "{0} = '{1}', "
+                    sql_snip = "'{1}', "
 
             if idx == len(attr_tup) - 1:
                 sql_snip = sql_snip.replace(",", "")
 
-            sql_snip = sql_snip.format(attr, val)
+            sql_snip = snip_pre + sql_snip
+
+            if "=" in snip_pre:
+                sql_snip = sql_snip.format(attr, val)
+            else:
+                sql_snip = sql_snip.format("", val)
 
             sql_list.append(sql_snip)
 
-        sql_list.append("WHERE id = {0};".format(self.id))
+        if "=" in snip_pre:
+            verbage = "saving updates to "
+            sql_list.append("WHERE id = {0};".format(self.id))
+        else:
+            verbage = "creating "
+            sql_list.append(");")
 
         sql = " ".join(sql_list)
-        logger.info("saving updates to order {0}\n sql: {1}\n\n".format(self.orderid, sql))
+        logger.info("{0} order {1}\n sql: {2}\n\n".format(verbage, self.orderid, sql))
         #return sql
 
         with DBConnect(**cfg) as db:
