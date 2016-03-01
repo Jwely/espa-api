@@ -1,5 +1,5 @@
-from api.utils import api_cfg
-from api.dbconnect import DBConnect
+from api.domain.utils import api_cfg
+from api.domain.dbconnect import DBConnect
 from api.domain.order import Order
 from api.domain.scene import Scene
 from api.api_logging import api_logger as logger

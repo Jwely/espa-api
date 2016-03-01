@@ -7,7 +7,7 @@ import requests
 import os
 
 from api.domain import sensor
-from api import utils
+from api.domain import utils
 
 from api.domain.config import ApiConfig
 from api.api_logging import api_logger as logger

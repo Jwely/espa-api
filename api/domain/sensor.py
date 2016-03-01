@@ -4,13 +4,10 @@ configured values for each product
 Author: David V. Hill
 """
 
-import logging
-
 import re
 from api.api_except import ProductNotImplemented
 
-logger = logging.getLogger(__name__)
-
+from api.api_logging import api_logger as logger
 
 class SensorProduct(object):
     """Base class for all sensor products"""

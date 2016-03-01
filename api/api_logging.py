@@ -5,7 +5,7 @@ from logging import FileHandler
 from logging import Formatter
 from logging import Filter
 from logging.handlers import SMTPHandler
-from api.utils import api_cfg
+from api.domain.utils import api_cfg
 
 if not os.path.exists("logs"):
     os.mkdir("logs")

@@ -5,9 +5,9 @@ from flask import request
 from flask import Response
 from flask.ext.login import LoginManager, login_required, current_user
 from api.ordering.version0 import API
-from api.user import User
+from api.domain.user import User
 from api.domain.config import ApiConfig
-from api.utils import lowercase_all
+from api.domain.utils import lowercase_all
 from api.domain import api_operations_v0
 from functools import wraps
 

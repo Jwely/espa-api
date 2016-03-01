@@ -6,7 +6,7 @@ import datetime
 import subprocess
 import datetime
 
-from dbconnect import DBConnect
+from api.domain.dbconnect import DBConnect
 import psycopg2.extras
 
 def get_cfg(cfgfile=".cfgnfo"):

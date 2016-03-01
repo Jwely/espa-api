@@ -2,16 +2,16 @@ from api.domain import sensor
 from api.domain.scene import Scene
 from api.domain.order import Order
 from api.domain.config import ApiConfig
-from api.dbconnect import DBConnect, DBConnectException
-from api.utils import api_cfg
+from api.domain.dbconnect import DBConnect, DBConnectException
+from api.domain.utils import api_cfg
 from validate_email import validate_email
 from api.providers.ordering import ProviderInterfaceV0
-from api import errors
-from api import lpdaac
-from api import lta
-from api import onlinecache
-from api import emails
-from api import nlaps
+from api.domain import errors
+from api.domain import lpdaac
+from api.domain import lta
+from api.domain import onlinecache
+from api.domain import emails
+from api.domain import nlaps
 
 import yaml
 import copy

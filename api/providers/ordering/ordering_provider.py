@@ -1,13 +1,13 @@
 from api.domain import sensor
 from api.domain.scene import Scene
 from api.domain.config import ApiConfig
-from api.dbconnect import DBConnect, DBConnectException
-from api.utils import api_cfg
+from api.domain.dbconnect import DBConnect, DBConnectException
+from api.domain.utils import api_cfg
 from validate_email import validate_email
 from api.providers.ordering import ProviderInterfaceV0
-from api import errors
-from api import lpdaac
-from api import emails
+from api.domain import errors
+from api.domain import lpdaac
+from api.domain import emails
 
 import yaml
 import copy

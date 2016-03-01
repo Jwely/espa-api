@@ -4,9 +4,9 @@ import traceback
 import psycopg2
 from flask.ext.login import UserMixin
 
-from api import lta
-from api.dbconnect import DBConnect
-from api.utils import api_cfg
+from api.domain import lta
+from api.domain.dbconnect import DBConnect
+from api.domain.utils import api_cfg
 from validate_email import validate_email
 
 from api.api_logging import api_logger as logger

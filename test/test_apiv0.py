@@ -5,8 +5,8 @@ import copy
 import re
 
 from api.ordering.version0 import API
-from api.utils import api_cfg, lowercase_all
-from api.dbconnect import DBConnect
+from api.domain.utils import api_cfg, lowercase_all
+from api.domain.dbconnect import DBConnect
 import version0_testorders as testorders
 from api.providers.validation import validation_schema
 from api.api_except import ValidationException
