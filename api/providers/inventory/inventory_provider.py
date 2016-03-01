@@ -5,6 +5,9 @@ from api.api_exceptions import InventoryException
 
 
 class InventoryProviderV0(InventoryInterfaceV0):
+    """
+    Check incoming orders against supported inventories
+    """
     def check(self, order):
         LTA_prods = ['tm4', 'tm5', 'etm7', 'olitirs8', 'oli8']
         LPDAAC_prods = ['mod09a1', 'mod09ga', 'mod09gq', 'mod09q1',

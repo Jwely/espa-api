@@ -207,8 +207,25 @@ class TestValidation(unittest.TestCase):
 
 
 class TestInventory(unittest.TestCase):
-    pass
+    def setUp(self):
+        self.lta_prod_good = 'lc80290302016058lgn00'
+        self.lta_prod_bad = 'lc80290302016058lgn01'
+        self.lpdaac_prod_good = 'mod09a1.a2000049.h00v08.005.2006268222533.1'
+        self.lpdaac_prod_bad = 'mod09a1.a2000049.h00v08.005.2006268222533.2'
 
+    def test_lta(self):
+        """
+        Check LTA support from the inventory provider
+        """
+        self.assertIsNone(api.inventory.check(self.lta_prod_good))
+        self.assertRaises(api.inventory.check(self.lta_prod_bad))
+
+    def test_lpdaac(self):
+        """
+        Check LPDAAC support from the inventory provider
+        """
+        self.assertIsNone(api.inventory.check(self.lpdaac_prod_good))
+        self.assertRaises(api.inventory.check(self.lpdaac_prod_bad))
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
