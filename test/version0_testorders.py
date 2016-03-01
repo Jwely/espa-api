@@ -401,10 +401,22 @@ class InvalidOrders(object):
         return results
 
     def invalidate_single_obj(self, val_type, mapping):
+        """
+        This really only applies to the projection field
+
+        append another valid structure
+        """
         order = copy.deepcopy(self.valid_order)
         results = []
-        # Needs to append a valid structure
-        # Mainly pertains to the projection structure
+
+        if 'lonlat' in order['projection']:
+            order['projection'].update({'aea': good_test_projections['aea']})
+        else:
+            order['projection'].update({'lonlat': good_test_projections['lonlat']})
+
+        exc = self.build_exception(': field only accepts one object', 2, mapping[-1],
+                                   path=mapping)
+        results.append((order, 'single_obj', exc))
 
         return results
 
