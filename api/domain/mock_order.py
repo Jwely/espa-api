@@ -7,8 +7,6 @@ from psycopg2.extras import Json
 import datetime
 import os
 
-cfg = api_cfg()
-
 class MockOrderException(Exception):
     pass
 
@@ -23,6 +21,8 @@ class MockOrder(Order):
                 raise("MockOrder objects only allowed while testing")
         except:
             raise MockOrderException("MockOrder objects only allowed while testing")
+
+        cfg = api_cfg()
 
     def __repr__(self):
         return "MockOrder:{0}".format(self.__dict__)
