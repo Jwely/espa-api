@@ -429,19 +429,47 @@ class InvalidOrders(object):
         order = copy.deepcopy(self.valid_order)
         results = []
 
-        ext = {'north': None,
-               'south': None,
-               'east': None,
-               'west': None,
-               'units': None}
+        ext = {'north': 0,
+               'south': 0,
+               'east': 0,
+               'west': 0,
+               'units': 'dd'}
+
+        # max pixels + 1 by keeping one of the dimensions = 1
+        dd_ext = {'west': 0,
+                  'east': (max_pixels + 1) * 0.0002695,
+                  'south': 0,
+                  'north': 0.0002695,
+                  'units': 'dd'}
+
+        m_ext = {'west': 0,
+                 'east': (max_pixels + 1) * 30,
+                 'south': 0,
+                 'north': 30,
+                 'units': 'meters'}
+
+        order.pop('resize')
 
         if 'lonlat' in order['projection']:
             upd = {'image_extents': {'units': 'meters'}}
             exc = self.build_exception('must be "dd" for projection "lonlat"', 'meters', mapping[-1],
                                        path=mapping)
             results.append((self.update_dict(order, upd), 'extents', exc))
+        else:
+            upd = {'image_extents': m_ext}
+            exc = self.build_exception(': pixel count value is greater than maximum size of {} pixels'.format(max_pixels),
+                                       max_pixels + 1, mapping[-1], path=mapping)
+            results.append((self.update_dict(order, upd), 'extents', exc))
 
-        # max pixels + 1 by keeping one of the dimensions = 1
+        upd = {'image_extents': dd_ext}
+        exc = self.build_exception(': pixel count value is greater than maximum size of {} pixels'.format(max_pixels),
+                                   max_pixels + 1, mapping[-1], path=mapping)
+        results.append((self.update_dict(order, upd), 'extents', exc))
+
+        upd = {'image_extents': ext}
+        exc = self.build_exception(': pixel count value falls below acceptable threshold, check extent parameters',
+                                   0, mapping[-1], path=mapping)
+        results.append((self.update_dict(order, upd), 'extents', exc))
 
         return results
 
