@@ -27,7 +27,8 @@ def verify_user(username, password):
         user = User(*user_entry)
         # if user.id:
         #     api_user = user
-    except:
+    except Exception as e:
+        print e
         return False
 
     return True
@@ -80,11 +81,14 @@ class AvailableProducts(Resource):
         return espa.available_products(prod_id, auth.username())
 
 
-class UserOrder(Resource):
+class ListOrders(Resource):
     decorators = [auth.login_required]
 
-    def get(self):
-        return espa.fetch_user_orders(auth.username())
+    def get(self, email=None):
+        if email:
+            pass
+        else:
+            return espa.fetch_user_orders(auth.username())
 
 
 class ValidationInfo(Resource):
@@ -102,5 +106,31 @@ class ValidationInfo(Resource):
             response = espa.validation.fetch_resampling()
         elif 'order-schema' in param:
             response = espa.validation.fetch_order_schema()
+
+        return response
+
+
+class Ordering(Resource):
+    decorators = [auth.login_required]
+
+    def get(self, ordernum):
+        return espa.fetch_order(ordernum)
+
+    def post(self):
+        order = {}
+        try:
+            order = request.get_json(force=True)
+        except Exception as e:
+            # LOG ME
+            pass
+
+        if not order:
+            response = {"errmsg": "Unable to parse json data."
+                        "Please ensure your order follows json conventions and your http call is correct."
+                        " If you believe this message is in error please email customer service"}
+
+        else:
+            order = lowercase_all(order)
+            response = espa.place_order(order, auth.username())
 
         return response
