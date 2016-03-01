@@ -16,7 +16,7 @@ def get_cfg(cfgfile=".cfgnfo"):
 
     :return: dict
     """
-    if cfgfile == ".cfgnfo":
+    if cfgfile == ".cfgnfo" or cfgfile == '.cfgnfo-test':
         cfg_path = os.path.join(os.path.expanduser('~'), '.cfgnfo')
     else:
         cfg_path = cfgfile
@@ -33,6 +33,13 @@ def get_cfg(cfgfile=".cfgnfo"):
     return cfg_info
 
 def api_cfg(cfgfile=".cfgnfo"):
+    try:
+        mode = os.environ["espa_api_testing"]
+        if mode == "True":
+            cfgfile = ".cfgnfo-test"
+    except:
+        pass
+
     config = get_cfg(cfgfile)['config']
     config['cursor_factory'] = psycopg2.extras.DictCursor
     return config
