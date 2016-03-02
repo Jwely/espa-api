@@ -8,7 +8,7 @@ from api.utils import api_cfg, lowercase_all
 from api.dbconnect import DBConnect
 import version0_testorders as testorders
 from api.providers.validation import validation_schema
-from api.api_exceptions import ValidationException
+from api.api_exceptions import ValidationException, InventoryException
 import psycopg2.extras
 
 api = API()
@@ -208,24 +208,42 @@ class TestValidation(unittest.TestCase):
 
 class TestInventory(unittest.TestCase):
     def setUp(self):
-        self.lta_prod_good = 'lc80290302016058lgn00'
-        self.lta_prod_bad = 'lc80290302016058lgn01'
-        self.lpdaac_prod_good = 'mod09a1.a2000049.h00v08.005.2006268222533.1'
-        self.lpdaac_prod_bad = 'mod09a1.a2000049.h00v08.005.2006268222533.2'
+        self.lta_prod_good = u'le70290302001200edc00'
+        self.lta_prod_bad = u'le70290302001200edc01'
+        self.lpdaac_prod_good = u'mod09a1.a2001209.h10v04.005.2007042201314'
+        self.lpdaac_prod_bad = u'mod09a1.a2001209.h10v04.005.2007042201315'
 
-    def test_lta(self):
+        self.lta_order_good = {'olitirs8': {'inputs': [self.lta_prod_good]}}
+        self.lta_order_bad = {'olitirs8': {'inputs': [self.lta_prod_bad]}}
+
+        self.lpdaac_order_good = {'mod09a1': {'inputs': [self.lpdaac_prod_good]}}
+        self.lpdaac_order_bad = {'mod09a1': {'inputs': [self.lpdaac_prod_bad]}}
+
+    def test_lta_good(self):
         """
         Check LTA support from the inventory provider
         """
-        self.assertIsNone(api.inventory.check(self.lta_prod_good))
-        self.assertRaises(api.inventory.check(self.lta_prod_bad))
+        self.assertIsNone(api.inventory.check(self.lta_order_good))
 
-    def test_lpdaac(self):
+    def test_lta_bad(self):
+        """
+        Check LTA support from the inventory provider
+        """
+        with self.assertRaises(InventoryException):
+            api.inventory.check(self.lta_order_bad)
+
+    def test_lpdaac_good(self):
         """
         Check LPDAAC support from the inventory provider
         """
-        self.assertIsNone(api.inventory.check(self.lpdaac_prod_good))
-        self.assertRaises(api.inventory.check(self.lpdaac_prod_bad))
+        self.assertIsNone(api.inventory.check(self.lpdaac_order_good))
+
+    def test_lpdaac_bad(self):
+        """
+        Check LPDAAC support from the inventory provider
+        """
+        with self.assertRaises(InventoryException):
+            api.inventory.check(self.lpdaac_order_bad)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

@@ -161,7 +161,7 @@ class OrderWrapperServiceClient(LTAService):
         for s in scene_list:
             product = sensor.instance(s)
             sb.write("<sceneId sensor='{0}'>{1}</sceneId>"
-                     .format(product.lta_name, s))
+                     .format(product.lta_name, s.upper()))
 
         sb.write("</sceneList>")
 
