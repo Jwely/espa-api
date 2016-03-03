@@ -2,6 +2,7 @@ from api.providers.inventory import InventoryInterfaceV0
 
 from api import lta, lpdaac
 from api.api_exceptions import InventoryException
+from api.domain import sensor
 
 
 class InventoryProviderV0(InventoryInterfaceV0):
@@ -9,19 +10,22 @@ class InventoryProviderV0(InventoryInterfaceV0):
     Check incoming orders against supported inventories
     """
     def check(self, order):
-        LTA_prods = ['tm4', 'tm5', 'etm7', 'olitirs8', 'oli8']
-        LPDAAC_prods = ['mod09a1', 'mod09ga', 'mod09gq', 'mod09q1',
-                        'myd09a1', 'myd09ga', 'myd09gq', 'myd09q1',
-                        'mod13a1', 'mod13a2', 'mod13a3', 'mod13q1',
-                        'myd13a1', 'myd13a2', 'myd13a3', 'myd13q1']
+        LTA_prods = sensor.SensorCONST.LTA_prods
+        LPDAAC_prods = sensor.SensorCONST.LPDAAC_prods
 
+        lta_ls = []
+        lpdaac_ls = []
         results = {}
         for key in order:
             if key in LTA_prods:
-                results = self.check_LTA(order[key]['inputs'])
-
+                lta_ls.extend(order[key]['inputs'])
             elif key in LPDAAC_prods:
-                results = self.check_LPDAAC(order[key]['inputs'])
+                lpdaac_ls.extend(order[key]['inputs'])
+
+        if lta_ls:
+            results.update(self.check_LTA(lta_ls))
+        if lpdaac_ls:
+            results.update(self.check_LPDAAC(lpdaac_ls))
 
         not_avail = []
         for key, val in results.items():

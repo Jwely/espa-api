@@ -59,6 +59,7 @@ class Modis(SensorProduct):
     date_acquired = None
     date_produced = None
     input_filename_extension = '.hdf'
+    l1_provider = 'lpdaac'
 
     def __init__(self, product_id):
         super(Modis, self).__init__(product_id)
@@ -218,6 +219,7 @@ class Landsat(SensorProduct):
     lta_product_code = None
     default_pixel_size = {'meters': 30, 'dd': 0.0002695}
     input_filename_extension = '.tar.gz'
+    l1_provider = 'lta'
 
     def __init__(self, product_id):
         product_id = product_id.strip()
@@ -427,6 +429,12 @@ class SensorCONST(object):
         'myd13q1': (r'^myd13q1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
                     ModisAqua13Q1)
     }
+
+    LTA_prods = ['tm4', 'tm5', 'etm7', 'olitirs8', 'oli8']
+    LPDAAC_prods = ['mod09a1', 'mod09ga', 'mod09gq', 'mod09q1',
+                    'myd09a1', 'myd09ga', 'myd09gq', 'myd09q1',
+                    'mod13a1', 'mod13a2', 'mod13a3', 'mod13q1',
+                    'myd13a1', 'myd13a2', 'myd13a3', 'myd13q1']
 
     def __setattr__(self, key, value):
         pass
