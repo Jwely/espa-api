@@ -18,9 +18,38 @@ class Scene(object):
                 " sensor_type, job_name, retry_after, retry_limit, retry_count FROM"\
                 " ordering_scene WHERE "
 
-    def __init__(self, atts):
-        for key, value in atts.iteritems():
-            setattr(self, key, value)
+    def __init__(self, name=None, note=None, order_id=None, product_distro_location=None,
+                product_dload_url=None, cksum_distro_location=None, cksum_download_url=None,
+                status=None, processing_location=None, completion_date=None,
+                log_file_contents=None, ee_unit_id=None, tram_order_id=None,
+                sensor_type=None, job_name=None, retry_after=None, retry_limit=None,
+                retry_count=None):
+        self.name = name
+        self.note = note
+        self.order_id = order_id
+        self.product_distro_location = product_distro_location
+        self.product_dload_url= product_dload_url
+        self.cksum_distro_location = cksum_distro_location
+        self.cksum_download_url = cksum_download_url
+        self.status = status
+        self.processing_location = processing_location
+        self.completion_date = completion_date
+        self.log_file_contents = log_file_contents
+        self.ee_unit_id = ee_unit_id
+        self.tram_order_id = tram_order_id
+        self.sensor_type = sensor_type
+        self.job_name = job_name
+        self.retry_after = retry_after
+        self.retry_limit = retry_limit
+        self.retry_count = retry_count
+        with DBConnect(**cfg) as db:
+            sql = "select id from ordering_scene where "\
+                    "name = '{0}' and order_id = {1};".format(self.name, self.order_id)
+            db.select(sql)
+            if db:
+                self.id = db[0]['id']
+            else:
+                self.id = None
 
     def __repr__(self):
         return "Scene:{0}".format(self.__dict__)
@@ -74,7 +103,9 @@ class Scene(object):
             db.select(sql)
             returnlist = []
             for i in db:
-                obj = Scene(i)
+                sd = dict(i)
+                del sd["id"]
+                obj = Scene(**sd)
                 returnlist.append(obj)
 
         return returnlist
