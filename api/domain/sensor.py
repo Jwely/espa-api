@@ -430,8 +430,8 @@ class SensorCONST(object):
                     ModisAqua13Q1)
     }
 
-    LTA_prods = ['tm4', 'tm5', 'etm7', 'olitirs8', 'oli8']
-    LPDAAC_prods = ['mod09a1', 'mod09ga', 'mod09gq', 'mod09q1',
+    LTA_ids = ['tm4', 'tm5', 'etm7', 'olitirs8', 'oli8']
+    LPDAAC_ids = ['mod09a1', 'mod09ga', 'mod09gq', 'mod09q1',
                     'myd09a1', 'myd09ga', 'myd09gq', 'myd09q1',
                     'mod13a1', 'mod13a2', 'mod13a3', 'mod13q1',
                     'myd13a1', 'myd13a2', 'myd13a3', 'myd13q1']

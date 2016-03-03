@@ -10,8 +10,8 @@ class InventoryProviderV0(InventoryInterfaceV0):
     Check incoming orders against supported inventories
     """
     def check(self, order):
-        LTA_prods = sensor.SensorCONST.LTA_prods
-        LPDAAC_prods = sensor.SensorCONST.LPDAAC_prods
+        LTA_prods = sensor.SensorCONST.LTA_ids
+        LPDAAC_prods = sensor.SensorCONST.LPDAAC_ids
 
         lta_ls = []
         lpdaac_ls = []
