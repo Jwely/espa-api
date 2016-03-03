@@ -79,6 +79,7 @@ class BaseValidationSchema(object):
                                             'enum': ['dd', 'meters']}}
 
         self.request_schema = {'type': 'object',
+                               'set_ItemCount': ('inputs', 5000),
                                'properties': {'projection': {'properties': self.projections,
                                                              'type': 'object',
                                                              # 'enum_keys': self.projections.keys(),
@@ -101,7 +102,7 @@ class BaseValidationSchema(object):
         sensor_schema = self.build_sensor_schema()
 
         self.request_schema['properties'].update(sensor_schema)
-        self.request_schema['oneormore'] = sensor_schema.keys()
+        self.request_schema['oneormoreobjects'] = sensor_schema.keys()
 
         self.valid_params = {'formats': {'formats': self.formats},
                              'resampling_methods': {'resampling_methods': self.resampling_methods},
@@ -164,12 +165,14 @@ class BaseValidationSchema(object):
                                # 'enum_keys': ['inputs', 'products'],
                                'properties': {'inputs': {'type': 'array',
                                                          'required': True,
+                                                         'ItemCount': 'inputs',
                                                          'uniqueItems': True,
                                                          'items': {'type': 'string',
                                                                    'pattern': sensor_reg[key][0]}},
                                               'products': {'type': 'array',
                                                            'uniqueItems': True,
                                                            'required': True,
+                                                           'role_restricted': True,
                                                            'items': {'type': 'string',
                                                                      'enum': sn.instance(
                                                                          sensor_reg[key][1]).products}}}}

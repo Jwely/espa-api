@@ -5,10 +5,11 @@ import json
 import unittest
 import tempfile
 import transport
+import version0_testorders as testorders
+import copy
 
-from api.domain.utils import api_cfg
+from api.domain.utils import api_cfg, lowercase_all
 from api.domain.dbconnect import DBConnect
-
 
 class TransportTestCase(unittest.TestCase):
 
@@ -33,6 +34,7 @@ class TransportTestCase(unittest.TestCase):
         ordersql = "select orderid from ordering_order where id = {};".format(itemorderid)
         db.select(ordersql)
         self.itemorderid = db[0][0]
+        self.base_order = lowercase_all(testorders.build_base_order())
 
     def tearDown(self):
         pass
@@ -108,6 +110,39 @@ class TransportTestCase(unittest.TestCase):
         response = self.app.get(url, headers=self.headers)
         resp_json = json.loads(response.get_data())
         assert 'username' in resp_json.keys()
+
+    def test_get_projections(self):
+        url = '/api/v0/projections'
+        response = self.app.get(url, headers=self.headers)
+        resp_json = json.loads(response.get_data())
+        assert 'aea' in resp_json.keys()
+
+    def test_get_formats(self):
+        url = '/api/v0/formats'
+        response = self.app.get(url, headers=self.headers)
+        resp_json = json.loads(response.get_data())
+        assert 'formats' in resp_json.keys()
+
+    def test_get_resampling(self):
+        url = '/api/v0/resampling-methods'
+        response = self.app.get(url, headers=self.headers)
+        resp_json = json.loads(response.get_data())
+        assert 'resampling_methods' in resp_json.keys()
+
+    def test_get_order_schema(self):
+        url = '/api/v0/order-schema'
+        response = self.app.get(url, headers=self.headers)
+        resp_json = json.loads(response.get_data())
+        assert 'properties' in resp_json.keys()
+
+    def test_post_order(self):
+        pass
+        # url = '/api/v0/order'
+        #
+        # header = copy.deepcopy(self.headers)
+        #
+        #
+        # response = self.app.get(url)
 
 if __name__ == '__main__':
     unittest.main()

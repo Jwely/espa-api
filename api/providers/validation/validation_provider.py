@@ -1,16 +1,23 @@
 from decimal import Decimal
 
 import validictory
+from validictory.validator import RequiredFieldValidationError, SchemaError, DependencyValidationError
+import api.providers.ordering.ordering_provider as ordering
 
 
-class ESPAOrderValidatorV0(validictory.SchemaValidator):
+class OrderValidatorV0(validictory.SchemaValidator):
     def __init__(self, *args, **kwargs):
-        super(ESPAOrderValidatorV0, self).__init__(*args, **kwargs)
+        self.username = kwargs.pop('username')
+        super(OrderValidatorV0, self).__init__(*args, **kwargs)
         self.data_source = None
+        self.base_schema = None
+        self._itemcount = None
 
     def validate(self, data, schema):
         self.data_source = data
-        super(ESPAOrderValidatorV0, self).validate(data, schema)
+        self.base_schema = schema
+        self._itemcount = {}
+        super(OrderValidatorV0, self).validate(data, schema)
 
     def validate_extents(self, x, fieldname, schema, path, pixel_count=200000000):
         params = x.get(fieldname)
@@ -160,17 +167,71 @@ class ESPAOrderValidatorV0(validictory.SchemaValidator):
                         self._error('Value must fall between {} and {}'.format(val_range[0], val_range[1]),
                                     value, fieldname, path=path)
 
-    def validate_oneormore(self, x, fieldname, schema, path, key_list):
+    def validate_role_restricted(self, x, fieldname, schema, path, restricted):
+        if not restricted:
+            return
+
+        # Like extents, we need to do some initial validation of the input up front,
+        # and let those individual validators output the errors
+        if 'inputs' not in x:
+            return
+        if not self.validate_type_array(x['inputs']):
+            return
+
+        req_prods = x.get(fieldname)
+
+        if not req_prods:
+            return
+
+        acq = x['inputs'][0]
+        avail_prods = ordering.OrderingProvider().available_products(acq, self.username)
+
+        if 'not_implemented' in avail_prods:
+            return
+
+        for key in avail_prods:
+            avail_prods = avail_prods[key]['outputs']
+
+        dif = set(req_prods) - set(avail_prods)
+        if dif:
+            self._error('The requested product(s) is not available at this time', list(dif),
+                        fieldname, path=path)
+
+
+    def validate_oneormoreobjects(self, x, fieldname, schema, path, key_list):
         """Validates that at least one value is present from the list"""
-        pass
-        # if isinstance(x, dict):
-        #     if isinstance(x[fieldname], dict):
-        #         keys = x.get(fieldname).keys()
-        #
-        #         valid = False
-        #         for key in keys:
-        #             if key in key_list:
-        #                 valid = True
-        #
-        #         if not valid:
-        #             self._error()
+        val = x.get(fieldname)
+
+        if self.validate_type_object(val):
+            for key in key_list:
+                if key in val:
+                    return
+
+            self._error('No requests for products were submitted', None, None, path=path,
+                        exctype=RequiredFieldValidationError)
+
+    def validate_set_ItemCount(self, x, fieldname, schema, path, (key, val)):
+        """Sets item count limits for multiple arrays across a potential order"""
+        if key in self._itemcount:
+            raise SchemaError('ItemCount {} set multiple times'.format(key))
+        if not self.validate_type_integer(val):
+            raise SchemaError('Max value for {} must be an integer'.format(key))
+
+        self._itemcount[key] = {'count': 0, 'max': val}
+
+    def validate_ItemCount(self, x, fieldname, schema, path, key):
+        """
+        Increment the count for the specified key
+
+        Make sure the total count for the category does not exceed a max value
+        """
+        vals = x.get(fieldname)
+
+        if not self.validate_type_array(vals):
+            return
+
+        self._itemcount[key]['count'] += len(vals)
+
+        if self._itemcount[key]['count'] > self._itemcount[key]['max']:
+            self._error('Count exceeds size limit of {max} for {key}', None, None,
+                        exctype=DependencyValidationError, max=self._itemcount[key]['max'], key=key)

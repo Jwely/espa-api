@@ -57,7 +57,9 @@ class OrderingProvider(ProviderInterfaceV0):
         with open('api/domain/restricted.yaml') as f:
             restricted_list = yaml.load(f.read())
         for prod in restricted_list['internal_only']:
-            for sensor_type in pub_prods.keys():
+            for sensor_type in pub_prods:
+                if sensor_type == 'not_implemented':
+                    continue
                 if prod in pub_prods[sensor_type]['outputs']:
                     pub_prods[sensor_type]['outputs'].remove(prod)
 
@@ -91,7 +93,7 @@ class OrderingProvider(ProviderInterfaceV0):
             if user_ids:
                 user_tup = tuple([str(idv) for idv in user_ids])
                 sql = "select orderid from ordering_order where user_id in {};".format(user_tup)
-                sql = sql.replace(",)",")")
+                sql = sql.replace(",)", ")")
                 db.select(sql)
                 if db:
                     order_list = [item[0] for item in db]
@@ -104,7 +106,7 @@ class OrderingProvider(ProviderInterfaceV0):
         out_dict = {}
         opts_dict = {}
         scrub_keys = ['initial_email_sent', 'completion_email_sent', 'id', 'user_id',
-			'ee_order_id', 'email']
+                      'ee_order_id', 'email']
 
         with DBConnect(**api_cfg()) as db:
             db.select(sql, (str(ordernum)))
@@ -112,9 +114,9 @@ class OrderingProvider(ProviderInterfaceV0):
                 for key, val in db[0].iteritems():
                     out_dict[key] = val
                 opts_str = db[0]['product_options']
-                opts_str = opts_str.replace("\n","")
+                opts_str = opts_str.replace("\n", "")
                 opts_dict = yaml.load(opts_str)
-		out_dict['product_options'] = opts_dict
+                out_dict['product_options'] = opts_dict
 
         for k in scrub_keys:
             if k in out_dict.keys():
@@ -131,7 +133,7 @@ class OrderingProvider(ProviderInterfaceV0):
         with DBConnect(**api_cfg()) as db:
             db.select(sql, str(orderid))
             if db:
-                for i in ['orderid','status']:
+                for i in ['orderid', 'status']:
                     response[i] = db[0][i]
             else:
                 response['msg'] = 'sorry, no orders matched orderid %s' % orderid
@@ -140,8 +142,8 @@ class OrderingProvider(ProviderInterfaceV0):
 
     def item_status(self, orderid, itemid='ALL'):
         response = {}
-        sql = "select oo.orderid, os.name, os.status, os.completion_date, os.note "\
-              "from ordering_order oo left join ordering_scene os on oo.id = "\
+        sql = "select oo.orderid, os.name, os.status, os.completion_date, os.note " \
+              "from ordering_order oo left join ordering_scene os on oo.id = " \
               "os.order_id where oo.orderid = %s"
         if itemid is not "ALL":
             argtup = (orderid, itemid)

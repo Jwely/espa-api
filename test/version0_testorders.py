@@ -81,9 +81,9 @@ def build_base_order():
             'plot_statistics': True}"""
 
     base = {'projection': {'lonlat': None},
-            'image_extents': {'north': 0.0002695,
+            'image_extents': {'north': 0.002695,
                               'south': 0,
-                              'east': 0.0002695,
+                              'east': 0.002695,
                               'west': 0,
                               'units': 'dd'},
             'format': 'gtiff',
@@ -116,10 +116,13 @@ class InvalidOrders(object):
     Build a list of invalid orders and expected exception messages based on a
     given schema
     """
-    def __init__(self, valid_order, schema, alt_fields=None):
+    def __init__(self, valid_order, schema, alt_fields=None, abbreviated=False):
         self.valid_order = valid_order
         self.schema = schema
         self.alt_fields = alt_fields
+
+        self.abbreviated = abbreviated
+        self.abbr = []
 
         self.invalid_list = []
         self.invalid_list.extend(self.build_invalid_list())
@@ -182,11 +185,20 @@ class InvalidOrders(object):
             sch_base = sch_base['properties'][key]
             base = base[key]
 
+        if not path and 'oneormoreobjects' in sch_base:
+            constr = sch_base['oneormoreobjects']
+            results.extend(self.invalidate_oneormoreobjects(constr, path))
+
         for key, val in base.items():
             constraints = sch_base['properties'][key]
             mapping = path + (key,)
 
             for constr_type, constr in constraints.items():
+                if self.abbreviated and constr_type in self.abbr:
+                    continue
+                elif self.abbreviated:
+                    self.abbr.append(constr_type)
+
                 invalidatorname = 'invalidate_' + constr_type
 
                 try:
@@ -252,9 +264,9 @@ class InvalidOrders(object):
 
     def invalidate_properties(self, val_type, mapping):
         """
-        Add an unknown property key: value
+        Used internally by validictory
 
-        This is currently caught with the disallow_unknown option
+        Tested through other methods
         """
         order = copy.deepcopy(self.valid_order)
         results = []
@@ -270,6 +282,7 @@ class InvalidOrders(object):
 
         for dep in dependency:
             path = mapping[:-1] + (dep,)
+            # noinspection PyTypeChecker
             exc = self.build_exception("Field '{dependency}' is required by field '{fieldname}'", None,
                                        mapping[-1], dependency=dep, path=mapping,
                                        exctype=validator.DependencyValidationError)
@@ -360,22 +373,15 @@ class InvalidOrders(object):
         return results
 
     def invalidate_items(self, val_type, mapping):
+        """
+        Used internally by validictory
+
+        Subsets need to be tested through other methods
+        """
         order = copy.deepcopy(self.valid_order)
         results = []
 
         return results
-    #
-    # def invalidate_minItems(self, val_type, mapping):
-    #     order = copy.deepcopy(self.valid_order)
-    #     results = []
-    #
-    #     return results
-    #
-    # def invalidate_maxItems(self, val_type, mapping):
-    #     order = copy.deepcopy(self.valid_order)
-    #     results = []
-    #
-    #     return results
 
     def invalidate_abs_rng(self, bounds, mapping):
         """
@@ -419,8 +425,15 @@ class InvalidOrders(object):
         return results
 
     def invalidate_extents(self, max_pixels, mapping):
+        # This is deeply tied into resize options as well
         order = copy.deepcopy(self.valid_order)
         results = []
+
+        ext = {'north': None,
+               'south': None,
+               'east': None,
+               'west': None,
+               'units': None}
 
         if 'lonlat' in order['projection']:
             upd = {'image_extents': {'units': 'meters'}}
@@ -428,16 +441,21 @@ class InvalidOrders(object):
                                        path=mapping)
             results.append((self.update_dict(order, upd), 'extents', exc))
 
+        # max pixels + 1 by keeping one of the dimensions = 1
+
         return results
 
     def invalidate_ps_dd_rng(self, rng, mapping):
+        """
+        Set values outside of the valid range
+        """
         order = copy.deepcopy(self.valid_order)
         results = []
 
         test_vals = [rng[0] - 1, rng[1] + 1]
 
         for val in test_vals:
-            upd = self.build_update_dict(mapping, val)
+            upd = self.build_update_dict(mapping[:-1], {'pixel_size': val, 'pixel_size_units': 'dd'})
             exc = self.build_exception('Value must fall between {} and {}'.format(rng[0], rng[1]),
                                        val, mapping[-1], path=mapping)
             results.append((self.update_dict(order, upd), 'ps_dd_rng', exc))
@@ -445,16 +463,101 @@ class InvalidOrders(object):
         return results
 
     def invalidate_ps_meter_rng(self, rng, mapping):
+        """
+        Set values outside of the valid range
+        """
         order = copy.deepcopy(self.valid_order)
         results = []
 
-        # test_vals = [rng[0] - 1, rng[1] + 1]
-        #
-        # for val in test_vals:
-        #     upd = self.build_update_dict(mapping, val)
-        #     exc = self.build_exception('Value must fall between {} and {}'.format(rng[0], rng[1]),
-        #                                val, mapping[-1], path=mapping)
-        #     results.append((self.update_dict(order, upd), 'ps_dd_rng', exc))
+        if 'lonlat' in order['projection']:
+            return results
+
+        test_vals = [rng[0] - 1, rng[1] + 1]
+
+        for val in test_vals:
+            upd = self.build_update_dict(mapping[:-1], {'pixel_size': val, 'pixel_size_units': 'meters'})
+            exc = self.build_exception('Value must fall between {} and {}'.format(rng[0], rng[1]),
+                                       val, mapping[-1], path=mapping)
+            results.append((self.update_dict(order, upd), 'ps_meter_rng', exc))
+
+        return results
+
+    def invalidate_role_restricted(self, restr, mapping):
+        """
+        If role base restrictions are on, add a restricted value to the list
+        """
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        if restr:
+            prods = order
+            for key in mapping:
+                prods = prods[key]
+
+            prods.append('restricted_prod')
+
+            upd = self.build_update_dict(mapping, prods)
+            exc = self.build_exception('The requested product(s) is not available at this time',
+                                       ['restricted_prod'], mapping[-1], path=mapping)
+
+            results.append((self.update_dict(order, upd), 'role_restricted', exc))
+
+        return results
+
+    def invalidate_oneormoreobjects(self, keys, mapping):
+        """
+        Remove any matching keys, so that nothing matches
+        """
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        loc = order
+        for key in mapping:
+            loc = loc[key]
+
+        for key in keys:
+            order = self.delete_key_loc(order, mapping + (key,))
+
+        exc = self.build_exception('No requests for products were submitted', None, None, path=mapping,
+                                   exctype=validator.RequiredFieldValidationError)
+
+        results.append((order, 'oneormoreobjects', exc))
+
+        return results
+
+    def invalidate_set_ItemCount(self, (count_key, max_val), mapping):
+        """
+        Used internally for setting max number of items on arrays, not touched by users
+        """
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        return results
+
+    def invalidate_ItemCount(self, count_key, mapping):
+        """
+        Increase the number of items in an array to exceed a set maximum
+        """
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        max_val = 0
+        # Need to locate the max value setting in the schema
+        for key, val in self.schema.items():
+            if key == 'set_ItemCount' and self.schema[key][0] == count_key:
+                max_val = self.schema[key][1]
+                break
+
+        base = order
+        for key in mapping:
+            base = base[key]
+
+        base.extend([base[0]] * max_val)
+
+        upd = self.build_update_dict(mapping, base)
+        exc = self.build_exception('Count exceeds size limit of {max} for {key}', None, None,
+                                    exctype=validator.DependencyValidationError, max=max_val, key=key)
+        results.append((self.update_dict(order, upd), 'ItemCount', exc))
 
         return results
 
