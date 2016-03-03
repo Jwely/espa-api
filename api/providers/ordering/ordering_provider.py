@@ -124,7 +124,7 @@ class OrderingProvider(ProviderInterfaceV0):
 
         return out_dict
 
-    def place_order(self, username, order):
+    def place_order(self, order, username):
         pass
 
     def order_status(self, orderid):

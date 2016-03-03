@@ -138,7 +138,7 @@ class API(object):
             # track metrics
             self.metrics.collect(order)
             # capture the order
-            response = self.ordering.place_order(order)
+            response = self.ordering.place_order(order, username)
         except ValidationException as e:
             logger.info('Invalid order received: {0}\nresponse {1}'.format(order, e.response))
             # Need to format the string repr of the exception for end user consumption

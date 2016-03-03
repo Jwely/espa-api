@@ -8,18 +8,25 @@ from api.domain import sensor
 class InventoryProviderV0(InventoryInterfaceV0):
     """
     Check incoming orders against supported inventories
+
+    Raises InventoryException if a requested L1 product is
+    unavailable for processing
     """
     def check(self, order):
-        LTA_prods = sensor.SensorCONST.LTA_ids
-        LPDAAC_prods = sensor.SensorCONST.LPDAAC_ids
+        ids = sensor.SensorCONST.instances.keys()
 
         lta_ls = []
         lpdaac_ls = []
         results = {}
         for key in order:
-            if key in LTA_prods:
+            l1 = ''
+            if key in ids:
+                inst = sensor.instance(order[key]['inputs'][0])
+                l1 = inst.l1_provider
+
+            if l1 == 'lta':
                 lta_ls.extend(order[key]['inputs'])
-            elif key in LPDAAC_prods:
+            elif l1 == 'lpdaac':
                 lpdaac_ls.extend(order[key]['inputs'])
 
         if lta_ls:
