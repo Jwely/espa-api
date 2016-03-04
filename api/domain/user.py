@@ -17,8 +17,7 @@ class UserException(Exception):
 class User(UserMixin):
 
     base_sql = "SELECT username, email, first_name, last_name, contactid "\
-                "FROM auth_user JOIN ordering_userprofile ON auth_user.id "\
-                "= ordering_userprofile.user_id WHERE "
+                "FROM auth_user WHERE "
 
     def __init__(self, username, email, first_name, last_name, contactid):
         self.username = username
@@ -156,6 +155,16 @@ class User(UserMixin):
                 returnlist.append(obj)
 
         return returnlist
+
+    def update(self, att, val):
+        self.__setattr__(att, val)
+        if isinstance(val, str) or isinstance(val, datetime.datetime):
+            val = "\'{0}\'".format(val)
+        sql = "update auth_user set {0} = {1} where id = {2};".format(att, val, self.id)
+        with DBConnect(**cfg) as db:
+            db.execute(sql)
+            db.commit()
+        return True
 
     def roles(self):
         result = None

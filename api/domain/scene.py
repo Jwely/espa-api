@@ -63,9 +63,9 @@ class Scene(object):
             with DBConnect(**cfg) as db:
                 db.select(sql)
             return db[0][value]
-        except DBConnectException as e:
-            logger.debug("err with Scene.get, \nmsg: {0}\nsql: {1} \n".format(e.message, sql))
-            raise SceneException(e)
+        except DBConnectException, e:
+            logger.debug("err with Scene.get, \nmsg: {0}\nsql: {1}".format(e.message, sql))
+            raise SceneException(e.message)
 
     @classmethod
     def create(cls, params):
@@ -109,6 +109,39 @@ class Scene(object):
                 returnlist.append(obj)
 
         return returnlist
+
+    @classmethod
+    def bulk_update(cls, ids=[], updates={}):
+        if not isinstance(ids, list):
+            raise TypeError("Scene.bulk_update ids should be a list")
+        if not isinstance(updates, dict):
+            raise TypeError("Scene.bulk_update updates should be a dict")
+
+        sql_list = ["UPDATE ordering_scene SET "]
+        val_list = []
+
+        fields = tuple(updates.keys())
+        vals = tuple(updates.values())
+
+        field_list = "{0} = (".format(fields).replace("'","")
+        sql_list.append(field_list)
+
+        for val in vals:
+            val_hold = "{0}" if isinstance(val, int) else "'{0}'"
+            val_list.append(val_hold.format(val))
+
+        sql_list.append(", ".join(val_list))
+        sql_list.append(") WHERE id in {0};".format(tuple(ids)))
+        sql = " ".join(sql_list)
+
+        try:
+            with DBConnect(**cfg) as db:
+                db.execute(sql)
+                db.commit()
+        except DBConnectException, e:
+            raise SceneException(e.message)
+
+        return True
 
     def update(self, att, val):
         self.__setattr__(att, val)
@@ -158,10 +191,14 @@ class Scene(object):
 
         sql = " ".join(sql_list)
         logger.info("saving updates to scene {0}\n sql: {1}\n\n".format(self.name, sql))
-        with DBConnect(**cfg) as db:
-            db.execute(sql)
-            db.commit()
-        return True
+        try:
+            with DBConnect(**cfg) as db:
+                db.execute(sql)
+                db.commit()
+                return True
+        except DBConnectException, e:
+            logger.debug("ERROR saving scene. msg: {0}\nsql: {1}".format(e.message, sql))
+            raise SceneException(e.message)
 
     def order_attr(self, att):
         sql = "select {0} from ordering_scene join ordering_order "\

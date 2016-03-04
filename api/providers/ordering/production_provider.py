@@ -59,13 +59,13 @@ class ProductionProvider(object):
             scene_filters.append("order_id = {0}".format(order.id))
             scenes = Scene.where(scene_filters)
 
-            for scene in scenes:
-                scene.status = 'queued'
-                scene.processing_location = processing_location
-                scene.log_file_contents = ''
-                scene.note = ''
-                scene.job_name = job_name
-                scene.save()
+            updates = {"status": "queued",
+                        "processing_location": processing_location,
+                        "log_file_contents": "''",
+                        "note": "''",
+                        "job_name": job_name}
+
+            Scene.bulk_update([s.id for s in scenes], updates)
 
         return True
 
@@ -85,17 +85,15 @@ class ProductionProvider(object):
         product_dload_url = ('%s/orders/%s/%s') % (base_url, orderid, product_file)
         cksum_download_url = ('%s/orders/%s/%s') % (base_url, orderid, cksum_file)
 
-        sql_list = ["update ordering_scene set "]
-        sql_list.append(" status = 'complete', ")
-        sql_list.append(" processing_location = '{0}', ".format(processing_loc))
-        sql_list.append(" product_distro_location = '{0}', ".format(completed_file_location))
-        sql_list.append(" completion_date = {0}, ".format(datetime.datetime.now()))
-        sql_list.append(" cksum_distro_location = '{0}', ".format(destination_cksum_file))
-        sql_list.append(" log_file_contents = '{0}', ".format(log_file_contents))
-        sql_list.append(" product_dload_url = '{0}', ".format(product_dload_url))
-        sql_list.append(" cksum_download_url = '{0}' ".format(cksum_download_url))
-        sql_list.append(" where name = '{0}' AND order_id = {1};".format(name, order_id))
-        sql = " ".join(sql_list)
+        scene = Scene.where("where name = '{0}' AND order_id = {1}".format(name, order_id))[0]
+        scene.status = 'complete'
+        scene.processing_location = processing_loc
+        scene.product_distro_location = completed_file_location
+        scene.completion_date = datetime.datetime.now()
+        scene.cksum_distro_location = destination_cksum_file
+        scene.log_file_contents = log_file_contents
+        scene.product_dload_url = product_dload_url
+        scene.cksum_download_url = cksum_download_url
 
         if order_source == 'ee':
             # update EE
@@ -104,11 +102,9 @@ class ProductionProvider(object):
             lta.update_order_status(ee_order_id, ee_unit_id, 'C')
 
         try:
-            with DBConnect(**api_cfg()) as db:
-                db.execute(sql)
-                db.commit()
+            scene.save()
         except DBConnectException, e:
-            message = "DBConnect Exception ordering_provider set_product_unavailable sql: {0}"\
+            message = "DBConnect Exception ordering_provider mark_product_complete sql: {0}"\
                         "\nmessage: {1}".format(sql, e.message)
             raise OrderingProviderException(message)
 
@@ -135,12 +131,10 @@ class ProductionProvider(object):
             lta.update_order_status(ee_order_id, ee_unit_id, 'R')
 
         try:
-            with DBConnect(**api_cfg()) as db:
-                db.execute(sql)
-                db.commit()
+            scene.save()
         except DBConnectException, e:
             message = "DBConnect Exception ordering_provider set_product_unavailable sql: {0}\nmessage: {1}".format(sql, e.message)
-            raise OrderingProviderException(message)
+            raise ProductionProviderException(message)
 
         return True
 
@@ -151,16 +145,22 @@ class ProductionProvider(object):
         products - A list of models.Scene objects
         reason - The user facing reason the product was rejected
         '''
+        product_ids = []
         for p in products:
-            if not isinstance(p, Scene):
+            if isinstance(p, Scene):
+                product_ids.append(p.id)
+            else:
                 raise TypeError()
 
-        for p in products:
-            p.status = 'unavailable'
-            p.completion_date = datetime.datetime.now()
-            p.note = reason
-            p.save()
+        attrs = {'status': 'unavailable',
+                'completion_date': datetime.datetime.now(),
+                'note': reason}
 
+        Scene.bulk_update(product_ids, attrs)
+        # an exception will be raised in bulk_update
+        # if it fails, so we shouldn't need to wrap
+        # the lta call in a conditional
+        for p in products:
             if p.order_attr('order_source') == 'ee':
                 lta.update_order_status(p.order.ee_order_id, p.ee_unit_id, 'R')
 
@@ -513,14 +513,9 @@ class ProductionProvider(object):
                 user_params = ["username = '{0}'".format(username), "email = '{0}'".format(email_addr)]
                 # User.where will create the user if they dont exist locally
                 user = User.where(user_params)
-
-                # * not sure yet why/where this is needed. commenting out till
-                # * that is discovered. extends django models
-                #try to retrieve the userprofile.  if it doesn't exist create
-                #try:
-                #    user.userprofile
-                #except UserProfile.DoesNotExist:
-                #    UserProfile(contactid=contactid, user=user).save()
+                # the contactid attr has been moved to the auth_user table
+                if not user.contactid:
+                    user.update('contactid', contactid)
 
                 # We have a user now.  Now build the new Order since it
                 # wasn't found.
@@ -638,7 +633,6 @@ class ProductionProvider(object):
                 logger.error(log_msg)
 
 
-
     def handle_retry_products(self):
         ''' handles all products in retry status '''
         now = datetime.datetime.now()
@@ -647,10 +641,7 @@ class ProductionProvider(object):
         products = Scene.where(filters)
 
         if len(products) > 0:
-            for product in products:
-                product.status = 'submitted'
-                product.note = ''
-                product.save()
+            Scene.bulk_update([p.id for p in products], {"status":"submitted", "note":"''"})
 
     def handle_onorder_landsat_products(self):
         ''' handles landsat products still on order '''
@@ -695,10 +686,7 @@ class ProductionProvider(object):
         ]
         if len(available) > 0:
             products = Scene.where(filters)
-            for product in products:
-                product.status = 'oncache'
-                product.note = ''
-                product.save()
+            Scene.bulk_update([p.id for p in products], {"status":"oncache", "note":"''"})
 
     def send_initial_emails(self):
         return emails.Emails().send_all_initial()
@@ -747,12 +735,10 @@ class ProductionProvider(object):
             logger.info("Retrieving contact ids for submitted landsat products")
 
             scenes = Scene.where("status = 'submitted' AND sensor_type = 'landsat'")
-            users = []
-            for scene in scenes:
-                user_parm = "id = {0}".format(scene.order_attr('user_id'))
-                users.append(User.where(user_parm)[0])
-
+            user_ids = [s.order_attr('user_id') for s in scenes]
+            users = User.where("id in {0}".format(tuple(user_ids)))
             contact_ids = set([user.contactid for user in users])
+
             logger.info("Found contact ids:{0}".format(contact_ids))
 
             return contact_ids
@@ -776,19 +762,12 @@ class ProductionProvider(object):
                          .format(contact_id))
 
             if 'available' in results and len(results['available']) > 0:
-                available_product_list = [product for product in product_list if product.name in results['available']]
-                for product in available_product_list:
-                    product.status = 'oncache'
-                    product.note = ''
-                    product.save()
+                available_product_ids = [product.id for product in product_list if product.name in results['available']]
+                Scene.bulk_update(available_product_ids, {"status":"oncache", "note":"''"})
 
             if 'ordered' in results and len(results['ordered']) > 0:
-                ordered_product_list = [product for product in product_list if product.name in results['ordered']]
-                for product in ordered_product_list:
-                    product.status = 'onorder'
-                    product.tram_order_id = results['lta_order_id']
-                    product.note = ''
-                    product.save()
+                ordered_product_ids = [product.id for product in product_list if product.name in results['ordered']]
+                Scene.bulk_update(ordered_product_ids, {"status":"onorder", "tram_order_id":results['lta_order_id'], "note":"''"})
 
             if 'invalid' in results and len(results['invalid']) > 0:
                 #look to see if they are ee orders.  If true then update the
@@ -822,20 +801,27 @@ class ProductionProvider(object):
 
         modis_products = Scene.where("status = 'submitted' AND sensor_type = 'modis'")
 
-        logger.debug("Found {0} submitted modis products"
+        logger.warn("Found {0} submitted modis products"
                      .format(len(modis_products)))
 
         if len(modis_products) > 0:
+            lpdaac_ids = []
+            nonlp_ids = []
+
             for product in modis_products:
                 if lpdaac.input_exists(product.name) is True:
-                    product.status = 'oncache'
+                    lpdaac_ids.append(product.id)
                     logger.debug('{0} is on cache'.format(product.name))
                 else:
-                    product.status = 'unavailable'
-                    product.note = 'not found in modis data pool'
+                    nonlp_ids.append(product.id)
                     logger.debug('{0} was not found in the modis data pool'
                                  .format(product.name))
-                product.save()
+
+            if lpdaac_ids:
+                Scene.bulk_update(lpdaac_ids, {"status":"oncache"})
+            if nonlp_ids:
+                Scene.bulk_update(nonlp_ids, {"status":"unavailable", "note":"not found in modis data pool"})
+
 
     def handle_submitted_plot_products(self):
         ''' Moves plot products from submitted to oncache status once all
