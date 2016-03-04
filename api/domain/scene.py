@@ -40,19 +40,30 @@ class Scene(object):
 
     @classmethod
     def create(cls, params):
-        sql = "INSERT INTO ordering_scene (name, order_id, status, sensor_type, ee_unit_id, "\
-                "product_distro_location, product_dload_url, cksum_distro_location, cksum_download_url, "\
-                "processing_location) VALUES ('{0}',{1},'{2}','{3}',{4},'','','','','');".format(
-                    params['name'],params['order_id'],params['status'],params['sensor_type'],
-                    params['ee_unit_id'])
+        """
+        Create a new scene entry in the ordering_scene table
+        Also supports a bulk insert for large sets of scenes to insert
+        """
+        if isinstance(params, (list, tuple)):
+            template = ','.join(['%s'] * len(params))
+            args = [(s['name'], s['order_id'], s['status'], s['sensor_type'], s['ee_unit_id'],
+                    '', '', '', '', '') for s in params]
+        else:
+            template = '%s'
+            args = (params['name'], params['order_id'], params['status'], params['sensor_type'], params['ee_unit_id'],
+                    '', '', '', '', '')
 
-        logger.info("scene creation sql: {0}".format(sql))
+        sql = ("INSERT INTO ordering_scene (name, order_id, status, sensor_type, ee_unit_id, "
+               "product_distro_location, product_dload_url, cksum_distro_location, cksum_download_url, "
+               "processing_location) VALUES {}".format(template))
+
         try:
             with DBConnect(**cfg) as db:
-                db.execute(sql)
+                logger.info("scene creation sql: {0}".format(db.cursor.mogrify(sql, args)))
+                db.execute(sql, args)
                 db.commit()
         except DBConnectException, e:
-            raise SceneException("error creating new scene: {0}\n sql: {1}\n".format(e.message, sql))
+            raise SceneException("error creating new scene(s): {0}\n sql: {1}\n".format(e.message, sql))
 
         scene = Scene.where("name = '{0}' AND order_id = {1}".format(params['name'], params['order_id']))[0]
         return scene
