@@ -5,7 +5,7 @@ Author: David V. Hill
 """
 
 import re
-from api.api_except import ProductNotImplemented
+from api.api_exceptions import ProductNotImplemented
 
 from api.api_logging import api_logger as logger
 
@@ -58,7 +58,6 @@ class Modis(SensorProduct):
     input_filename_extension = '.hdf'
 
     def __init__(self, product_id):
-
         super(Modis, self).__init__(product_id)
 
         parts = product_id.strip().split('.')
@@ -84,7 +83,7 @@ class Terra(Modis):
 
 class Aqua(Modis):
     """Superclass for Aqua based Modis products"""
-    products = ['l1',  'stats']
+    products = ['l1', 'stats']
     sensor_name = 'aqua'
 
 
@@ -285,6 +284,7 @@ class LandsatTIRS(Landsat):
 
 class Landsat4(Landsat):
     """Models Landsat 4 only products"""
+
     def __init__(self, product_id):
         super(Landsat4, self).__init__(product_id)
 
@@ -292,12 +292,15 @@ class Landsat4(Landsat):
 class Landsat4TM(LandsatTM, Landsat4):
     """Models Landsat 4 TM only products"""
     sensor_name = 'tm4'
+
     def __init__(self, product_id):
         super(Landsat4TM, self).__init__(product_id)
         Landsat4TM.products = [i for i in self.products if i != 'lst']
 
+
 class Landsat5(Landsat):
     """Models Landsat 5 only products"""
+
     def __init__(self, product_id):
         super(Landsat5, self).__init__(product_id)
 
@@ -305,12 +308,14 @@ class Landsat5(Landsat):
 class Landsat5TM(LandsatTM, Landsat5):
     """Models Landsat 5 TM only products"""
     sensor_name = 'tm5'
+
     def __init__(self, product_id):
         super(Landsat5TM, self).__init__(product_id)
 
 
 class Landsat7(Landsat):
     """Models Landsat 7 only products"""
+
     def __init__(self, product_id):
         super(Landsat7, self).__init__(product_id)
 
@@ -318,12 +323,14 @@ class Landsat7(Landsat):
 class Landsat7ETM(LandsatETM, Landsat7):
     """Models Landsat 7 ETM only products"""
     sensor_name = 'etm7'
+
     def __init__(self, product_id):
         super(Landsat7ETM, self).__init__(product_id)
 
 
 class Landsat8(Landsat):
     """Models Landsat 8 only products"""
+
     def __init__(self, product_id):
         super(Landsat8, self).__init__(product_id)
 
@@ -331,6 +338,7 @@ class Landsat8(Landsat):
 class Landsat8OLI(LandsatOLI, Landsat8):
     """Models Landsat 8 OLI only products"""
     sensor_name = 'oli8'
+
     def __init__(self, product_id):
         super(Landsat8OLI, self).__init__(product_id)
 
@@ -338,6 +346,7 @@ class Landsat8OLI(LandsatOLI, Landsat8):
 class Landsat8TIRS(LandsatTIRS, Landsat8):
     """Models Landsat 8 TIRS only products"""
     sensor_name = 'tirs8'
+
     def __init__(self, product_id):
         super(Landsat8TIRS, self).__init__(product_id)
 
@@ -345,42 +354,12 @@ class Landsat8TIRS(LandsatTIRS, Landsat8):
 class Landsat8OLITIRS(LandsatOLITIRS, Landsat8):
     """Models Landsat 8 OLI/TIRS only products"""
     sensor_name = 'olitirs8'
+
     def __init__(self, product_id):
         super(Landsat8OLITIRS, self).__init__(product_id)
 
 
-def instance(product_id):
-    """
-    Supported MODIS products
-    MOD09A1 MOD09GA MOD09GQ MOD09Q1 MYD09A1 MYD09GA MYD09GQ MYD09Q1
-    MOD13A1 MOD13A2 MOD13A3 MOD13Q1 MYD13A1 MYD13A2 MYD13A3 MYD13Q1
-
-    MODIS FORMAT:   MOD09GQ.A2000072.h02v09.005.2008237032813
-
-    Supported LANDSAT products
-    LT4 LT5 LE7 LC8 LO8
-
-    LANDSAT FORMAT: LE72181092013069PFS00
-    """
-
-    # remove known file extensions before comparison
-    # do not alter the case of the actual product_id!
-    _id = product_id.lower().strip()
-    __modis_ext = Modis.input_filename_extension
-    __landsat_ext = Landsat.input_filename_extension
-
-    if _id.endswith(__modis_ext):
-        index = _id.index(__modis_ext)
-        # leave original case intact
-        product_id = product_id[0:index]
-        _id = _id[0:index]
-
-    elif _id.endswith(__landsat_ext):
-        index = _id.index(__landsat_ext)
-        # leave original case intact
-        product_id = product_id[0:index]
-        _id = _id[0:index]
-
+class SensorCONST(object):
     instances = {
         'tm4': (r'^lt4\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$',
                 Landsat4TM),
@@ -388,14 +367,14 @@ def instance(product_id):
         'tm5': (r'^lt5\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$',
                 Landsat5TM),
 
-        'etm': (r'^le7\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
-                Landsat7ETM),
+        'etm7': (r'^le7\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
+                 Landsat7ETM),
 
-        'olitirs': (r'^lc8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
-                    Landsat8OLITIRS),
+        'olitirs8': (r'^lc8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
+                     Landsat8OLITIRS),
 
-        'oli': (r'^lo8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
-                Landsat8OLI),
+        'oli8': (r'^lo8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
+                 Landsat8OLI),
 
         'mod09a1': (r'^mod09a1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
                     ModisTerra09A1),
@@ -446,9 +425,49 @@ def instance(product_id):
                     ModisAqua13Q1)
     }
 
+    def __setattr__(self, key, value):
+        pass
+
+
+def instance(product_id):
+    """
+    Supported MODIS products
+    MOD09A1 MOD09GA MOD09GQ MOD09Q1 MYD09A1 MYD09GA MYD09GQ MYD09Q1
+    MOD13A1 MOD13A2 MOD13A3 MOD13Q1 MYD13A1 MYD13A2 MYD13A3 MYD13Q1
+
+    MODIS FORMAT:   MOD09GQ.A2000072.h02v09.005.2008237032813
+
+    Supported LANDSAT products
+    LT4 LT5 LE7 LC8 LO8
+
+    LANDSAT FORMAT: LE72181092013069PFS00
+    """
+
+    # remove known file extensions before comparison
+    # do not alter the case of the actual product_id!
+    _id = product_id.lower().strip()
+    __modis_ext = Modis.input_filename_extension
+    __landsat_ext = Landsat.input_filename_extension
+
+    if _id.endswith(__modis_ext):
+        index = _id.index(__modis_ext)
+        # leave original case intact
+        product_id = product_id[0:index]
+        _id = _id[0:index]
+
+    elif _id.endswith(__landsat_ext):
+        index = _id.index(__landsat_ext)
+        # leave original case intact
+        product_id = product_id[0:index]
+        _id = _id[0:index]
+
+    instances = SensorCONST.instances
+
     for key in instances.iterkeys():
         if re.match(instances[key][0], _id):
-            return instances[key][1](product_id.strip())
+            inst = instances[key][1](product_id.strip())
+            inst.shortname = key
+            return inst
 
     msg = u"[{0:s}] is not a supported sensor product".format(product_id)
     raise ProductNotImplemented(msg)
@@ -461,9 +480,9 @@ def available_products(input_products):
         input_products (iterable): An iterable of input_product names (str)
 
     Returns:
-        dict: { 'tm': {'outputs': [output, products],
+        dict: { 'tm5': {'outputs': [output, products],
                        'inputs': [supplied, input, products]},
-                'etm': ... }
+                'etm7': ... }
 
     Raises:
         ProductNotImplemented if an unknown product is supplied
@@ -476,7 +495,7 @@ def available_products(input_products):
     for product in input_products:
         try:
             inst = instance(product)
-            name = inst.sensor_name
+            name = inst.shortname
             if name not in result:
                 result[name] = {'outputs': inst.products,
                                 'inputs': [product]}

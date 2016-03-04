@@ -7,9 +7,10 @@
 """
 import traceback
 from api.api_logging import api_logger as logger
-from api.api_except import ValidationException
 from api.domain import default_error_message
 from api.domain.config import ApiConfig
+from api.api_exceptions import ValidationException, InventoryException
+
 
 class API(object):
     def __init__(self, providers=None):
@@ -74,10 +75,11 @@ class API(object):
         try:
             response = self.ordering.available_products(product_id, username)
         except:
-            logger.debug("ERR version0 available_prods_get product_id: {0} " \
+            logger.debug("ERR version0 available_prods_get product_id: {0} "
                          "username: {1}\nexception {2}".format(product_id, username,
                                                                traceback.format_exc()))
             response = default_error_message
+            raise
 
         return response
 
@@ -125,12 +127,12 @@ class API(object):
             str: The generated order id
 
         Raises:
-            api.api_except.ValidationException: Error occurred validating params
-            api.api_except.InventoryException: Items were not found/unavailable
+            api.api_exceptions.ValidationException: Error occurred validating params
+            api.api_exceptions.InventoryException: Items were not found/unavailable
         """
         try:
             # perform validation, raises ValidationException
-            self.validation(order, username)
+            self.validation.validate(order, username)
             # performs inventory check, raises InventoryException
             self.inventory.check(order)
             # track metrics
@@ -138,8 +140,12 @@ class API(object):
             # capture the order
             response = self.ordering.place_order(order)
         except ValidationException as e:
-            logger.debug('ERR version0 place_order arg: {0}\nexception {1}'.format(order, traceback.format_exc()))
-            response = e
+            logger.info('Invalid order received: {0}\nresponse {1}'.format(order, e.response))
+            # Need to format the string repr of the exception for end user consumption
+            response = e.response
+        except InventoryException as e:
+            logger.info('Requested inputs not available: {0}\nresponse {1}'.format(order, e.response))
+            response = e.response
         except:
             logger.debug("ERR version0 place_order arg: {0}\nexception {1}".format(order, traceback.format_exc()))
             response = default_error_message

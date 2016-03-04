@@ -2,6 +2,7 @@
 internal_only: 
     - swe
     - lst
+    - restricted_prod
 
 
 
