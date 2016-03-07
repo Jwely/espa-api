@@ -144,7 +144,7 @@ class OrderingProvider(ProviderInterfaceV0):
         order_dict['order_type'] = 'level2_ondemand'
         order_dict['status'] = 'ordered'
         order_dict['product_opts'] = new_order
-        order_dict['ee_order_id'] = None
+        order_dict['ee_order_id'] = ''
         order_dict['order_source'] = 'espa'
         order_dict['order_date'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
         order_dict['priority'] = 'normal'

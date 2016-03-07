@@ -122,7 +122,7 @@ class Order(object):
                     scene_dict['sensor_type'] = sensor_type
                     scene_dict['order_id'] = order.id
                     scene_dict['status'] = 'ordered'
-                    scene_dict['ee_unit_id'] = params['ee_order_id']
+                    scene_dict['ee_unit_id'] = None  # Comes from EE
 
                     bulk_ls.append(scene_dict)
 

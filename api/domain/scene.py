@@ -69,7 +69,7 @@ class Scene(object):
             raise SceneException("error creating new scene(s): {0}\n sql: {1}\n".format(e.message, sql))
 
         # scene = Scene.where("name = '{0}' AND order_id = {1}".format(params['name'], params['order_id']))[0]
-        # return scene
+        return True
 
     @classmethod
     def where(cls, params):
