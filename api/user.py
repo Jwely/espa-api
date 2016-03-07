@@ -5,7 +5,7 @@ import psycopg2
 from flask.ext.login import UserMixin
 
 from api import lta
-from api.dbconnect import DBConnect
+from api.dbconnect import DBConnect, DBConnectException
 from api.utils import api_cfg
 from validate_email import validate_email
 
@@ -127,7 +127,7 @@ class User(UserMixin):
                 try:
                     db.execute(cinsert)
                     db.commit()
-                except dbconnect.DBConnectException, e:
+                except DBConnectException, e:
                     db.rollback()
                     emsg = "Error adding record to ordering_userprofile. "\
                             "msg: {0}".format(e.message)

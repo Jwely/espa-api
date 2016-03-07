@@ -155,12 +155,14 @@ class TestValidation(unittest.TestCase):
         """
         Test a series of known good orders
         """
-        valid_order = copy.deepcopy(self.base_order)
-
         for proj in testorders.good_test_projections:
+            valid_order = copy.deepcopy(self.base_order)
             valid_order['projection'] = {proj: testorders.good_test_projections[proj]}
 
-            self.assertIsNone(api.validation(valid_order, self.staffuser))
+            try:
+                good = api.validation(valid_order, self.staffuser)
+            except ValidationException as e:
+                self.fail('Raised ValidationException: {}'.format(e.message))
 
     def test_validate_bad_orders(self):
         """
@@ -177,7 +179,6 @@ class TestValidation(unittest.TestCase):
         abbreviated=False - test each constraint on each value location in the nested structure
         """
         exc_type = ValidationException
-        self.assertIsNone(api.validation(self.base_order, self.staffuser))
         invalid_order = copy.deepcopy(self.base_order)
         c = 0  # For initial debugging
 
@@ -208,10 +209,10 @@ class TestValidation(unittest.TestCase):
 
 class TestInventory(unittest.TestCase):
     def setUp(self):
-        self.lta_prod_good = u'le70290302001200edc00'
-        self.lta_prod_bad = u'le70290302001200edc01'
-        self.lpdaac_prod_good = u'mod09a1.a2001209.h10v04.005.2007042201314'
-        self.lpdaac_prod_bad = u'mod09a1.a2001209.h10v04.005.2007042201315'
+        self.lta_prod_good = u'LE70290302001200EDC00'
+        self.lta_prod_bad = u'LE70290302001200EDC01'
+        self.lpdaac_prod_good = u'MOD09A1.A2001209.h10v04.005.2007042201314'
+        self.lpdaac_prod_bad = u'MOD09A1.A2001209.h10v04.005.2007042201315'
 
         self.lta_order_good = {'olitirs8': {'inputs': [self.lta_prod_good]}}
         self.lta_order_bad = {'olitirs8': {'inputs': [self.lta_prod_bad]}}

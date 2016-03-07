@@ -14,6 +14,7 @@ class ValidationInterfaceV0(object):
     @abc.abstractmethod
     def validate(self, order, username):
         """Validate a given order, make sure all parameters are good"""
+        return order
 
     @abc.abstractmethod
     def fetch_projections(self):
@@ -66,6 +67,7 @@ class ValidationProvider(ValidationInterfaceV0):
         :param username: username associated with the order
         :return: validated order
         """
+        order = copy.deepcopy(order)
         try:
             v = OrderValidatorV0(format_validators=None, required_by_default=False, blank_by_default=False,
                                  disallow_unknown_properties=True, apply_default_to_data=False,

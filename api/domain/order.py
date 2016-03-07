@@ -1,11 +1,14 @@
 """ Holds domain objects for orders and the items attached to them """
 
+import json
+import datetime
+
 from api.utils import api_cfg
 from api.dbconnect import DBConnect, DBConnectException
 from api.domain.scene import Scene
+from api.domain import sensor
 from api.api_logging import api_logger as logger
 from psycopg2.extras import Json
-import datetime
 
 cfg = api_cfg()
 
@@ -52,24 +55,79 @@ class Order(object):
 
     @classmethod
     def create(cls, params):
-        sql = "INSERT INTO ordering_order (orderid, user_id, order_type, status,"\
-                "note, product_opts, ee_order_id, order_source, order_date, "\
-                "priority) VALUES ('{0}',{1},'{2}','{3}','{4}','{5}',{6},"\
-                "'{7}','{8}','{9}');".format(params['orderid'],params['user_id'],params['order_type'],
-                                                params['status'],params['note'],params['product_opts'],
-                                                params['ee_order_id'],params['order_source'],params['order_date'],
-                                                params['priority'] )
+        """
+        Place a new order into the system
+        :param params: dict of required parameters to be used
+            params = {'product_opts': {dictionary object of the order received}
+                      'orderid': id generated from generate_order_id
+                      'user_id': EE user id
+                      'order_type': typically 'level2_ondemand'
+                      'status': 'ordered'
+                      'note': user notes
+                      'ee_order_id': earth explorer order id, or '' not through EE
+                      'order_source': 'espa' or 'ee'
+                      'order_date': date time string
+                      'priority': legacy item, should be 'normal'
+                      'email': user's contact email
+                      'product_options': legacy, transitioning from json to jsonb}
+        :return: order object
+        """
 
-        logger.info("order creation sql: {0}".format(sql))
+        opts = params['product_opts']
+        params['product_opts'] = json.dumps(params['product_opts'])
+
+        sql = ("INSERT INTO ordering_order (orderid, user_id, order_type, status,"
+               "note, product_opts, ee_order_id, order_source, order_date, "
+               "priority, email, product_options)"
+               " VALUES (%(orderid)s, %(user_id)s, %(order_type)s, %(status)s,"
+               " %(note)s, %(product_opts)s, %(ee_order_id)s, %(order_source)s, "
+               "%(order_date)s, %(priority)s, %(email)s, %(product_options)s)")
+
+        logger.info("Order creation parameters: {0}".format(params))
 
         try:
             with DBConnect(**cfg) as db:
-                db.execute(sql)
+                logger.info('New order complete SQL: {}'.format(db.cursor.mogrify(sql, params)))
+                db.execute(sql, params)
                 db.commit()
         except DBConnectException, e:
             raise OrderException("error creating new order: {0}\n sql: {1}\n".format(e.message, sql))
 
         order = Order.where("orderid = '{0}'".format(params['orderid']))[0]
+
+        # Let the load_ee_order method handle the scene injection
+        # as there is special logic for interacting with LTA
+        if params['ee_order_id']:
+            return order
+
+        sensor_keys = sensor.SensorCONST.instances.keys()
+
+        bulk_ls = []
+        for key in opts:
+            if key in sensor_keys:
+                sensor_type = ''
+                item1 = opts[key]['inputs'][0]
+
+                if isinstance(sensor.instance(item1), sensor.Landsat):
+                    sensor_type = 'landsat'
+
+                    # Fix input cases to avoid problems later on
+                    opts[key]['inputs'] = [_.upper() for _ in opts[key]['inputs']]
+                elif isinstance(sensor.instance(item1), sensor.Modis):
+                    sensor_type = 'modis'
+
+                for s in opts[key]['inputs']:
+                    scene_dict = {}
+                    scene_dict['name'] = s
+                    scene_dict['sensor_type'] = sensor_type
+                    scene_dict['order_id'] = order.id
+                    scene_dict['status'] = 'ordered'
+                    scene_dict['ee_unit_id'] = params['ee_order_id']
+
+                    bulk_ls.append(scene_dict)
+
+        Scene.create(bulk_ls)
+
         return order
 
     @classmethod
@@ -252,17 +310,38 @@ class Order(object):
         return o
 
     @staticmethod
-    def get_default_ee_options():
-        '''Factory method to return default espa order options for orders
-        originating in through Earth Explorer
+    def get_default_ee_options(item_ls):
+        """
+        Factory method to return default ESPA order options for orders
+        originating through Earth Explorer
 
-        Return:
-        Dictionary populated with default espa options for ee
-        '''
-        o = Order.get_default_options()
-        o['include_sr'] = True
+        :param item_ls: list of scenes received from EE for an order
+                        structure: list({sceneid:, unit_num:})
+        :return: dictionary representation of the EE order
+        """
+        ee_order = {}
+        ee_order['format'] = 'Gtiff'
+        for item in item_ls:
+            try:
+                scene_info = sensor.instance(item['sceneid'])
+            except Exception:
+                log_msg = 'Received unsupported product via EE: {}'.format(item['sceneid'])
+                logger.debug(log_msg)
+                continue
 
-        return o
+            short = scene_info.shortname
+
+            if short not in ee_order:
+                if isinstance(scene_info, sensor.Landsat):
+                    ee_order[short] = {'inputs': [],
+                                       'products': ['sr']}
+                elif isinstance(scene_info, sensor.Modis):
+                    ee_order[short] = {'inputs': [],
+                                       'products': ['l1']}
+
+            ee_order[short]['inputs'].append(item['sceneid'])
+
+        return ee_order
 
     def user_email(self):
         sql = "select email from auth_user where id = {0};".format(self.user_id)

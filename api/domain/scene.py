@@ -43,6 +43,9 @@ class Scene(object):
         """
         Create a new scene entry in the ordering_scene table
         Also supports a bulk insert for large sets of scenes to insert
+
+        :param params: dictionary representation of a scene to insert into the system
+                       or a list of dictionary objects
         """
         if isinstance(params, (list, tuple)):
             template = ','.join(['%s'] * len(params))
@@ -65,8 +68,8 @@ class Scene(object):
         except DBConnectException, e:
             raise SceneException("error creating new scene(s): {0}\n sql: {1}\n".format(e.message, sql))
 
-        scene = Scene.where("name = '{0}' AND order_id = {1}".format(params['name'], params['order_id']))[0]
-        return scene
+        # scene = Scene.where("name = '{0}' AND order_id = {1}".format(params['name'], params['order_id']))[0]
+        # return scene
 
     @classmethod
     def where(cls, params):

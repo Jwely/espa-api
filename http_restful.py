@@ -1,3 +1,4 @@
+import flask
 from flask import Flask, jsonify, abort, make_response, request
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal
 from flask.ext.httpauth import HTTPBasicAuth
@@ -25,6 +26,7 @@ def verify_user(username, password):
     try:
         user_entry = User.get(username, password)
         user = User(*user_entry)
+        flask.g.user = user
         # if user.id:
         #     api_user = user
     except Exception as e:
@@ -131,6 +133,6 @@ class Ordering(Resource):
 
         else:
             order = lowercase_all(order)
-            response = espa.place_order(order, auth.username())
+            response = espa.place_order(order, flask.g.get('user'))
 
         return response

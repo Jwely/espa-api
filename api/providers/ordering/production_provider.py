@@ -530,13 +530,13 @@ class ProductionProvider(object):
                 order_dict['order_type'] = 'level2_ondemand'
                 order_dict['status'] = 'ordered'
                 order_dict['note'] = 'EarthExplorer order id: %s' % eeorder
-                order_dict['product_opts'] = json.dumps(Order.get_default_ee_options(),
-                                                        sort_keys=True,
-                                                        indent=4)
+                order_dict['product_opts'] = Order.get_default_ee_options(
+                    orders[eeorder, email_addr, contactid])
                 order_dict['ee_order_id'] = eeorder
                 order_dict['order_source'] = 'ee'
-                order_dict['order_date'] = datetime.datetime.now()
+                order_dict['order_date'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
                 order_dict['priority'] = 'normal'
+                order_dict['email'] = user.email
                 order = Order.create(order_dict)
 
             bulk_ls = []
@@ -591,11 +591,12 @@ class ProductionProvider(object):
                     product = None
                     try:
                         product = sensor.instance(s['sceneid'])
-                    except Exception, e:
+                    except Exception:
                         log_msg = ("Received product via EE that "
                                    "is not implemented: %s" % s['sceneid'])
                         logger.debug(log_msg)
-                        raise ProductionProviderException("Cant find sensor instance. {0}".format(log_msg))
+                        continue
+                        # raise ProductionProviderException("Cant find sensor instance. {0}".format(log_msg))
 
                     sensor_type = ""
 
@@ -614,7 +615,7 @@ class ProductionProvider(object):
                     # will leave commented out
                     #scene_dict['order_date']= datetime.datetime.now()
 
-                    bulk_ls.append(scene_dict)
+                    Scene.create(scene_dict)
 
                 # Update LTA
                 success, msg, status = lta.update_order_status(eeorder, s['unit_num'], "I")
@@ -633,8 +634,6 @@ class ProductionProvider(object):
                                "lta return status code:%s") % (msg, status)
 
                     logger.error(log_msg)
-
-            Scene.create(bulk_ls)
 
     def handle_retry_products(self):
         ''' handles all products in retry status '''
