@@ -20,14 +20,17 @@ api = API()
 class TestProductionAPI(unittest.TestCase):
     def setUp(self):
         os.environ['espa_api_testing'] = 'True'
-        MockOrder.generate_testing_orders()
 
     def tearDown(self):
         os.environ['espa_api_testing'] = ''
         MockOrder.tear_down_testing_orders()
 
     def test_fetch_production_products_modis(self):
-        pass
+        params = {'for_user': username,
+                    'product_types': 'modis'}
+        response = api.fetch_production_products(params)
+        self.assertIsInstance(response, list)
+
 
     def test_fetch_production_products_landsat(self):
         pass

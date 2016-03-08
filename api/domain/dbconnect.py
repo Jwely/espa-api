@@ -4,7 +4,7 @@ import psycopg2
 import psycopg2.extras
 import psycopg2.extensions
 import numbers
-
+import os
 
 class DBConnectException(Exception):
     pass
@@ -24,6 +24,13 @@ class DBConnect(object):
 
         self.autocommit = autocommit
         self.fetcharr = []
+
+        # psycopg2 doesn't allow you to specificy a schema when connecting to the database.
+        # by modifying search_path for the connection, we can ensure were only working with
+        # tables in the espa_unit_testing schema
+        if 'espa_api_testing' in os.environ.keys():
+            if os.environ["espa_api_testing"] is "True":
+                self.cursor.execute("set search_path = espa_unit_test;")
 
     def execute(self, sql_str, params=None):
         """

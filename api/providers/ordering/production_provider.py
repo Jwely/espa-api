@@ -5,7 +5,7 @@ from api.domain.config import ApiConfig
 from api.domain.dbconnect import DBConnect, DBConnectException
 from api.domain.utils import api_cfg
 from validate_email import validate_email
-from api.providers.ordering import ProviderInterfaceV0
+from api.providers.ordering import ProductionProviderInterfaceV0
 from api.domain import errors
 from api.domain import lpdaac
 from api.domain import lta
@@ -29,7 +29,12 @@ cache = memcache.Client(['127.0.0.1:11211'], debug=0)
 class ProductionProviderException(Exception):
     pass
 
-class ProductionProvider(object):
+class ProductionProvider(ProductionProviderInterfaceV0):
+
+    @classmethod
+    def dump_this(cls):
+        x = lta.get_user_name('foo')
+        return x
 
     def queue_products(order_name_tuple_list, processing_location, job_name):
         ''' Allows the caller to place products into queued status in bulk '''
@@ -333,7 +338,7 @@ class ProductionProvider(object):
         buff.write('s.status in (\'queued\', \'processing\') ')
         buff.write('GROUP BY u.email) ')
         buff.write('SELECT ')
-        buff.write('p.contactid, ')
+        buff.write('u.contactid, ')
         buff.write('s.name, ')
         buff.write('s.sensor_type, ')
         buff.write('o.orderid, ')
@@ -344,7 +349,6 @@ class ProductionProvider(object):
         buff.write('FROM ordering_scene s ')
         buff.write('JOIN ordering_order o ON o.id = s.order_id ')
         buff.write('JOIN auth_user u ON u.id = o.user_id ')
-        buff.write('JOIN ordering_userprofile p ON u.id = p.user_id ')
         buff.write('LEFT JOIN order_queue q ON q.email = u.email ')
         buff.write('WHERE ')
         buff.write('o.status = \'ordered\' ')
@@ -930,61 +934,6 @@ class ProductionProvider(object):
 
         orders = Order.where("status = 'ordered'")
         [update_order_if_complete(o) for o in orders]
-        return True
-
-    def purge_orders(send_email=False):
-        ''' Will move any orders older than X days to purged status and will also
-        remove the files from disk'''
-
-        days = config.settings['policy.purge_orders_after']
-        logger.info('Using purge policy of {0} days'.format(days))
-
-        cutoff = datetime.datetime.now() - datetime.timedelta(days=int(days))
-
-        order_query = "status = 'complete' AND completion_date < '{0}'".format(cutoff)
-        orders = Order.where(order_query)
-
-        logger.info('Purging {0} orders from the active record.'
-            .format(len(orders)))
-
-        start_capacity = onlinecache.capacity()
-        logger.info('Starting cache capacity:{0}'.format(start_capacity))
-
-        for order in orders:
-            try:
-                # transaction is a django module
-                #with transaction.atomic():
-                order.update('status', 'purged')
-                products = Scene.where("order_id = {0}".format(order.id))
-                for product in products:
-                    product.status = 'purged'
-                    product.log_file_contents = ''
-                    product.product_distro_location = ''
-                    product.product_dload_url = ''
-                    product.cksum_distro_location = ''
-                    product.cksum_download_url = ''
-                    product.job_name = ''
-                    product.save()
-
-                # bulk update product status, delete unnecessary field data
-                logger.info('Deleting {0} from online cache disk'
-                   .format(order.orderid))
-
-                onlinecache.delete(order.orderid)
-            except onlinecache.OnlineCacheException:
-                logger.debug('Could not delete {0} from the online cache'
-                    .format(order.orderid))
-            except Exception:
-                logger.debug('Exception purging {0}'
-                    .format(order.orderid))
-
-        end_capacity = onlinecache.capacity()
-        logger.info('Ending cache capacity:{0}'.format(end_capacity))
-
-        if send_email is True:
-            logger.info('Sending purge report')
-            emails.send_purge_report(start_capacity, end_capacity, orders)
-
         return True
 
     def purge_orders(send_email=False):

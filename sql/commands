@@ -1,0 +1,6 @@
+psql -h l8srlscp01 -U espa_admin -d espadev -f espadev_espa_unit_test_schema.sql 
+psql -h l8srlscp01 -U espa_admin -d espatst -f espatst_espa_unit_test_schema.sql
+
+# not yet run 3/7/16
+psql -h l8srlscp38 -U espa_admin -d espa -f espa_espa_unit_test_schema.sql
+

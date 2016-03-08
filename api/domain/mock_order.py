@@ -28,15 +28,19 @@ class MockOrder(Order):
         return "MockOrder:{0}".format(self.__dict__)
 
     @classmethod
-    def generate_testing_orders(cls):
-        # this is the method I'd use to add
-        # a number of dummy orders into the test db
+    def check_test_database_presence(cls):
         pass
+
+    @classmethod
+    def generate_testing_orders(cls):
+        cls.check_test_database_presence()
+
 
     @classmethod
     def tear_down_testing_orders(cls):
         # method for tearing down orders
         # used for testing
         pass
+
 
 
