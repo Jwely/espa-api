@@ -79,7 +79,6 @@ class API(object):
                          "username: {1}\nexception {2}".format(product_id, username,
                                                                traceback.format_exc()))
             response = default_error_message
-            #raise
 
         return response
 
