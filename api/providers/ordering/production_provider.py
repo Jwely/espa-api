@@ -471,7 +471,8 @@ class ProductionProvider(object):
                                 .format(item['orderid'], item['name']))
         return results
 
-    def load_ee_orders(self):
+    @staticmethod
+    def load_ee_orders():
         ''' Loads all the available orders from lta into
         our database and updates their status
         '''
@@ -486,6 +487,7 @@ class ProductionProvider(object):
         # This returns a dict that contains a list of dicts{}
         # key:(order_num, email, contactid) = list({sceneid:, unit_num:})
         orders = lta.get_available_orders()
+        # print orders
 
         # use this to cache calls to EE Registration Service username lookups
         local_cache = {}
