@@ -1,7 +1,7 @@
 from api.providers.inventory import InventoryInterfaceV0
 
-from api import lta, lpdaac
-from api.api_exceptions import InventoryException
+from api.external import lta, lpdaac
+from api import InventoryException
 from api.domain import sensor
 
 

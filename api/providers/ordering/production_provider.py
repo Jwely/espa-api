@@ -1,12 +1,14 @@
 from api.domain import sensor
 from api.domain.scene import Scene
 from api.domain.order import Order
-from api.domain.config import ApiConfig
-from api.domain.dbconnect import DBConnect, DBConnectException
-from api.domain.utils import api_cfg
+from api.system.config import ApiConfig
+from api.util.dbconnect import DBConnect, DBConnectException
+from api.util import api_cfg
 from validate_email import validate_email
 from api.providers.ordering import ProductionProviderInterfaceV0
-from api.domain import errors, lpdaac, lta, onlinecache, emails, nlaps
+from api.external import lpdaac, lta, onlinecache, nlaps
+from api.system import errors
+from api.notification import emails
 from api.domain.user import User
 
 import yaml
@@ -18,7 +20,7 @@ import urllib
 
 from cStringIO import StringIO
 
-from api.api_logging import api_logger as logger
+from api.system.logger import api_logger as logger
 
 config = ApiConfig()
 cache = memcache.Client(['127.0.0.1:11211'], debug=0)

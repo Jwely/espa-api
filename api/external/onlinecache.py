@@ -2,9 +2,9 @@
 cache '''
 
 import re
-from api.domain import sshcmd
-from api.domain.config import ApiConfig
-from api.api_logging import api_logger as logger
+from api.util import sshcmd
+from api.system.config import ApiConfig
+from api.system.logger import api_logger as logger
 
 config = ApiConfig()
 

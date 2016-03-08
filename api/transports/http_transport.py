@@ -3,7 +3,7 @@ import os
 from flask import Flask, jsonify, abort, make_response
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal
 
-from api.domain.config import ApiConfig
+from api.system.config import ApiConfig
 from http_restful import Index, VersionInfo,\
     AvailableProducts, ValidationInfo, ListOrders, Ordering
 

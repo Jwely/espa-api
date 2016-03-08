@@ -5,12 +5,12 @@ import copy
 import re
 import os
 
-from api.ordering.version0 import API
-from api.domain.utils import api_cfg, lowercase_all
-from api.domain.dbconnect import DBConnect
+from api.interfaces.ordering.version0 import API
+from api.util import api_cfg, lowercase_all
+from api.util.dbconnect import DBConnect
 import version0_testorders as testorders
 from api.providers.validation import validation_schema
-from api.api_except import ValidationException
+from api import ValidationException
 import psycopg2.extras
 
 from api.domain.mock_order import MockOrder
@@ -26,10 +26,10 @@ class TestProductionAPI(unittest.TestCase):
         MockOrder.tear_down_testing_orders()
 
     def test_fetch_production_products_modis(self):
-        params = {'for_user': username,
+        params = {'for_user': 'dvh75',
                     'product_types': 'modis'}
         response = api.fetch_production_products(params)
-        self.assertIsInstance(response, list)
+        self.assertIsInstance(response, dict)
 
 
     def test_fetch_production_products_landsat(self):

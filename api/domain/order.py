@@ -2,11 +2,11 @@
 import json
 import datetime
 
-from api.utils import api_cfg
-from api.dbconnect import DBConnect, DBConnectException
+from api.util import api_cfg
+from api.util.dbconnect import DBConnect, DBConnectException
 from api.domain.scene import Scene
 from api.domain import sensor
-from api.api_logging import api_logger as logger
+from api.system.logger import api_logger as logger
 from psycopg2.extras import Json
 
 cfg = api_cfg()

@@ -5,9 +5,9 @@ Author: David V. Hill
 """
 
 import re
-from api.api_exceptions import ProductNotImplemented
+from api import ProductNotImplemented
 
-from api.api_logging import api_logger as logger
+from api.system.logger import api_logger as logger
 
 class SensorProduct(object):
     """Base class for all sensor products"""

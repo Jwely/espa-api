@@ -4,19 +4,19 @@ import os
 import json
 import unittest
 import tempfile
-import transport
-import http_transport
+from api.transports import http
+#from api.transports import http_transport
 import version0_testorders as testorders
 import copy
 
-from api.domain.utils import api_cfg, lowercase_all
-from api.domain.dbconnect import DBConnect
+from api.util import api_cfg, lowercase_all
+from api.util.dbconnect import DBConnect
 
 class TransportTestCase(unittest.TestCase):
 
     def setUp(self):
         cfg = api_cfg()
-        self.app = transport.app.test_client()
+        self.app = http.app.test_client()
         # self.app = http_transport.app.test_client()
         self.app.testing = True
         self.sceneids = ('LT50150401987120XXX02','LE70450302003206EDC01')

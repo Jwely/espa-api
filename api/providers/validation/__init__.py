@@ -4,7 +4,7 @@ import copy
 import validictory
 from validation_provider import OrderValidatorV0
 from validation_schema import Version0Schema
-from api.api_exceptions import ValidationException
+from api import ValidationException
 from api.domain import sensor
 
 

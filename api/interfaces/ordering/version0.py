@@ -6,10 +6,10 @@
    just logic.  Implementations are touched through the registry.
 """
 import traceback
-from api.api_logging import api_logger as logger
+from api.system.logger import api_logger as logger
 from api.domain import default_error_message
-from api.domain.config import ApiConfig
-from api.api_exceptions import ValidationException, InventoryException
+from api.system.config import ApiConfig
+from api import ValidationException, InventoryException
 
 
 class API(object):
@@ -17,7 +17,7 @@ class API(object):
         if providers is not None:
             self.providers = providers()
         else:
-            from api.ordering.providers import DefaultProviders
+            from api.interfaces.ordering.providers import DefaultProviders
             self.providers = DefaultProviders()
 
         self.ordering = self.providers.ordering
@@ -79,7 +79,7 @@ class API(object):
                          "username: {1}\nexception {2}".format(product_id, username,
                                                                traceback.format_exc()))
             response = default_error_message
-            raise
+            #raise
 
         return response
 

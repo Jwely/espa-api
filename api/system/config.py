@@ -3,8 +3,8 @@ Purpose: serve up settings stored
 on the configuration table
 """
 
-from api.domain.utils import api_cfg
-from api.domain.dbconnect import DBConnect
+from api.util import api_cfg
+from api.util.dbconnect import DBConnect
 import psycopg2.extras
 
 class ApiConfig(object):

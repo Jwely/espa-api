@@ -3,12 +3,12 @@ import unittest
 import yaml
 import copy
 
-from api.ordering.version0 import API
-from api.domain.utils import api_cfg, lowercase_all
-from api.domain.dbconnect import DBConnect
+from api.interfaces.ordering.version0 import API
+from api.util import api_cfg, lowercase_all
+from api.util.dbconnect import DBConnect
 import version0_testorders as testorders
 from api.providers.validation import validation_schema
-from api.api_exceptions import ValidationException, InventoryException
+from api import ValidationException, InventoryException
 import psycopg2.extras
 
 api = API()

@@ -4,10 +4,10 @@ from flask import jsonify
 from flask import request
 from flask import Response
 from flask.ext.login import LoginManager, login_required, current_user
-from api.ordering.version0 import API
+from api.interfaces.ordering.version0 import API
 from api.domain.user import User
-from api.domain.config import ApiConfig
-from api.domain.utils import lowercase_all
+from api.system.config import ApiConfig
+from api.util import lowercase_all
 from api.domain import api_operations_v0
 from functools import wraps
 import base64

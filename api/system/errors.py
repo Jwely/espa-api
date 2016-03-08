@@ -7,11 +7,11 @@ Purpose: master error handler for system level errors.  there are many
 Author: David V. Hill
 '''
 
-from api.api_logging import api_logger as logger
+from api.system.logger import api_logger as logger
 import collections
 import datetime
 from api.domain import sensor
-from api.domain.config import ApiConfig
+from api.system.config import ApiConfig
 
 config = ApiConfig()
 

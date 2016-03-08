@@ -4,16 +4,16 @@ import os
 import json
 import unittest
 import tempfile
-import transport
 
-from api.domain.utils import api_cfg
-from api.domain.dbconnect import DBConnect
+from api.util import api_cfg
+from api.util.dbconnect import DBConnect
+from api.transports import http
 
 class ProductionTransportTestCase(unittest.TestCase):
 
     def setUp(self):
         cfg = api_cfg()
-        self.app = transport.app.test_client()
+        self.app = http.app.test_client()
         self.app.testing = True
         self.sceneids = ('LT50150401987120XXX02','LE70450302003206EDC01')
         auth_string = "%s:%s" % (cfg['devuser'],cfg['devword'])

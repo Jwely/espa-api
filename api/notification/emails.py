@@ -12,8 +12,8 @@ from email.mime.text import MIMEText
 from smtplib import SMTP
 
 from api.domain.order import Order
-from api.api_logging import api_logger as logger
-from api.domain.config import ApiConfig
+from api.system.logger import api_logger as logger
+from api.system.config import ApiConfig
 config = ApiConfig()
 
 class Emails(object):
