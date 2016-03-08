@@ -117,7 +117,7 @@ class API(object):
 
         return response
 
-    def place_order(self, order, username):
+    def place_order(self, order, user):
         """Enters a new order into the system.
 
         Args:
@@ -132,13 +132,13 @@ class API(object):
         """
         try:
             # perform validation, raises ValidationException
-            self.validation.validate(order, username)
+            order = self.validation.validate(order, user.username)
             # performs inventory check, raises InventoryException
             self.inventory.check(order)
             # track metrics
             self.metrics.collect(order)
             # capture the order
-            response = self.ordering.place_order(order)
+            response = self.ordering.place_order(order, user)
         except ValidationException as e:
             logger.info('Invalid order received: {0}\nresponse {1}'.format(order, e.response))
             # Need to format the string repr of the exception for end user consumption

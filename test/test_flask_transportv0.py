@@ -5,6 +5,7 @@ import json
 import unittest
 import tempfile
 import transport
+import http_transport
 import version0_testorders as testorders
 import copy
 
@@ -17,6 +18,7 @@ class TransportTestCase(unittest.TestCase):
     def setUp(self):
         cfg = api_cfg()
         self.app = transport.app.test_client()
+        # self.app = http_transport.app.test_client()
         self.app.testing = True
         self.sceneids = ('LT50150401987120XXX02','LE70450302003206EDC01')
         auth_string = "%s:%s" % (cfg['devuser'],cfg['devword'])

@@ -1,10 +1,15 @@
+import datetime
+import json
+
 from api.domain import sensor
+from api.domain.order import Order
 from api.domain.scene import Scene
 from api.domain.config import ApiConfig
 from api.dbconnect import DBConnect, DBConnectException
 from api.utils import api_cfg
 from validate_email import validate_email
 from api.providers.ordering import ProviderInterfaceV0
+from api.user import User
 from api import errors
 from api import lpdaac
 from api import emails
@@ -124,8 +129,31 @@ class OrderingProvider(ProviderInterfaceV0):
 
         return out_dict
 
-    def place_order(self, username, order):
-        pass
+    def place_order(self, new_order, user):
+        """
+        Build an order dictionary to be place into the system
+
+        :param new_order: dictionary representation of the order received
+        :param user: user information associated with the order
+        :return: orderid to be used for tracking
+        """
+
+        order_dict = {}
+        order_dict['orderid'] = Order.generate_order_id(user.email)
+        order_dict['user_id'] = user.id
+        order_dict['order_type'] = 'level2_ondemand'
+        order_dict['status'] = 'ordered'
+        order_dict['product_opts'] = new_order
+        order_dict['ee_order_id'] = ''
+        order_dict['order_source'] = 'espa'
+        order_dict['order_date'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+        order_dict['priority'] = 'normal'
+        order_dict['note'] = ''
+        order_dict['email'] = user.email
+        order_dict['product_options'] = ''
+
+        result = Order.create(order_dict)
+        return result.orderid
 
     def order_status(self, orderid):
         sql = "select orderid, status from ordering_order where orderid = %s;"
@@ -166,4 +194,3 @@ class OrderingProvider(ProviderInterfaceV0):
             response['msg'] = 'sorry, no items matched orderid %s , itemid %s' % (orderid, itemid)
 
         return response
-

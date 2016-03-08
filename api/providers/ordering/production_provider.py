@@ -6,18 +6,15 @@ from api.dbconnect import DBConnect, DBConnectException
 from api.utils import api_cfg
 from validate_email import validate_email
 from api.providers.ordering import ProviderInterfaceV0
-from api import errors
-from api import lpdaac
-from api import lta
-from api import onlinecache
-from api import emails
-from api import nlaps
+from api import errors, lpdaac, lta, onlinecache, emails, nlaps
+from api.user import User
 
 import yaml
 import copy
 import memcache
 import datetime
 import json
+import urllib
 
 from cStringIO import StringIO
 
@@ -144,6 +141,7 @@ class ProductionProvider(object):
 
         return True
 
+    @staticmethod
     def set_products_unavailable(products, reason):
         '''Bulk updates products to unavailable status and updates EE if
         necessary.
@@ -473,6 +471,7 @@ class ProductionProvider(object):
                                 .format(item['orderid'], item['name']))
         return results
 
+    @staticmethod
     def load_ee_orders():
         ''' Loads all the available orders from lta into
         our database and updates their status
@@ -488,6 +487,7 @@ class ProductionProvider(object):
         # This returns a dict that contains a list of dicts{}
         # key:(order_num, email, contactid) = list({sceneid:, unit_num:})
         orders = lta.get_available_orders()
+        # print orders
 
         # use this to cache calls to EE Registration Service username lookups
         local_cache = {}
@@ -498,7 +498,7 @@ class ProductionProvider(object):
             order_id = Order.generate_ee_order_id(email_addr, eeorder)
             order = Order.where("orderid = '{0}'".format(order_id))
 
-            if not order: # order is an empty list
+            if not order:  # order is an empty list
                 order = None
                 # retrieve the username from the EE registration service
                 # cache this call
@@ -532,112 +532,110 @@ class ProductionProvider(object):
                 order_dict['order_type'] = 'level2_ondemand'
                 order_dict['status'] = 'ordered'
                 order_dict['note'] = 'EarthExplorer order id: %s' % eeorder
-                order_dict['product_opts'] = json.dumps(Order.get_default_ee_options(),
-                                                   sort_keys=True,
-                                                   indent=4)
+                order_dict['product_opts'] = Order.get_default_ee_options(
+                    orders[eeorder, email_addr, contactid])
                 order_dict['ee_order_id'] = eeorder
                 order_dict['order_source'] = 'ee'
-                order_dict['order_date'] = datetime.datetime.now()
+                order_dict['order_date'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
                 order_dict['priority'] = 'normal'
+                order_dict['email'] = user.email
                 order = Order.create(order_dict)
 
+            bulk_ls = []
+            for s in orders[eeorder, email_addr, contactid]:
+                #go look for the scene by ee_unit_id.  This will stop
+                #duplicate key update collisions
 
-        for s in orders[eeorder, email_addr, contactid]:
-            #go look for the scene by ee_unit_id.  This will stop
-            #duplicate key update collisions
-
-            scene = None
-            try:
-                scene_params = "order_id = {0} AND ee_unit_id = {1}".format(order.id, s['unit_num'])
-                scene = Scene.where(scene_params)[0]
-
-                if scene.status == 'complete':
-
-                    success, msg, status =\
-                        lta.update_order_status(eeorder, s['unit_num'], "C")
-
-                    if not success:
-                        log_msg = ("Error updating lta for "
-                                   "[eeorder:%s ee_unit_num:%s "
-                                   "scene name:%s order:%s to 'C' status")
-                        log_msg = log_msg % (eeorder, s['unit_num'],
-                                             scene.name, order.orderid)
-
-                        logger.error(log_msg)
-
-                        log_msg = ("Error detail: lta return message:%s "
-                                   "lta return status code:%s")
-                        log_msg = log_msg % (msg, status)
-
-                        logger.error(log_msg)
-
-                elif scene.status == 'unavailable':
-                    success, msg, status =\
-                        lta.update_order_status(eeorder, s['unit_num'], "R")
-
-                    if not success:
-                        log_msg = ("Error updating lta for "
-                                   "[eeorder:%s ee_unit_num:%s "
-                                   "scene name:%s order:%s to 'R' status")
-                        log_msg = log_msg % (eeorder, s['unit_num'],
-                                             scene.name, order.orderid)
-
-                        logger.error(log_msg)
-
-                        log_msg = ("Error detail: "
-                                   "lta return message:%s  lta return "
-                                   "status code:%s") % (msg, status)
-
-                        logger.error(log_msg)
-            except DBConnectException: #Scene does not exist
-                product = None
+                scene = None
                 try:
-                    product = sensor.instance(s['sceneid'])
-                except Exception, e:
-                    log_msg = ("Received product via EE that "
-                               "is not implemented: %s" % s['sceneid'])
-                    logger.debug(log_msg)
-                    raise ProductionProviderException("Cant find sensor instance. {0}".format(log_msg))
+                    scene_params = "order_id = {0} AND ee_unit_id = {1}".format(order.id, s['unit_num'])
+                    scene = Scene.where(scene_params)[0]
 
-                sensor_type = ""
+                    if scene.status == 'complete':
 
-                if isinstance(product, sensor.Landsat):
-                    sensor_type = 'landsat'
-                elif isinstance(product, sensor.Modis):
-                    sensor_type = 'modis'
+                        success, msg, status =\
+                            lta.update_order_status(eeorder, s['unit_num'], "C")
 
-                scene_dict = {}
+                        if not success:
+                            log_msg = ("Error updating lta for "
+                                       "[eeorder:%s ee_unit_num:%s "
+                                       "scene name:%s order:%s to 'C' status")
+                            log_msg = log_msg % (eeorder, s['unit_num'],
+                                                 scene.name, order.orderid)
 
-                scene_dict['name'] = product.product_id
-                scene_dict['order_id'] = order.id
-                scene_dict['status'] = 'submitted'
-                scene_dict['sensor_type'] = sensor_type
-                scene_dict['ee_unit_id'] = s['unit_num']
-                # order_date isn't an column on the ordering_scene table
-                # will leave commented out
-                #scene_dict['order_date']= datetime.datetime.now()
-                scene = Scene.create(scene_dict)
+                            logger.error(log_msg)
 
-            # Update LTA
-            success, msg, status =\
-                lta.update_order_status(eeorder, s['unit_num'], "I")
+                            log_msg = ("Error detail: lta return message:%s "
+                                       "lta return status code:%s")
+                            log_msg = log_msg % (msg, status)
 
-            if not success:
-                log_msg = ("Error updating lta for "
-                           "[eeorder:%s ee_unit_num:%s scene "
-                           "name:%s order:%s to 'I' status") % (eeorder,
-                                                                s['unit_num'],
-                                                                scene.name,
-                                                                order.orderid)
+                            logger.error(log_msg)
 
-                logger.error(log_msg)
+                    elif scene.status == 'unavailable':
+                        success, msg, status =\
+                            lta.update_order_status(eeorder, s['unit_num'], "R")
 
-                log_msg = ("Error detail: lta return message:%s  "
-                           "lta return status code:%s") % (msg, status)
+                        if not success:
+                            log_msg = ("Error updating lta for "
+                                       "[eeorder:%s ee_unit_num:%s "
+                                       "scene name:%s order:%s to 'R' status")
+                            log_msg = log_msg % (eeorder, s['unit_num'],
+                                                 scene.name, order.orderid)
 
-                logger.error(log_msg)
+                            logger.error(log_msg)
 
+                            log_msg = ("Error detail: "
+                                       "lta return message:%s  lta return "
+                                       "status code:%s") % (msg, status)
 
+                            logger.error(log_msg)
+                except DBConnectException:  # Scene does not exist
+                    product = None
+                    try:
+                        product = sensor.instance(s['sceneid'])
+                    except Exception:
+                        log_msg = ("Received product via EE that "
+                                   "is not implemented: %s" % s['sceneid'])
+                        logger.debug(log_msg)
+                        continue
+                        # raise ProductionProviderException("Cant find sensor instance. {0}".format(log_msg))
+
+                    sensor_type = ""
+
+                    if isinstance(product, sensor.Landsat):
+                        sensor_type = 'landsat'
+                    elif isinstance(product, sensor.Modis):
+                        sensor_type = 'modis'
+
+                    scene_dict = {}
+                    scene_dict['name'] = product.product_id
+                    scene_dict['order_id'] = order.id
+                    scene_dict['status'] = 'submitted'
+                    scene_dict['sensor_type'] = sensor_type
+                    scene_dict['ee_unit_id'] = s['unit_num']
+                    # order_date isn't an column on the ordering_scene table
+                    # will leave commented out
+                    #scene_dict['order_date']= datetime.datetime.now()
+
+                    Scene.create(scene_dict)
+
+                # Update LTA
+                success, msg, status = lta.update_order_status(eeorder, s['unit_num'], "I")
+
+                if not success:
+                    log_msg = ("Error updating lta for "
+                               "[eeorder:%s ee_unit_num:%s scene "
+                               "name:%s order:%s to 'I' status") % (eeorder,
+                                                                    s['unit_num'],
+                                                                    s['sceneid'],
+                                                                    order.orderid)
+
+                    logger.error(log_msg)
+
+                    log_msg = ("Error detail: lta return message:%s  "
+                               "lta return status code:%s") % (msg, status)
+
+                    logger.error(log_msg)
 
     def handle_retry_products(self):
         ''' handles all products in retry status '''
