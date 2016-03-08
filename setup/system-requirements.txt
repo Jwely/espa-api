@@ -1,0 +1,7 @@
+#System libraries that must be installed prior to installing requirements.txt via pip
+
+# Postgres development libs
+Centos: postgresql-devel
+Ubuntu: libpq-dev
+
+
