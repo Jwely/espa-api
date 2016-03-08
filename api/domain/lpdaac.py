@@ -27,7 +27,7 @@ class LPDAACService(object):
 
         for product in products:
 
-            if isinstance(product, str):
+            if isinstance(product, basestring):
                 product = sensor.instance(product)
 
             response[product.product_id] = self.input_exists(product)
@@ -137,7 +137,14 @@ class LPDAACService(object):
 
         input_extension = config.settings['file.extension.modis.input.filename']
 
-        input_file_name = "%s%s" % (product.product_id, input_extension)
+        parts = product.product_id.split('.')
+        prod_id = '.'.join([parts[0].upper(),
+                            parts[1].upper(),
+                            parts[2].lower(),
+                            parts[3],
+                            parts[4]])
+
+        input_file_name = "%s%s" % (prod_id, input_extension)
 
         path = os.path.join(base_path,
                             '.'.join([product.short_name.upper(),
@@ -154,8 +161,10 @@ def input_exists(product):
 def verify_products(products):
     return LPDAACService().verify_products(products)
 
+
 def get_download_url(product):
     return LPDAACService().get_download_url(product)
+
 
 def get_download_urls(products):
     return LPDAACService().get_download_urls(products)
