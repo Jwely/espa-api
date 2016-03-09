@@ -1,12 +1,14 @@
+# Contains user facing REST functionality
+
 import flask
 from flask import Flask, jsonify, abort, make_response, request
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal
 from flask.ext.httpauth import HTTPBasicAuth
 
-from api.ordering.version0 import API
-from api.user import User
-from api.domain.config import ApiConfig
-from api.utils import lowercase_all
+from api.interfaces.ordering.version0 import API
+from api.domain.user import User
+from api.system.config import ApiConfig
+from api.util import lowercase_all
 from api.domain import api_operations_v0
 
 
@@ -71,12 +73,12 @@ class AvailableProducts(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('product_ids', type=list,
-                                   required=True, help='You must provide a list of products',
+                                   required=True, help='Usage: {"inputs": ["list", "of", "inputs"]}',
                                    location='json')
         super(AvailableProducts, self).__init__()
 
     def post(self):
-        prod_list = self.reqparse.parse_args()
+        prod_list = request.get_json(force=True)['inputs']
         return espa.available_products(prod_list, auth.username())
 
     def get(self, prod_id):
@@ -88,7 +90,7 @@ class ListOrders(Resource):
 
     def get(self, email=None):
         if email:
-            pass
+            return espa.fetch_user_orders(str(email))
         else:
             return espa.fetch_user_orders(auth.username())
 
@@ -116,7 +118,10 @@ class Ordering(Resource):
     decorators = [auth.login_required]
 
     def get(self, ordernum):
-        return espa.fetch_order(ordernum)
+        if 'order-status' in request.url:
+            return espa.order_status(ordernum)
+        else:
+            return jsonify(espa.fetch_order(ordernum))
 
     def post(self):
         order = {}
@@ -136,3 +141,15 @@ class Ordering(Resource):
             response = espa.place_order(order, flask.g.get('user'))
 
         return response
+
+class UserInfo(Resource):
+    decorators = [auth.login_required]
+
+    def get(self):
+        return flask.g.user.as_dict()
+
+class ItemStatus(Resource):
+    decorators = [auth.login_required]
+
+    def get(self, orderid, itemnum='ALL'):
+        return espa.item_status(orderid, itemnum)

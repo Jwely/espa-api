@@ -4,8 +4,9 @@ import os
 import json
 import unittest
 import tempfile
-from api.transports import http
-#from api.transports import http_transport
+import base64
+from api.transports import http_testing
+from api.transports import http_transport
 import version0_testorders as testorders
 import copy
 
@@ -16,26 +17,33 @@ class TransportTestCase(unittest.TestCase):
 
     def setUp(self):
         cfg = api_cfg()
-        self.app = http.app.test_client()
-        # self.app = http_transport.app.test_client()
+        #self.app = http.app.test_client()
+        self.app = http_transport.app.test_client()
         self.app.testing = True
-        self.sceneids = ('LT50150401987120XXX02','LE70450302003206EDC01')
-        auth_string = "%s:%s" % (cfg['devuser'],cfg['devword'])
+
+        self.sceneids = ['LT50150401987120XXX02', 'LE70450302003206EDC01']
+        token = '{}:{}'.format(cfg['devuser'], cfg['devword'])
+        auth_string = "Basic {}".format(base64.b64encode(token))
+        #auth_string = "Basic %s:%s" % (cfg['devuser'], cfg['devword'])
+
         self.headers = {"Authorization": auth_string}
         self.useremail = cfg['devmail']
-        db = DBConnect(**cfg)
-        uidsql = "select user_id, orderid from ordering_order limit 1;"
-        unmsql = "select username, email from auth_user where id = %s;"
-        db.select(uidsql)
-        self.userid = db[0]['user_id']
-        self.orderid = db[0]['orderid']
-        itemsql = "select name, order_id from ordering_scene limit 1;"
-        db.select(itemsql)
-        self.itemid = db[0][0]
-        itemorderid = db[0][1]
-        ordersql = "select orderid from ordering_order where id = {};".format(itemorderid)
-        db.select(ordersql)
-        self.itemorderid = db[0][0]
+
+        with DBConnect(**cfg) as db:
+            uidsql = "select user_id, orderid from ordering_order limit 1;"
+            db.select(uidsql)
+            self.userid = db[0]['user_id']
+            self.orderid = db[0]['orderid']
+
+            itemsql = "select name, order_id from ordering_scene limit 1;"
+            db.select(itemsql)
+            self.itemid = db[0][0]
+            itemorderid = db[0][1]
+
+            ordersql = "select orderid from ordering_order where id = {};".format(itemorderid)
+            db.select(ordersql)
+            self.itemorderid = db[0][0]
+
         self.base_order = lowercase_all(testorders.build_base_order())
 
     def tearDown(self):
@@ -65,20 +73,20 @@ class TransportTestCase(unittest.TestCase):
 
     def test_post_available_prods(self):
         url = '/api/v0/available-products'
-        data_dict = {'product_ids': ",".join(self.sceneids)}
-        response = self.app.post(url, data=data_dict, headers=self.headers)
+        data_dict = {'inputs': self.sceneids}
+        response = self.app.post(url, data=json.dumps(data_dict), headers=self.headers)
         resp_json = json.loads(response.get_data())
         assert "tm5" in resp_json.keys()
 
     def test_get_available_orders_user(self):
-        url = "/api/v0/orders"
+        url = "/api/v0/list-orders"
         response = self.app.get(url, headers=self.headers)
         resp_json = json.loads(response.get_data())
         assert resp_json.keys() == ['orders']
 
     def test_get_available_orders_email(self):
         # email param comes in as unicode
-        url = "/api/v0/orders/" + str(self.useremail)
+        url = "/api/v0/list-orders/" + str(self.useremail)
         response = self.app.get(url, headers=self.headers)
         resp_json = json.loads(response.get_data())
         assert resp_json.keys() == ['orders']
@@ -137,6 +145,7 @@ class TransportTestCase(unittest.TestCase):
         resp_json = json.loads(response.get_data())
         assert 'properties' in resp_json.keys()
 
+    # Waiting for DB mock-ups to be finished
     def test_post_order(self):
         pass
         # url = '/api/v0/order'
