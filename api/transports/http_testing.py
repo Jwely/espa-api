@@ -237,7 +237,7 @@ def get_production_api_ops():
 
 @app.route('/production-api/v0/products', methods=['GET'])
 def get_production_api_products():
-    response = api.fetch_production_products(request.args) # request.args is a dict
+    response = api.fetch_production_products(request.args)  # request.args is a dict
     return jsonify(response)
 
 @app.route('/production-api/v0/<action>', methods=['POST'])
