@@ -1,35 +1,31 @@
 #!/usr/bin/env python
-import unittest
-import yaml
-import copy
-import re
 import os
+import unittest
 
+from api.domain.mocks.order import MockOrder
+from api.domain.mocks.user import MockUser
 from api.interfaces.ordering.version0 import API
-from api.util import api_cfg, lowercase_all
-from api.util.dbconnect import DBConnect
-import version0_testorders as testorders
-from api.providers.validation import validation_schema
-from api import ValidationException
-import psycopg2.extras
-
-from api.domain.mock_order import MockOrder
 
 api = API()
 
 class TestProductionAPI(unittest.TestCase):
     def setUp(self):
         os.environ['espa_api_testing'] = 'True'
+        # create a user
+        self.mock_user = MockUser()
+        self.mock_order = MockOrder()
+        self.user_id = mock_user.add_testing_user()
+
 
     def tearDown(self):
+        # clean up orders
+        self.mock_order.tear_down_testing_orders()
+        # clean up users
+        self.mock_user.cleanup()
         os.environ['espa_api_testing'] = ''
-        MockOrder.tear_down_testing_orders()
 
     def test_fetch_production_products_modis(self):
-        params = {'for_user': 'dvh75',
-                    'product_types': 'modis'}
-        response = api.fetch_production_products(params)
-        self.assertIsInstance(response, dict)
+        order_id = self.mock_order.generate_testing_order(self.user_id)
 
 
     def test_fetch_production_products_landsat(self):

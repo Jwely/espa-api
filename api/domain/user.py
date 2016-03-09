@@ -91,9 +91,9 @@ class User(UserMixin):
         insert_stmt = "insert into auth_user (username, " \
                       "email, first_name, last_name, password, " \
                       "is_staff, is_active, is_superuser, " \
-                      "last_login, date_joined) values {};"
+                      "last_login, date_joined, contactid) values {};"
         arg_tup = (username, email, first_name, last_name,
-                    'pass', 'f', 't', 'f', nownow, nownow)
+                    'pass', 'f', 't', 'f', nownow, nownow, contactid)
 
         with DBConnect(**api_cfg()) as db:
             user_sql = "select id from auth_user where username = %s;"
@@ -112,25 +112,6 @@ class User(UserMixin):
                              "{2} {3}\n trace: {4}".format(username, email, first_name,
                                                            last_name, traceback.format_exc()))
                 raise exc_type, exc_val, exc_trace
-
-            # now lets make sure contactid exists in ordering_userprofile
-            # ideally we just move this field into the auth_user table in
-            # the future
-            cselect = "select contactid from ordering_userprofile where "\
-                        "user_id = {0};".format(user_id)
-            db.select(cselect)
-            if not db:
-                # we need to store the users contactid
-                cinsert = "INSERT INTO ordering_userprofile(user_id, contactid) "\
-                            "VALUES ({0}, '{1}');".format(user_id, contactid)
-                try:
-                    db.execute(cinsert)
-                    db.commit()
-                except DBConnectException, e:
-                    db.rollback()
-                    emsg = "Error adding record to ordering_userprofile. "\
-                            "msg: {0}".format(e.message)
-                    raise UserException(emsg)
 
         return user_id
 

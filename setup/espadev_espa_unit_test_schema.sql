@@ -153,7 +153,8 @@ CREATE TABLE auth_user (
     is_active boolean NOT NULL,
     is_superuser boolean NOT NULL,
     last_login timestamp without time zone NOT NULL,
-    date_joined timestamp without time zone NOT NULL
+    date_joined timestamp without time zone NOT NULL,
+    contactid character varying(10) NOT NULL
 );
 
 
@@ -329,7 +330,8 @@ CREATE TABLE ordering_order (
     order_type character varying(50) NOT NULL,
     priority character varying(10) NOT NULL,
     initial_email_sent timestamp without time zone,
-    completion_email_sent timestamp without time zone
+    completion_email_sent timestamp without time zone,
+    product_opts jsonb
 );
 
 
