@@ -246,6 +246,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             sql_list.append(" processing_loc = '{0}', ".format(processing_loc))
             sql_list.append(" note = '{0}'".format(note))
         else:
+            print "****  problem in set_product_retry"
             raise OrderingProviderException("Exception Retry limit exceeded, name: {0}".format(name))
 
         sql_list.append(" where name = '{0}' AND order_id = {1};".format(name, order_id))
@@ -425,8 +426,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                                               'product was not available',
                                               'reorder missing level1 product',
                                               after, limit)
-                        except Exception, e:
-                            logger.info
+                        except Exception:
 
                             logger.info('Retry limit exceeded for {0} in '
                                         'order {1}... moving to error status.'
@@ -437,7 +437,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                                               ('level1 product data '
                                                'not available after EE call '
                                                'marked product as available'))
-                        continue
+                            continue
 
                     if 'download_url' in landsat_urls[item['name']]:
                         logger.info('download_url was in landsat_urls for {0}'.format(item['name']))
@@ -456,7 +456,8 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                     'product_type': item['sensor_type'],
                     'scene': item['name'],
                     'priority': item['priority'],
-                    'options': json.loads(item['product_options'])
+                    'options': item['product_opts']
+                    #'options': json.loads(item['product_options'])
                 }
 
                 if item['sensor_type'] == 'plot':
