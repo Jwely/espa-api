@@ -29,14 +29,24 @@ def unauthorized():
 @auth.verify_password
 def verify_user(username, password):
     try:
-        # WiP
-        # cache_key = '{}-credentials'.format(username)
-        # cache.get(cache_key)
-        #
-        # if not user:
-        #     user_entry = User.get(username, password)
+        cache_key = '{}-credentials'.format(username)
+        cache_entry = cache.get(cache_key)
 
-        user_entry = User.get(username, password)
+        if cache_entry:
+            # Need to be encrypted?
+            if cache_entry['password'] == password:
+                user_entry = cache_entry['user_entry']
+                print user_entry
+
+            # User may have changed their password while it was still cached
+            else:
+                user_entry = User.get(username, password)
+        else:
+            user_entry = User.get(username, password)
+
+        cache_entry = {'password': password,
+                       'user_entry': user_entry}
+        cache.set(cache_key, cache_entry, 300)
 
         user = User(*user_entry)
         flask.g.user = user  # Replace usage with cached version
