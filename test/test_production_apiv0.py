@@ -9,11 +9,13 @@ from api.domain.mocks.order import MockOrder
 from api.domain.mocks.user import MockUser
 from api.domain.user import User
 from api.interfaces.ordering.version0 import API
+from api.providers.ordering.mocks.production_provider import MockProductionProvider
 
 from api.providers.ordering.production_provider import ProductionProvider
 
 api = API()
 production_provider = ProductionProvider()
+mock_production_provider = MockProductionProvider()
 
 class TestProductionAPI(unittest.TestCase):
     def setUp(self):
@@ -34,8 +36,9 @@ class TestProductionAPI(unittest.TestCase):
     def test_fetch_production_products_modis(self):
         pass
 
-    @patch('api.external.lta', lta)
+    @patch('api.external.lta.get_download_urls', lta.get_download_urls)
     @patch('api.external.lpdaac', lpdaac)
+    @patch('api.providers.ordering.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
     def test_fetch_production_products_landsat(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
         # need scenes with statuses of 'processing' and 'ordered'
@@ -45,8 +48,7 @@ class TestProductionAPI(unittest.TestCase):
 
         # api.fetch_production_products calls to ->
         response = production_provider.get_products_to_process(**params)
-        print "*****  response {0}".format(response)
-        self.assertIsInstance(response[0], dict)
+        self.assertTrue('bilbo' in response[0]['orderid'])
 
 
     def test_fetch_production_products_plot(self):
