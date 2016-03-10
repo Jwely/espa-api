@@ -36,7 +36,6 @@ def verify_user(username, password):
             # Need to be encrypted?
             if cache_entry['password'] == password:
                 user_entry = cache_entry['user_entry']
-                print user_entry
 
             # User may have changed their password while it was still cached
             else:
