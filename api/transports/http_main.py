@@ -1,11 +1,15 @@
+# Tie together the urls for functionality
+
 import os
 
 from flask import Flask, jsonify, abort, make_response
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal
 
 from api.system.config import ApiConfig
-from http_restful import Index, VersionInfo,\
-    AvailableProducts, ValidationInfo, ListOrders, Ordering
+from http_user import Index, VersionInfo,\
+    AvailableProducts, ValidationInfo, ListOrders, Ordering, UserInfo, ItemStatus
+from http_production import ProductionVersion, ProductionConfiguration, ProductionOperations
+#from http_production import ...
 
 config = ApiConfig()
 
@@ -20,6 +24,8 @@ errors = {'NotFound': {'message': 'The requested URL was not found on the server
 
 
 transport_api = Api(app, errors=errors, catch_all_404s=True)
+
+# USER facing functionality
 
 transport_api.add_resource(Index, '/')
 
@@ -45,11 +51,32 @@ transport_api.add_resource(ListOrders,
 
 transport_api.add_resource(Ordering,
                            '/api/v0/order',
-                           '/api/v0/order/'
-                           '/api/v0/order/<ordernum>')
+                           '/api/v0/order/',
+                           '/api/v0/order/<ordernum>',
+                           '/api/v0/order-status/<ordernum>')
+
+transport_api.add_resource(UserInfo,
+                           '/api/v0/user',
+                           '/api/v0/user/')
+
+transport_api.add_resource(ItemStatus,
+                           '/api/v0/item-status/<orderid>',
+                           '/api/v0/item-status/<orderid>/<itemnum>')
 
 
-# /api/v0/user
+# PRODUCTION facing functionality
+transport_api.add_resource(ProductionVersion,
+                           '/production-api',
+                           '/production-api/v0')
+
+transport_api.add_resource(ProductionOperations,
+                           '/production-api/v0/products',
+                           '/production-api/v0/<action>',
+                           '/production-api/v0/handle-orders',
+                           '/production-api/v0/queue-products')
+
+transport_api.add_resource(ProductionConfiguration,
+                           '/production-api/v0/configuration/<key>')
 
 
 if __name__ == '__main__':
