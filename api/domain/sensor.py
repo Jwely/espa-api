@@ -267,7 +267,7 @@ class LandsatOLITIRS(Landsat):
 
 class LandsatOLI(Landsat):
     """Models Landsat OLI only products"""
-    products = ["source_metadata", "l1", "toa", "cloud", "stats"]
+    products = ["source_metadata", "l1", "toa", "stats"]
     lta_name = 'LANDSAT_OLI'
     sensor_name = 'oli'
 
