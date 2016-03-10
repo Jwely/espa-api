@@ -362,69 +362,70 @@ class Landsat8OLITIRS(LandsatOLITIRS, Landsat8):
 
 
 class SensorCONST(object):
+    # shortname: regex, class name, sample product name)
     instances = {
         'tm4': (r'^lt4\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$',
-                Landsat4TM),
+                Landsat4TM, 'LT42181092013069PFS00'),
 
         'tm5': (r'^lt5\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$',
-                Landsat5TM),
+                Landsat5TM, 'LT52181092013069PFS00'),
 
         'etm7': (r'^le7\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
-                 Landsat7ETM),
+                 Landsat7ETM, 'LE72181092013069PFS00'),
 
         'olitirs8': (r'^lc8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
-                     Landsat8OLITIRS),
+                     Landsat8OLITIRS, 'LC82181092013069PFS00'),
 
         'oli8': (r'^lo8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
-                 Landsat8OLI),
+                 Landsat8OLI, 'LO82181092013069PFS00'),
 
         'mod09a1': (r'^mod09a1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                    ModisTerra09A1),
+                    ModisTerra09A1, 'mod09a1.A2000072.h02v09.005.2008237032813'),
 
         'mod09ga': (r'^mod09ga\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                    ModisTerra09GA),
+                    ModisTerra09GA, 'mod09ga.A2000072.h02v09.005.2008237032813'),
 
         'mod09gq': (r'^mod09gq\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                    ModisTerra09GQ),
+                    ModisTerra09GQ, 'mod09gq.A2000072.h02v09.005.2008237032813'),
 
         'mod09q1': (r'^mod09q1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                    ModisTerra09Q1),
+                    ModisTerra09Q1, 'mod09q1.A2000072.h02v09.005.2008237032813'),
 
         'mod13a1': (r'^mod13a1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                    ModisTerra13A1),
+                    ModisTerra13A1, 'mod13a1.A2000072.h02v09.005.2008237032813'),
 
         'mod13a2': (r'^mod13a2\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                    ModisTerra13A2),
+                    ModisTerra13A2, 'mod13a2.A2000072.h02v09.005.2008237032813'),
 
         'mod13a3': (r'^mod13a3\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                    ModisTerra13A3),
+                    ModisTerra13A3, 'mod13a3.A2000072.h02v09.005.2008237032813'),
 
         'mod13q1': (r'^mod13q1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                    ModisTerra13Q1),
+                    ModisTerra13Q1, 'mod13q1.A2000072.h02v09.005.2008237032813'),
 
         'myd09a1': (r'^myd09a1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                    ModisAqua09A1),
+                    ModisAqua09A1, 'myd09a1.A2000072.h02v09.005.2008237032813'),
 
         'myd09ga': (r'^myd09ga\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                    ModisAqua09GA),
+                    ModisAqua09GA, 'myd09ga.A2000072.h02v09.005.2008237032813'),
 
         'myd09gq': (r'^myd09gq\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                    ModisAqua09GQ),
+                    ModisAqua09GQ, 'myd09gq.A2000072.h02v09.005.2008237032813'),
 
         'myd09q1': (r'^myd09q1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                    ModisAqua09Q1),
+                    ModisAqua09Q1, 'myd09q1.A2000072.h02v09.005.2008237032813'),
 
         'myd13a1': (r'^myd13a1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                    ModisAqua13A1),
+                    ModisAqua13A1, 'myd13a1.A2000072.h02v09.005.2008237032813'),
 
         'myd13a2': (r'^myd13a2\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                    ModisAqua13A2),
+                    ModisAqua13A2, 'myd13a2.A2000072.h02v09.005.2008237032813'),
 
         'myd13a3': (r'^myd13a3\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                    ModisAqua13A3),
+                    ModisAqua13A3, 'myd13a3.A2000072.h02v09.005.2008237032813'),
 
         'myd13q1': (r'^myd13q1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                    ModisAqua13Q1)
+                    ModisAqua13Q1, 'myd13q1.A2000072.h02v09.005.2008237032813')
     }
 
     LTA_ids = ['tm4', 'tm5', 'etm7', 'olitirs8', 'oli8']
