@@ -16,7 +16,7 @@ from api.util.dbconnect import DBConnect
 class TransportTestCase(unittest.TestCase):
 
     def setUp(self):
-        os.environ['espa_api_testing'] = 'True'
+        # os.environ['espa_api_testing'] = 'True'
 
         cfg = api_cfg()
         #self.app = http.app.test_client()

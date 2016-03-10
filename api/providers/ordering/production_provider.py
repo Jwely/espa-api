@@ -426,7 +426,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                                               'reorder missing level1 product',
                                               after, limit)
                         except Exception, e:
-                           logger.info
+                            logger.info
 
                             logger.info('Retry limit exceeded for {0} in '
                                         'order {1}... moving to error status.'
