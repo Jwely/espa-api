@@ -132,3 +132,12 @@ def date_from_doy(year, doy):
     else:
         return d
 
+def chunkify(lst, n):
+    """Divides your list into "n" parts
+    :param lst: list of objects to be divided
+    :param n: the number of parts to divide list into
+    :return: list of lists for pieces of original list
+    """
+    return [lst[i::n] for i in xrange(n)]
+
+

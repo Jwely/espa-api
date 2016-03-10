@@ -2,11 +2,18 @@
 import os
 import unittest
 
+from mock import patch
+from api.external.mocks import lta, lpdaac
+
 from api.domain.mocks.order import MockOrder
 from api.domain.mocks.user import MockUser
+from api.domain.user import User
 from api.interfaces.ordering.version0 import API
 
+from api.providers.ordering.production_provider import ProductionProvider
+
 api = API()
+production_provider = ProductionProvider()
 
 class TestProductionAPI(unittest.TestCase):
     def setUp(self):
@@ -14,7 +21,7 @@ class TestProductionAPI(unittest.TestCase):
         # create a user
         self.mock_user = MockUser()
         self.mock_order = MockOrder()
-        self.user_id = mock_user.add_testing_user()
+        self.user_id = self.mock_user.add_testing_user()
 
 
     def tearDown(self):
@@ -25,11 +32,22 @@ class TestProductionAPI(unittest.TestCase):
         os.environ['espa_api_testing'] = ''
 
     def test_fetch_production_products_modis(self):
-        order_id = self.mock_order.generate_testing_order(self.user_id)
-
-
-    def test_fetch_production_products_landsat(self):
         pass
+
+    @patch('api.external.lta', lta)
+    @patch('api.external.lpdaac', lpdaac)
+    def test_fetch_production_products_landsat(self):
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        # need scenes with statuses of 'processing' and 'ordered'
+        self.mock_order.update_scenes(order_id, 'status', ['processing','ordered','oncache'])
+        user = User.where("id = {0}".format(self.user_id))[0]
+        params = {'for_user': user.username, 'product_types': ['landsat']}
+
+        # api.fetch_production_products calls to ->
+        response = production_provider.get_products_to_process(**params)
+        print "*****  response {0}".format(response)
+        self.assertIsInstance(response[0], dict)
+
 
     def test_fetch_production_products_plot(self):
         pass

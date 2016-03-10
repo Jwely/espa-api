@@ -30,12 +30,7 @@ class ProductionProviderException(Exception):
 
 class ProductionProvider(ProductionProviderInterfaceV0):
 
-    @classmethod
-    def dump_this(cls):
-        x = lta.get_user_name('foo')
-        return x
-
-    def queue_products(order_name_tuple_list, processing_location, job_name):
+    def queue_products(self, order_name_tuple_list, processing_location, job_name):
         ''' Allows the caller to place products into queued status in bulk '''
 
         if not isinstance(order_name_tuple_list, list):
@@ -342,7 +337,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         buff.write('s.name, ')
         buff.write('s.sensor_type, ')
         buff.write('o.orderid, ')
-        buff.write('o.product_options, ')
+        buff.write('o.product_opts, ')
         buff.write('o.priority, ')
         buff.write('o.order_date, ')
         buff.write('q.running ')
@@ -406,19 +401,17 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             modis = [item['name'] for item in cid_items if item['sensor_type'] == 'modis']
             modis_urls = lpdaac.get_download_urls(modis)
 
-            logger.warn('Retrieved {0} urls for cid:{1}'.format(len(modis_urls), cid))
-
+            logger.warn('Retrieved {0} modis urls for cid:{1}'.format(len(modis_urls), cid))
             for item in cid_items:
                 dload_url = None
                 if item['sensor_type'] == 'landsat':
-
                      # check to see if the product is still available
 
                     if ('status' in landsat_urls[item['name']] and
                             landsat_urls[item['name']]['status'] != 'available'):
                         try:
                             limit = config.settings['retry.retry_missing_l1.retries']
-                            timeout = config.settings['retry.retry_missing_l1.timeout']
+                            timeout = int(config.settings['retry.retry_missing_l1.timeout'])
                             ts = datetime.datetime.now()
                             after = ts + datetime.timedelta(seconds=timeout)
 
@@ -426,19 +419,20 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                                         'but now unavailable, reordering'
                                         .format(item['name'], item['orderid']))
 
-                            set_product_retry(item['name'],
+                            self.set_product_retry(item['name'],
                                               item['orderid'],
                                               'get_products_to_process',
                                               'product was not available',
                                               'reorder missing level1 product',
                                               after, limit)
-                        except Exception:
+                        except Exception, e:
+                           logger.info
 
                             logger.info('Retry limit exceeded for {0} in '
                                         'order {1}... moving to error status.'
                                         .format(item['name'], item['orderid']))
 
-                            set_product_error(item['name'], item['orderid'],
+                            self.set_product_error(item['name'], item['orderid'],
                                               'get_products_to_process',
                                               ('level1 product data '
                                                'not available after EE call '
@@ -876,11 +870,11 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         handle_submitted_modis_products()
         handle_submitted_plot_products()
 
-    def send_completion_email(order):
+    def send_completion_email(self, order):
         ''' public interface to send the completion email '''
         return emails.Emails().send_completion(order)
 
-    def update_order_if_complete(order):
+    def update_order_if_complete(self, order):
         '''Method to send out the order completion email
         for orders if the completion of a scene
         completes the order
@@ -932,7 +926,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         [update_order_if_complete(o) for o in orders]
         return True
 
-    def purge_orders(send_email=False):
+    def purge_orders(self, send_email=False):
         ''' Will move any orders older than X days to purged status and will also
         remove the files from disk'''
 
