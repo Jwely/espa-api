@@ -10,10 +10,15 @@ from api.domain.user import User
 from api.system.config import ApiConfig
 from api.util import lowercase_all
 from api.domain import api_operations_v0
+from api.system.logger import api_logger as logger
+
+import memcache
 
 
 espa = API()
 auth = HTTPBasicAuth()
+
+cache = memcache.Client(['127.0.0.1:11211'], debug=0)
 
 
 @auth.error_handler
@@ -23,16 +28,20 @@ def unauthorized():
 
 @auth.verify_password
 def verify_user(username, password):
-    # api_user = None
-
     try:
+        # WiP
+        # cache_key = '{}-credentials'.format(username)
+        # cache.get(cache_key)
+        #
+        # if not user:
+        #     user_entry = User.get(username, password)
+
         user_entry = User.get(username, password)
+
         user = User(*user_entry)
-        flask.g.user = user
-        # if user.id:
-        #     api_user = user
-    except Exception as e:
-        print e
+        flask.g.user = user  # Replace usage with cached version
+    except Exception:
+        logger.info('Invalid login attempt, username: {}'.format(username))
         return False
 
     return True
@@ -69,13 +78,6 @@ class VersionInfo(Resource):
 
 class AvailableProducts(Resource):
     decorators = [auth.login_required]
-
-    def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('product_ids', type=list,
-                                   required=True, help='Usage: {"inputs": ["list", "of", "inputs"]}',
-                                   location='json')
-        super(AvailableProducts, self).__init__()
 
     def post(self):
         prod_list = request.get_json(force=True)['inputs']
@@ -142,11 +144,13 @@ class Ordering(Resource):
 
         return response
 
+
 class UserInfo(Resource):
     decorators = [auth.login_required]
 
     def get(self):
         return flask.g.user.as_dict()
+
 
 class ItemStatus(Resource):
     decorators = [auth.login_required]

@@ -11,14 +11,6 @@ from api.domain import api_operations_v0
 
 espa = API()
 
-# Contain Production/Internal facing REST functionality
-# '/production-api', methods=['GET']
-# '/production-api/v0', methods=['GET']
-# '/production-api/v0/products', methods=['GET']
-# '/production-api/v0/<action>', methods=['POST']
-# '/production-api/v0/handle-orders', methods=['POST']
-# '/production-api/v0/queue-products', methods=['POST']
-# '/production-api/v0/configuration/<key>', methods=['GET']
 
 class ProductionVersion(Resource):
     def get(self):
@@ -33,7 +25,7 @@ class ProductionOperations(Resource):
         if 'products' in request.url:
             return espa.fetch_production_products(request.args)
 
-
+    # Probably best to split these up into their own classes
     def post(self, action=None):
         if 'handle-orders' in request.url:
             return espa.handle_orders()

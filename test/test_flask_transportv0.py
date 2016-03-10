@@ -6,7 +6,7 @@ import unittest
 import tempfile
 import base64
 from api.transports import http_testing
-from api.transports import http_transport
+from api.transports import http_main
 import version0_testorders as testorders
 import copy
 
@@ -16,17 +16,19 @@ from api.util.dbconnect import DBConnect
 class TransportTestCase(unittest.TestCase):
 
     def setUp(self):
+        os.environ['espa_api_testing'] = 'True'
+
         cfg = api_cfg()
         #self.app = http.app.test_client()
-        self.app = http_transport.app.test_client()
+        self.app = http_main.app.test_client()
         self.app.testing = True
 
         self.sceneids = ['LT50150401987120XXX02', 'LE70450302003206EDC01']
+
         token = '{}:{}'.format(cfg['devuser'], cfg['devword'])
         auth_string = "Basic {}".format(base64.b64encode(token))
-        #auth_string = "Basic %s:%s" % (cfg['devuser'], cfg['devword'])
-
         self.headers = {"Authorization": auth_string}
+
         self.useremail = cfg['devmail']
 
         with DBConnect(**cfg) as db:
