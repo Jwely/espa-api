@@ -96,10 +96,10 @@ def build_base_order():
                                                              'MYD09A1', 'MYD09GA', 'MYD09GQ', 'MYD09Q1',
                                                              'MOD13A1', 'MOD13A2', 'MOD13A3', 'MOD13Q1',
                                                              'MYD13A1', 'MYD13A2', 'MYD13A3', 'MYD13Q1'],
-                                                            ['MOD09A1', 'MOD09GA', 'MOD09GQ', 'MOD09Q1',
-                                                             'MYD09A1', 'MYD09GA', 'MYD09GQ', 'MYD09Q1',
-                                                             'MOD13A1', 'MOD13A2', 'MOD13A3', 'MOD13Q1',
-                                                             'MYD13A1', 'MYD13A2', 'MYD13A3', 'MYD13Q1']),
+                                                            ['mod09a1', 'mod09ga', 'mod09gq', 'mod09q1',
+                                                             'myd09a1', 'myd09ga', 'myd09gq', 'myd09q1',
+                                                             'mod13a1', 'mod13a2', 'mod13a3', 'mod13q1',
+                                                             'myd13a1', 'myd13a2', 'myd13a3', 'myd13q1']),
                      '2181092013069PFS00': (['LT4', 'LT5', 'LE7', 'LO8', 'LC8'],
                                             ['tm4', 'tm5', 'etm7', 'oli8', 'olitirs8'])}
 

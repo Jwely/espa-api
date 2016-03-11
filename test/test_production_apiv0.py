@@ -25,7 +25,6 @@ class TestProductionAPI(unittest.TestCase):
         self.mock_order = MockOrder()
         self.user_id = self.mock_user.add_testing_user()
 
-
     def tearDown(self):
         # clean up orders
         self.mock_order.tear_down_testing_orders()
@@ -38,13 +37,13 @@ class TestProductionAPI(unittest.TestCase):
     def test_fetch_production_products_modis(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
         # need scenes with statuses of 'processing' and 'ordered'
-        self.mock_order.update_scenes(order_id, 'status', ['processing','ordered','oncache'])
+        self.mock_order.update_scenes(order_id, 'status', ['processing', 'ordered', 'oncache'])
         user = User.where("id = {0}".format(self.user_id))[0]
         params = {'for_user': user.username, 'product_types': ['modis']}
 
         # api.fetch_production_products calls to ->
         response = production_provider.get_products_to_process(**params)
-        # self.assertTrue('bilbo' in response[0]['orderid'])
+        self.assertTrue('bilbo' in response[0]['orderid'])
 
     @patch('api.external.lta.get_download_urls', lta.get_download_urls)
     @patch('api.external.lpdaac', lpdaac)
