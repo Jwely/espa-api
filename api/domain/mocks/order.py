@@ -7,6 +7,7 @@ from api.util import chunkify
 from test.version0_testorders import build_base_order
 from api.providers.ordering.ordering_provider import OrderingProvider
 import os
+import random
 
 class MockOrderException(Exception):
     pass
@@ -30,6 +31,10 @@ class MockOrder(object):
 
     def generate_testing_order(self, user_id):
         user = User.where("id = {0}".format(user_id))[0]
+        # need to monkey with the email, otherwise we get collisions with each
+        # test creating a new scratch order with the same user
+        rand = str(random.randint(1,99))
+        user.email = rand + user.email
         orderid = self.ordering_provider.place_order(self.base_order, user)
         order = Order.where("orderid = '{0}'".format(orderid))[0]
         return order.id

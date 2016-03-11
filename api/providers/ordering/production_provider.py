@@ -305,7 +305,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                 db.commit()
         except DBConnectException, e:
             message = "DBConnectException set_product_error. message: {0}\nsql: {1}".format(e.message, sql)
-            raise OrderingProviderException(message)
+            raise ProductionProviderException(message)
 
         return True
 

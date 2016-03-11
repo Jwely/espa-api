@@ -9,6 +9,7 @@ from api.domain.mocks.order import MockOrder
 from api.domain.mocks.user import MockUser
 from api.domain.user import User
 from api.domain.order import Order
+from api.domain.scene import Scene
 from api.interfaces.ordering.version0 import API
 from api.providers.ordering.mocks.production_provider import MockProductionProvider
 
@@ -59,9 +60,18 @@ class TestProductionAPI(unittest.TestCase):
         note = 'note this'
         retry_after = datetime.datetime.now() + datetime.timedelta(hours=1)
         retry_limit = 9
-
         response = production_provider.set_product_retry(scene.name, order.orderid, processing_loc,
                                                          error, note, retry_after, retry_limit)
+        self.assertTrue(response)
+
+    def test_production_set_product_error(self):
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        order = Order.where("id = {0}".format(order_id))[0]
+        scene = order.scenes()[0]
+        processing_loc = "get_products_to_process"
+        error = 'not available after EE call '
+        response = production_provider.set_product_error(scene.name, order.orderid,
+                                                         processing_loc, error)
         self.assertTrue(response)
 
     def test_fetch_production_products_plot(self):

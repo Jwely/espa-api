@@ -427,7 +427,8 @@ class Order(object):
             db.commit()
         return True
 
-    def scenes(self, conditions=[]):
+    def scenes(self, conditions=None):
+        conditions = conditions or []
         conditions.append("order_id = {0}".format(self.id))
         sql = " AND ".join(conditions)
         slist = Scene.where(sql)
