@@ -241,13 +241,13 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             sql_list.append(comm_sep)
             sql_list.append(" status = 'retry', ")
             sql_list.append(" retry_count = {0}, ".format(retry_count + 1))
-            sql_list.append(" retry_after = {0}, ".format(retry_after))
+            sql_list.append(" retry_after = '{0}', ".format(retry_after))
             sql_list.append(" log_file_contents = '{0}', ".format(error))
-            sql_list.append(" processing_loc = '{0}', ".format(processing_loc))
+            sql_list.append(" processing_location = '{0}', ".format(processing_loc))
             sql_list.append(" note = '{0}'".format(note))
         else:
             print "****  problem in set_product_retry"
-            raise OrderingProviderException("Exception Retry limit exceeded, name: {0}".format(name))
+            raise ProductionProviderException("Exception Retry limit exceeded, name: {0}".format(name))
 
         sql_list.append(" where name = '{0}' AND order_id = {1};".format(name, order_id))
         sql = " ".join(sql_list)
@@ -257,7 +257,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                 db.commit()
         except DBConnectException, e:
             message = "DBConnectException set_product_retry. message: {0}\nsql: {1}".format(e.message, sql)
-            raise OrderingProviderException(message)
+            raise ProductionProviderException(message)
 
         return True
 
