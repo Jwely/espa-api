@@ -33,8 +33,18 @@ class TestProductionAPI(unittest.TestCase):
         self.mock_user.cleanup()
         os.environ['espa_api_testing'] = ''
 
+    @patch('api.external.lpdaac.get_download_urls', lpdaac.get_download_urls)
+    @patch('api.providers.ordering.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
     def test_fetch_production_products_modis(self):
-        pass
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        # need scenes with statuses of 'processing' and 'ordered'
+        self.mock_order.update_scenes(order_id, 'status', ['processing','ordered','oncache'])
+        user = User.where("id = {0}".format(self.user_id))[0]
+        params = {'for_user': user.username, 'product_types': ['modis']}
+
+        # api.fetch_production_products calls to ->
+        response = production_provider.get_products_to_process(**params)
+        # self.assertTrue('bilbo' in response[0]['orderid'])
 
     @patch('api.external.lta.get_download_urls', lta.get_download_urls)
     @patch('api.external.lpdaac', lpdaac)
