@@ -271,7 +271,7 @@ class API(object):
             True if successful
         """
         try:
-            response = self.production.queue_products(params)
+            response = self.production.queue_products(**params)
         except:
             logger.debug("ERR version0 queue_products params: {0}\ntrace: {1}".format(params, traceback.format_exc()))
             response = default_error_message

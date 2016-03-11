@@ -19,3 +19,5 @@ class MockProductionProvider(object):
     def set_product_error(self, name, orderid, action, msg_list):
         return True
 
+    def respond_true(self, *args, **kwargs):
+        return True

@@ -418,7 +418,9 @@ class Order(object):
 
     def update(self, att, val):
         self.__setattr__(att, val)
-        if isinstance(val, str) or isinstance(val, datetime.datetime):
+        if val is None:
+            vale = "null"
+        elif isinstance(val, str) or isinstance(val, datetime.datetime):
             val = "\'{0}\'".format(val)
         sql = "update ordering_order set {0} = {1} where id = {2};".format(att, val, self.id)
         #return sql

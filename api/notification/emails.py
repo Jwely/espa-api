@@ -103,18 +103,20 @@ class Emails(object):
         orders = Order.where(["status = 'ordered'"])
         for o in orders:
             if not o.initial_email_sent:
-                self.send_initial(o)
+                self.send_initial(o.orderid)
                 o.update('initial_email_sent', datetime.datetime.now())
 
-    def send_initial(self, order):
+    def send_initial(self, order_id):
 
-        if isinstance(order, str):
-            order = Order.where(['orderid = {0}'.format(order)])[0]
-        elif isinstance(order, int):
-            order = Order(order)
+        if isinstance(order_id, str):
+            order = Order.where("orderid = '{0}'".format(order_id))[0]
+        elif isinstance(order_id, int):
+            order = Order.where("id = {0}".format(order_id))[0]
+        elif isinstance(order_id, Order):
+            order = order_id
 
         if not isinstance(order, Order):
-            msg = 'order must be str, int or instance of Order'
+            msg = 'order must be str of orderid, int of pk or instance of Order'
             raise TypeError(msg)
 
         email = order.user_email()
