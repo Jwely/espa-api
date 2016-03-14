@@ -188,9 +188,16 @@ class OrderingProvider(ProviderInterfaceV0):
             id = items[0]['orderid']
             response['orderid'] = {id: []}
             for item in items:
+                ts = ''
+                try:
+                    # Not always present
+                    item['completion_date'].strftime('%m-%d-%Y %H:%M:%S')
+                except:
+                    pass
+
                 i = {'name': item['name'],
                      'status': item['status'],
-                     'completion_date': item['completion_date'].strftime('%m-%d-%Y %H:%M:%S'),
+                     'completion_date': ts,
                      'note': item['note']}
                 response['orderid'][id].append(i)
         else:
