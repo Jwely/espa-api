@@ -909,7 +909,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             if order.order_source == 'espa' and not order.completion_email_sent:
                 try:
                     sent = None
-                    sent = send_completion_email(order)
+                    sent = self.send_completion_email(order)
                     if sent is None:
                         logger.debug('Completeion email not sent for {0}'
                                          .format(order.orderid))
@@ -921,13 +921,14 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                     #msg = "Error calling send_completion_email:{0}".format(e)
                     logger.debug('Error calling send_completion_email')
                     raise e
+        return True
 
     def finalize_orders(self):
         '''Checks all open orders in the system and marks them complete if all
         required scene processing is done'''
 
         orders = Order.where("status = 'ordered'")
-        [update_order_if_complete(o) for o in orders]
+        [self.update_order_if_complete(o) for o in orders]
         return True
 
     def purge_orders(self, send_email=False):
@@ -963,16 +964,13 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                     product.save()
 
                 # bulk update product status, delete unnecessary field data
-                logger.info('Deleting {0} from online cache disk'
-                   .format(order.orderid))
+                logger.info('Deleting {0} from online cache disk'.format(order.orderid))
 
                 onlinecache.delete(order.orderid)
             except onlinecache.OnlineCacheException:
-                logger.exception('Could not delete {0} from the online cache'
-                    .format(order.orderid))
+                logger.debug('Could not delete {0} from the online cache'.format(order.orderid))
             except Exception:
-                logger.exception('Exception purging {0}'
-                    .format(order.orderid))
+                logger.debug('Exception purging {0}'.format(order.orderid))
 
         end_capacity = onlinecache.capacity()
         logger.info('Ending cache capacity:{0}'.format(end_capacity))
