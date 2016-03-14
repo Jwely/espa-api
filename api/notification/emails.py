@@ -12,6 +12,7 @@ from email.mime.text import MIMEText
 from smtplib import SMTP
 
 from api.domain.order import Order
+from api.domain.scene import Scene
 from api.system.logger import api_logger as logger
 from api.system.config import ApiConfig
 config = ApiConfig()
@@ -105,6 +106,7 @@ class Emails(object):
             if not o.initial_email_sent:
                 self.send_initial(o.orderid)
                 o.update('initial_email_sent', datetime.datetime.now())
+        return True
 
     def send_initial(self, order_id):
 

@@ -262,51 +262,47 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         return True
 
-    def set_product_error(self, name=None, orderid=None,
-                            processing_loc=None, error=None):
+    def set_product_error(self, name, orderid, processing_loc, error):
+        ''' Marks a scene in error and accepts the log file contents '''
 
-        sql_list = ["update ordering_scene set "]
+        order = Order.where("orderid = '{0}'".format(orderid))[0]
+        product = Scene.where("name = '{0}' and order_id = '{1}'".format(name, order.id))[0]
+        #attempt to determine the disposition of this error
         resolution = errors.resolve(error, name)
-        order_id = Scene.get('order_id', name=name, orderid=orderid)
 
         if resolution is not None:
+
             if resolution.status == 'submitted':
-                sql_list.append(" status = 'submitted', note = '' ")
+                product.status = 'submitted'
+                product.note = ''
+                product.save()
             elif resolution.status == 'unavailable':
-                now = datetime.datetime.now()
-                sql_list.append(" status = 'unavailable', processing_location = '{0}', "\
-                                "completion_date = {1}, log_file_contents = '{2}', "\
-                                "note = '{3}' ".format(processing_loc, now, error, resolution.reason))
-
-                ee_order_id = Scene.get('ee_order_id', name=name, orderid=orderid)
-                ee_unit_id = Scene.get('ee_unit_id', name=name, orderid=orderid)
-                lta.update_order_status(ee_order_id, ee_unit_id, 'R')
-
+                self.set_product_unavailable(product.name,
+                                        order.orderid,
+                                        processing_loc,
+                                        error,
+                                        resolution.reason)
             elif resolution.status == 'retry':
                 try:
-                    set_product_retry(name, orderid, processing_loc, error,
-                                        resolution.reason,
-                                        resolution.extra['retry_after'],
-                                        resolution.extra['retry_limit'])
+                    self.set_product_retry(product.name,
+                                      order.orderid,
+                                      processing_loc,
+                                      error,
+                                      resolution.reason,
+                                      resolution.extra['retry_after'],
+                                      resolution.extra['retry_limit'])
                 except Exception, e:
-                    logger.debug("Exception setting {0} to retry:{1}".format(name, e))
-                    sql_list.append(" status = 'error', processing_location = '{0}',"\
-                                    " log_file_contents = {1} ".format(processing_loc, error))
+                    logger.debug("Exception setting {0} to retry:{1}"
+                                 .format(name, e))
+                    product.status = 'error'
+                    product.processing_location = processing_loc
+                    product.log_file_contents = error
+                    product.save()
         else:
-            status = 'error'
-            sql_list.append(" status = '{0}', processing_location = '{1}',"\
-                            " log_file_contents = '{2}' ".format(status, processing_loc, error))
-
-        sql_list.append(" where name = '{0}' AND order_id = {1};".format(name, order_id))
-        sql = " ".join(sql_list)
-
-        try:
-            with DBConnect(**api_cfg()) as db:
-                db.execute(sql)
-                db.commit()
-        except DBConnectException, e:
-            message = "DBConnectException set_product_error. message: {0}\nsql: {1}".format(e.message, sql)
-            raise ProductionProviderException(message)
+            product.status = 'error'
+            product.processing_location = processing_loc
+            product.log_file_contents = error
+            product.save()
 
         return True
 
@@ -989,12 +985,12 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
     def handle_orders(self):
         '''Logic handler for how we accept orders + products into the system'''
-        send_initial_emails()
-        handle_onorder_landsat_products()
-        handle_retry_products()
-        load_ee_orders()
-        handle_submitted_products()
-        finalize_orders()
+        self.send_initial_emails()
+        self.handle_onorder_landsat_products()
+        self.handle_retry_products()
+        self.load_ee_orders()
+        self.handle_submitted_products()
+        self.finalize_orders()
 
         cache_key = 'orders_last_purged'
         result = cache.get(cache_key)
@@ -1008,7 +1004,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             cache.set(cache_key, datetime.datetime.now(), timeout)
 
             #purge the orders from disk now
-            purge_orders(send_email=True)
+            self.purge_orders(send_email=True)
         else:
             logger.info('Purge lock detected... skipping')
         return True

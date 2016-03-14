@@ -7,6 +7,7 @@ from api.external.mocks import lta, lpdaac
 
 from api.domain.mocks.order import MockOrder
 from api.domain.mocks.user import MockUser
+from api.system.mocks import errors
 from api.domain.user import User
 from api.domain.order import Order
 from api.domain.scene import Scene
@@ -65,8 +66,8 @@ class TestProductionAPI(unittest.TestCase):
         order = Order.where("id = {0}".format(order_id))[0]
         scene = order.scenes()[0]
         scene.update('retry_count', 4)
-        processing_loc = "/some/dir/over/there"
-        error = 'is there an error?'
+        processing_loc = "get_products_to_process"
+        error = 'not available after EE call '
         note = 'note this'
         retry_after = datetime.datetime.now() + datetime.timedelta(hours=1)
         retry_limit = 9
@@ -74,7 +75,9 @@ class TestProductionAPI(unittest.TestCase):
                                                          error, note, retry_after, retry_limit)
         self.assertTrue(response)
 
-    def test_production_set_product_error(self):
+    @patch('api.external.lta.update_order_status', mock_production_provider.respond_true)
+    @patch('api.system.errors.resolve', errors.resolve_unavailable)
+    def test_production_set_product_error_unavailable(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
         order = Order.where("id = {0}".format(order_id))[0]
         scene = order.scenes()[0]
@@ -83,6 +86,34 @@ class TestProductionAPI(unittest.TestCase):
         response = production_provider.set_product_error(scene.name, order.orderid,
                                                          processing_loc, error)
         self.assertTrue(response)
+
+    @patch('api.system.errors.resolve', errors.resolve_submitted)
+    def test_production_set_product_error_submitted(self):
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        order = Order.where("id = {0}".format(order_id))[0]
+        scene = order.scenes()[0]
+        processing_loc = "get_products_to_process"
+        error = 'not available after EE call '
+        response = production_provider.set_product_error(scene.name, order.orderid,
+                                                         processing_loc, error)
+        self.assertTrue(response)
+
+    @patch('api.providers.ordering.production_provider.ProductionProvider.set_product_retry',
+           mock_production_provider.set_product_retry)
+    @patch('api.system.errors.resolve', errors.resolve_retry)
+    def test_production_set_product_error_retry(self):
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        order = Order.where("id = {0}".format(order_id))[0]
+        scene = order.scenes()[0]
+        processing_loc = "get_products_to_process"
+        error = 'not available after EE call '
+        response = production_provider.set_product_error(scene.name, order.orderid,
+                                                         processing_loc, error)
+        self.assertTrue(response)
+
+
+
+
 
     def test_fetch_production_products_plot(self):
         pass
@@ -130,15 +161,15 @@ class TestProductionAPI(unittest.TestCase):
         response = production_provider.purge_orders()
         self.assertTrue(response)
 
-    # need to figure a test for emails.__send
-    @patch('api.notification.emails._Emails__send',
+    # need to figure a test for emails.send_email
+    @patch('api.notification.emails.Emails.send_email',
            mock_production_provider.respond_true)
     def test_production_send_initial_emails(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
         order = Order.where("id = {0}".format(order_id))[0]
         order.update('status', 'ordered')
         response = emails.Emails().send_all_initial()
-
+        self.assertTrue(response)
 
     def test_production_handle_onorder_landsat_products(self):
         pass
