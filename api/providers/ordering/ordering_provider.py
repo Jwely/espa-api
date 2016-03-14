@@ -182,13 +182,14 @@ class OrderingProvider(ProviderInterfaceV0):
 
         with DBConnect(**api_cfg()) as db:
             db.select(sql, argtup)
+            items = [_ for _ in db.fetcharr]
 
-        if db:
+        if items:
             for key in ('orderid', 'name', 'status', 'completion_date', 'note'):
-                for i in enumerate(db):
-                    val = db[i[0]][key]
+                for i in enumerate(items):
+                    val = items[i[0]][key]
                     if key is 'completion_date':
-                        val = val.strftime("%M-%d-%y %I:%m:%S")
+                        val = val.strftime('%m-%d-%Y %H:%M:%S')
                     response[key] = val
         else:
             response['msg'] = 'sorry, no items matched orderid %s , itemid %s' % (orderid, itemid)
