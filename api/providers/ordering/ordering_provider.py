@@ -203,5 +203,4 @@ class OrderingProvider(ProviderInterfaceV0):
         else:
             response['msg'] = 'sorry, no items matched orderid %s , itemid %s' % (orderid, itemid)
 
-        print response
         return response
