@@ -191,7 +191,7 @@ class OrderingProvider(ProviderInterfaceV0):
                 ts = ''
                 try:
                     # Not always present
-                    item['completion_date'].strftime('%m-%d-%Y %H:%M:%S')
+                    ts = item['completion_date'].strftime('%m-%d-%Y %H:%M:%S')
                 except:
                     pass
 
@@ -203,4 +203,5 @@ class OrderingProvider(ProviderInterfaceV0):
         else:
             response['msg'] = 'sorry, no items matched orderid %s , itemid %s' % (orderid, itemid)
 
+        print response
         return response
