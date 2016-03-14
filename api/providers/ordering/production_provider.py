@@ -85,7 +85,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         product_dload_url = ('%s/orders/%s/%s') % (base_url, orderid, product_file)
         cksum_download_url = ('%s/orders/%s/%s') % (base_url, orderid, cksum_file)
 
-        scene = Scene.where("where name = '{0}' AND order_id = {1}".format(name, order_id))[0]
+        scene = Scene.where("name = '{0}' AND order_id = {1}".format(name, order_id))[0]
         scene.status = 'complete'
         scene.processing_location = processing_loc
         scene.product_distro_location = completed_file_location
@@ -212,14 +212,14 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         if action == 'set_product_unavailable':
             result = self.set_product_unavailable(name=name, orderid=orderid,
-                                                    processing_loc=processing_loc,
-                                                    error=error, note=note)
+                                                  processing_loc=processing_loc,
+                                                  error=error, note=note)
 
         if action == 'mark_product_complete':
             result = self.mark_product_complete(name=name, orderid=orderid,
                                                 processing_loc=processing_loc,
                                                 completed_file_location=completed_file_location,
-                                                destination_cksum_file=destination_cksum_file,
+                                                destination_cksum_file=cksum_file_location,
                                                 log_file_contents=log_file_contents)
 
         return result
@@ -273,9 +273,9 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             if resolution.status == 'submitted':
                 sql_list.append(" status = 'submitted', note = '' ")
             elif resolution.status == 'unavailable':
-                now = datetime.datetime.now()
+                now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 sql_list.append(" status = 'unavailable', processing_location = '{0}', "\
-                                "completion_date = {1}, log_file_contents = '{2}', "\
+                                "completion_date = '{1}', log_file_contents = '{2}', "\
                                 "note = '{3}' ".format(processing_loc, now, error, resolution.reason))
 
                 ee_order_id = Scene.get('ee_order_id', name=name, orderid=orderid)
@@ -284,7 +284,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
             elif resolution.status == 'retry':
                 try:
-                    set_product_retry(name, orderid, processing_loc, error,
+                    self.set_product_retry(name, orderid, processing_loc, error,
                                         resolution.reason,
                                         resolution.extra['retry_after'],
                                         resolution.extra['retry_limit'])
