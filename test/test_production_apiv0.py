@@ -220,8 +220,11 @@ class TestProductionAPI(unittest.TestCase):
     def test_production_handle_retry_products(self):
         pass
 
+    @patch('api.external.lta.get_available_orders', lta.get_available_orders)
+    @patch('api.external.lta.update_order_status', lta.update_order_status)
+    @patch('api.external.lta.get_user_name', lta.get_user_name)
     def test_production_load_ee_orders(self):
-        pass
+        production_provider.load_ee_orders()
 
     def test_production_handle_submitted_products(self):
         pass

@@ -631,6 +631,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                                                                 msg, status)
                     logger.error(log_msg)
 
+
     def handle_retry_products(self):
         ''' handles all products in retry status '''
         now = datetime.datetime.now()
