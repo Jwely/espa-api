@@ -85,7 +85,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         product_dload_url = ('%s/orders/%s/%s') % (base_url, orderid, product_file)
         cksum_download_url = ('%s/orders/%s/%s') % (base_url, orderid, cksum_file)
 
-        scene = Scene.where("where name = '{0}' AND order_id = {1}".format(name, order_id))[0]
+        scene = Scene.where("name = '{0}' AND order_id = {1}".format(name, order_id))[0]
         scene.status = 'complete'
         scene.processing_location = processing_loc
         scene.product_distro_location = completed_file_location
@@ -212,14 +212,14 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         if action == 'set_product_unavailable':
             result = self.set_product_unavailable(name=name, orderid=orderid,
-                                                    processing_loc=processing_loc,
-                                                    error=error, note=note)
+                                                  processing_loc=processing_loc,
+                                                  error=error, note=note)
 
         if action == 'mark_product_complete':
             result = self.mark_product_complete(name=name, orderid=orderid,
                                                 processing_loc=processing_loc,
                                                 completed_file_location=completed_file_location,
-                                                destination_cksum_file=destination_cksum_file,
+                                                destination_cksum_file=cksum_file_location,
                                                 log_file_contents=log_file_contents)
 
         return result

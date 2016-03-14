@@ -111,24 +111,67 @@ class TestProductionAPI(unittest.TestCase):
                                                          processing_loc, error)
         self.assertTrue(response)
 
-
-
-
-
     def test_fetch_production_products_plot(self):
         pass
 
+    @patch('api.external.lta.update_order_status', lta.update_order_status)
+    @patch('api.providers.ordering.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
     def test_update_product_details_update_status(self):
-        pass
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        order = Order.where("id = {0}".format(order_id))[0]
+        scene = order.scenes()[0]
+        processing_loc = "L8SRLEXAMPLE"
+        status = 'Queued'
+        response = production_provider.update_product('update_status',
+                                                      name=scene.name, orderid=order.orderid,
+                                                      processing_loc=processing_loc, status=status)
 
+        self.assertTrue(response)
+
+    @patch('api.external.lta.update_order_status', lta.update_order_status)
+    @patch('api.providers.ordering.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
+    # @patch('api.external.onlinecache.capacity', onlinecache.capacity)
     def test_update_product_details_set_product_error(self):
-        pass
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        order = Order.where("id = {0}".format(order_id))[0]
+        scene = order.scenes()[0]
+        processing_loc = "L8SRLEXAMPLE"
+        error = 'GDAL Warp failed to transform'
+        response = production_provider.update_product('set_product_error',
+                                                      name=scene.name, orderid=order.orderid,
+                                                      processing_loc=processing_loc, error=error)
+        self.assertTrue(response)
 
+    @patch('api.external.lta.update_order_status', lta.update_order_status)
+    @patch('api.providers.ordering.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
     def test_update_product_details_set_product_unavailable(self):
-        pass
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        order = Order.where("id = {0}".format(order_id))[0]
+        scene = order.scenes()[0]
+        processing_loc = "L8SRLEXAMPLE"
+        error = 'include_dswe is an unavailable product option for OLITIRS'
+        response = production_provider.update_product('set_product_unavailable',
+                                                      name=scene.name, orderid=order.orderid,
+                                                      processing_loc=processing_loc, error=error)
+        self.assertTrue(response)
 
+    @patch('api.external.lta.update_order_status', lta.update_order_status)
+    @patch('api.providers.ordering.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
     def test_update_product_details_mark_product_complete(self):
-        pass
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        order = Order.where("id = {0}".format(order_id))[0]
+        scene = order.scenes()[0]
+        processing_loc = "L8SRLEXAMPLE"
+        file_loc = '/some/loc'
+        cksum = 'some checksum'
+        logfile = 'some log'
+        response = production_provider.update_product('mark_product_complete',
+                                                      name=scene.name, orderid=order.orderid,
+                                                      processing_loc=processing_loc,
+                                                      completed_file_location=file_loc,
+                                                      cksum_file_location=cksum,
+                                                      log_file_contents=logfile)
+        self.assertTrue(response)
 
     @patch('api.providers.ordering.production_provider.ProductionProvider.send_initial_emails',
            mock_production_provider.respond_true)

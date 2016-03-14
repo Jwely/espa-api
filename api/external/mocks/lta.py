@@ -14,4 +14,8 @@ def get_download_urls(product_list, contact_id):
     return response
 
 
+def update_order_status(ee_order_id, ee_unit_id, something):
+    return True
+
+
 
