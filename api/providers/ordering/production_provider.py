@@ -10,6 +10,7 @@ from api.external import lpdaac, lta, onlinecache, nlaps
 from api.system import errors
 from api.notification import emails
 from api.domain.user import User
+from api.providers.ordering.options_conversion import convert_options
 
 import yaml
 import copy
@@ -451,12 +452,18 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                         if encode_urls:
                             dload_url = urllib.quote(dload_url, '')
 
+                # Need to strip out everything not directly related to the scene
+                options = self.strip_unrelated(item['name'], item['product_opts'])
+
+                if config.cfg['convertprodopts'] == 'True':
+                    options = convert_options(options)
+
                 result = {
                     'orderid': item['orderid'],
                     'product_type': item['sensor_type'],
                     'scene': item['name'],
                     'priority': item['priority'],
-                    'options': item['product_opts']
+                    'options': options
                     #'options': json.loads(item['product_options'])
                 }
 
@@ -1006,4 +1013,15 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             logger.info('Purge lock detected... skipping')
         return True
 
+    def strip_unrelated(self, sceneid, opts):
+        opts = copy.deepcopy(opts)
 
+        short = sensor.instance(sceneid).shortname
+        sen_keys = sensor.SensorCONST.instances.keys()
+        opts['products'] = opts[short]['products']
+
+        for sen in sen_keys:
+            if sen in opts:
+                opts.pop(sen)
+
+        return opts

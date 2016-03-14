@@ -72,8 +72,8 @@ class BaseValidationSchema(object):
 
         self.resize = {'pixel_size': {'type': 'number',
                                       'required': True,
-                                      'ps_dd_rng': (0.0002695, 0.0089831),
-                                      'ps_meter_rng': (30, 1000)},
+                                      'ps_dd_rng': (0.0002695, 0.0449155),
+                                      'ps_meter_rng': (30, 5000)},
                        'pixel_size_units': {'type': 'string',
                                             'required': True,
                                             'enum': ['dd', 'meters']}}
@@ -110,54 +110,7 @@ class BaseValidationSchema(object):
 
     @staticmethod
     def build_sensor_schema():
-        # acq_strings = {'.A2000072.h02v09.005.2008237032813': ['MOD09A1', 'MOD09GA', 'MOD09GQ', 'MOD09Q1',
-        #                                                       'MYD09A1', 'MYD09GA', 'MYD09GQ', 'MYD09Q1',
-        #                                                       'MOD13A1', 'MOD13A2', 'MOD13A3', 'MOD13Q1',
-        #                                                       'MYD13A1', 'MYD13A2', 'MYD13A3', 'MYD13Q1'],
-        #                '2181092013069PFS00': ['LT4', 'LT5', 'LE7', 'LO8', 'LC8']}
-
-        sensor_reg = {'tm4': (r'^lt4\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$',
-                              'LT42181092013069PFS00'),
-                      'tm5': (r'^lt5\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$',
-                              'LT52181092013069PFS00'),
-                      'etm7': (r'^le7\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
-                               'LE72181092013069PFS00'),
-                      'olitirs8': (r'^lc8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
-                                   'LC82181092013069PFS00'),
-                      'oli8': (r'^lo8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
-                               'LO82181092013069PFS00'),
-                      'mod09a1': (r'^mod09a1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                                  'mod09a1.A2000072.h02v09.005.2008237032813'),
-                      'mod09ga': (r'^mod09ga\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                                  'mod09ga.A2000072.h02v09.005.2008237032813'),
-                      'mod09gq': (r'^mod09gq\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                                  'mod09gq.A2000072.h02v09.005.2008237032813'),
-                      'mod09q1': (r'^mod09q1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                                  'mod09q1.A2000072.h02v09.005.2008237032813'),
-                      'mod13a1': (r'^mod13a1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                                  'mod13a1.A2000072.h02v09.005.2008237032813'),
-                      'mod13a2': (r'^mod13a2\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                                  'mod13a2.A2000072.h02v09.005.2008237032813'),
-                      'mod13a3': (r'^mod13a3\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                                  'mod13a3.A2000072.h02v09.005.2008237032813'),
-                      'mod13q1': (r'^mod13q1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                                  'mod13q1.A2000072.h02v09.005.2008237032813'),
-                      'myd09a1': (r'^myd09a1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                                  'myd09a1.A2000072.h02v09.005.2008237032813'),
-                      'myd09ga': (r'^myd09ga\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                                  'myd09ga.A2000072.h02v09.005.2008237032813'),
-                      'myd09gq': (r'^myd09gq\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                                  'myd09gq.A2000072.h02v09.005.2008237032813'),
-                      'myd09q1': (r'^myd09q1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                                  'myd09q1.A2000072.h02v09.005.2008237032813'),
-                      'myd13a1': (r'^myd13a1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                                  'myd13a1.A2000072.h02v09.005.2008237032813'),
-                      'myd13a2': (r'^myd13a2\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                                  'myd13a2.A2000072.h02v09.005.2008237032813'),
-                      'myd13a3': (r'^myd13a3\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                                  'myd13a3.A2000072.h02v09.005.2008237032813'),
-                      'myd13q1': (r'^myd13q1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
-                                  'myd13q1.A2000072.h02v09.005.2008237032813')}
+        sensor_reg = sn.SensorCONST.instances
 
         out_schema = {}
         for key in sensor_reg:
@@ -175,7 +128,7 @@ class BaseValidationSchema(object):
                                                            'role_restricted': True,
                                                            'items': {'type': 'string',
                                                                      'enum': sn.instance(
-                                                                         sensor_reg[key][1]).products}}}}
+                                                                         sensor_reg[key][2]).products}}}}
 
         return out_schema
 
