@@ -185,12 +185,14 @@ class OrderingProvider(ProviderInterfaceV0):
             items = [_ for _ in db.fetcharr]
 
         if items:
-            for key in ('orderid', 'name', 'status', 'completion_date', 'note'):
-                for i in enumerate(items):
-                    val = items[i[0]][key]
-                    if key is 'completion_date':
-                        val = val.strftime('%m-%d-%Y %H:%M:%S')
-                    response[key] = val
+            id = items[0]['orderid']
+            response['orderid'] = {id: []}
+            for item in items:
+                i = {'name': item['name'],
+                     'status': item['status'],
+                     'completion_date': item['completion_date'].strftime('%m-%d-%Y %H:%M:%S'),
+                     'note': item['note']}
+                response['orderid'][id].append(i)
         else:
             response['msg'] = 'sorry, no items matched orderid %s , itemid %s' % (orderid, itemid)
 
