@@ -3,7 +3,7 @@ import os
 import unittest
 import datetime
 from mock import patch
-from api.external.mocks import lta, lpdaac
+from api.external.mocks import lta, lpdaac, onlinecache
 
 from api.domain.mocks.order import MockOrder
 from api.domain.mocks.user import MockUser
@@ -195,6 +195,8 @@ class TestProductionAPI(unittest.TestCase):
            mock_production_provider.respond_true)
     @patch('api.notification.emails.send_purge_report',
            mock_production_provider.respond_true)
+    @patch('api.external.onlinecache.capacity',
+           onlinecache.capacity)
     def test_production_purge_orders(self):
         new_completion_date = datetime.datetime.now() - datetime.timedelta(days=12)
         order_id = self.mock_order.generate_testing_order(self.user_id)
@@ -229,11 +231,27 @@ class TestProductionAPI(unittest.TestCase):
     def test_production_handle_submitted_products(self):
         pass
 
+    @patch('api.providers.ordering.production_provider.ProductionProvider.update_order_if_complete',
+           mock_production_provider.respond_true)
     def test_production_finalize_orders(self):
-        pass
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        order = Order.where("id = {0}".format(order_id))[0]
+        order.update('status', 'ordered')
+        response = production_provider.finalize_orders()
+        self.assertTrue(response)
 
-    def test_handle_orders_fail(self):
-        pass
+    @patch('api.providers.ordering.production_provider.ProductionProvider.send_completion_email',
+           mock_production_provider.respond_true)
+    def test_production_update_order_if_complete(self):
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        order = Order.where("id = {0}".format(order_id))[0]
+        scenes = order.scenes()
+        Scene.bulk_update([s.id for s in scenes], {'status':'retry'})
+        order.order_source = 'espa'
+        order.completion_email_sent = None
+        order.save()
+        response = production_provider.update_order_if_complete(order)
+        self.assertTrue(response)
 
     def queue_products_success(self):
         names_tuple = self.mock_order.names_tuple(3, self.user_id)

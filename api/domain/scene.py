@@ -137,8 +137,11 @@ class Scene(object):
         fields = tuple(updates.keys())
         vals = tuple(updates.values())
 
-        field_list = "{0} = (".format(fields).replace("'","")
+        #field_list = "{0} = (".format(fields).replace("'","")
+        field_list = ", ".join(fields)
+        sql_list.append(" ( ")
         sql_list.append(field_list)
+        sql_list.append(" ) = (")
 
         for val in vals:
             val_hold = "{0}" if isinstance(val, int) else "'{0}'"
