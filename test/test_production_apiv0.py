@@ -216,8 +216,26 @@ class TestProductionAPI(unittest.TestCase):
         response = emails.Emails().send_all_initial()
         self.assertTrue(response)
 
+    @patch('api.external.lta.get_order_status', lta.get_order_status)
+    @patch('api.external.lta.update_order_status', lta.update_order_status)
     def test_production_handle_onorder_landsat_products(self):
-        pass
+        tram_order_ids = lta.sample_tram_order_ids()[0:3]
+        scene_names = lta.sample_scene_names()[0:3]
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        order = Order.where("id = {0}".format(order_id))[0]
+        scenes = order.scenes()[0:3]
+        for idx, scene in enumerate(scenes):
+            scene.tram_order_id = tram_order_ids[idx]
+            scene.status = 'onorder'
+            # save() doesn't let you update name,
+            # b/c updating a scene name is not acceptable
+            # outside of testing
+            scene.update('name', scene_names[idx])
+            scene.save()
+
+        response = production_provider.handle_onorder_landsat_products()
+
+        self.assertTrue(response)
 
     def test_production_handle_retry_products(self):
         pass

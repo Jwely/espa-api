@@ -646,7 +646,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
     def handle_onorder_landsat_products(self):
         ''' handles landsat products still on order '''
 
-        filters = ["tram_order_id IS NOT NULL", "status = 'onorder'"]
+        filters = "tram_order_id IS NOT NULL AND status = 'onorder'"
 
         products = Scene.where(filters)
         product_tram_ids = [product.tram_order_id for product in products]
@@ -679,14 +679,15 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             self.set_products_unavailable(rejected_products,
                                      'Level 1 product could not be produced')
 
-        #Now update everything that is now on cache
-        filters = [
-            "status = 'onorder'",
-            "name in {0}".format(tuple(available))
-        ]
+        filters = "status = 'onorder' AND name in {0}".format(tuple(available))
+        # pull the trailing comma for single item tuples
+        filters = filters.replace(",)", ")")
+
         if len(available) > 0:
             products = Scene.where(filters)
             Scene.bulk_update([p.id for p in products], {"status":"oncache", "note":"''"})
+
+        return True
 
     def send_initial_emails(self):
         return emails.Emails().send_all_initial()

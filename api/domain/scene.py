@@ -137,7 +137,6 @@ class Scene(object):
         fields = tuple(updates.keys())
         vals = tuple(updates.values())
 
-        #field_list = "{0} = (".format(fields).replace("'","")
         field_list = ", ".join(fields)
         sql_list.append(" ( ")
         sql_list.append(field_list)
@@ -150,6 +149,9 @@ class Scene(object):
         sql_list.append(", ".join(val_list))
         sql_list.append(") WHERE id in {0};".format(tuple(ids)))
         sql = " ".join(sql_list)
+
+        if ",)" in sql:
+            sql = sql.replace(",)", ")")
 
         try:
             with DBConnect(**cfg) as db:
