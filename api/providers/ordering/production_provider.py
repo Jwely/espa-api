@@ -165,6 +165,8 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             if p.order_attr('order_source') == 'ee':
                 lta.update_order_status(p.order.ee_order_id, p.ee_unit_id, 'R')
 
+        return True
+
     def update_status(self, name=None, orderid=None,
                         processing_loc=None, status=None):
         order_id = Scene.get('order_id', name=name, orderid=orderid)
@@ -674,7 +676,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         #have been rejected
         if len(rejected) > 0:
             rejected_products = [p for p in products if p.name in rejected]
-            set_products_unavailable(rejected_products,
+            self.set_products_unavailable(rejected_products,
                                      'Level 1 product could not be produced')
 
         #Now update everything that is now on cache
@@ -689,108 +691,98 @@ class ProductionProvider(ProductionProviderInterfaceV0):
     def send_initial_emails(self):
         return emails.Emails().send_all_initial()
 
+    def get_contactids_for_submitted_landsat_products(self):
+        logger.info("Retrieving contact ids for submitted landsat products")
+
+        scenes = Scene.where("status = 'submitted' AND sensor_type = 'landsat'")
+        user_ids = [s.order_attr('user_id') for s in scenes]
+        users = User.where("id in {0}".format(tuple(user_ids)))
+        contact_ids = set([user.contactid for user in users])
+
+        logger.info("Found contact ids:{0}".format(contact_ids))
+        return contact_ids
+
+    def update_landsat_product_status(self, contact_id):
+        ''' updates the product status for all landsat products for the
+        ee contact id '''
+        logger.debug("Updating landsat product status")
+
+        user = User.where("contactid = '{0}'".format(contact_id))[0]
+        product_list = Order.get_user_scenes(user.id, ["sensor_type = 'landsat' AND status = 'submitted'"])
+
+        logger.debug("Ordering {0} scenes for contact:{1}"
+                     .format(len(product_list), contact_id))
+
+        results = lta.order_scenes(product_list, contact_id)
+
+        logger.debug("Checking ordering results for contact:{0}"
+                     .format(contact_id))
+
+        if 'available' in results and len(results['available']) > 0:
+            available_product_ids = [product.id for product in product_list if product.name in results['available']]
+            Scene.bulk_update(available_product_ids, {"status":"oncache", "note":"''"})
+
+        if 'ordered' in results and len(results['ordered']) > 0:
+            ordered_product_ids = [product.id for product in product_list if product.name in results['ordered']]
+            Scene.bulk_update(ordered_product_ids, {"status":"onorder", "tram_order_id":results['lta_order_id'], "note":"''"})
+
+        if 'invalid' in results and len(results['invalid']) > 0:
+            #look to see if they are ee orders.  If true then update the
+            #unit status
+
+            invalid = [p for p in product_list if p.name in results['invalid']]
+
+            self.set_products_unavailable(invalid, 'Not found in landsat archive')
+
+        return True
+
+    def mark_nlaps_unavailable(self):
+        ''' inner function to support marking nlaps products unavailable '''
+        logger.info("Looking for submitted landsat products, In mark_nlaps_unavailable")
+        #First things first... filter out all the nlaps scenes
+        filter = "status = 'submitted' AND sensor_type = 'landsat'"
+        landsat_products = Scene.where(filter)
+        landsat_submitted = [l.name for l in landsat_products]
+
+        logger.info("Found {0} submitted landsat products"
+                     .format(len(landsat_submitted)))
+
+        # find all the submitted products that are nlaps and reject them
+        logger.info("Checking for TMA data in submitted landsat products")
+        landsat_nlaps = nlaps.products_are_nlaps(landsat_submitted)
+
+        landsat_submitted = None
+
+        logger.info("Found {0} landsat TMA products".format(len(landsat_nlaps)))
+
+        # bulk update the nlaps scenes
+        if len(landsat_nlaps) > 0:
+            _nlaps = [p for p in landsat_products if p.name in landsat_nlaps]
+            landsat_nlaps = None
+            self.set_products_unavailable(_nlaps, 'TMA data cannot be processed')
+
+        return True
+
     def handle_submitted_landsat_products(self):
         ''' handles all submitted landsat products '''
-
-        def mark_nlaps_unavailable():
-            ''' inner function to support marking nlaps products unavailable '''
-
-            logger.debug("In mark_nlaps_unavailable")
-
-            #First things first... filter out all the nlaps scenes
-            filters = "status = 'submitted' AND sensor_type = 'landsat'"
-
-            logger.debug("Looking for submitted landsat products")
-
-            landsat_products = Scene.where(filters)
-
-            logger.debug("Found {0} submitted landsat products"
-                         .format(len(landsat_products)))
-
-            landsat_submitted = [l.name for l in landsat_products]
-
-            logger.debug("Checking for TMA data in submitted landsat products")
-
-            # find all the submitted products that are nlaps and reject them
-            landsat_nlaps = nlaps.products_are_nlaps(landsat_submitted)
-
-            landsat_submitted = None
-
-            logger.debug("Found {0} landsat TMA products"
-                .format(len(landsat_nlaps)))
-
-            # bulk update the nlaps scenes
-            if len(landsat_nlaps) > 0:
-
-                _nlaps = [p for p in landsat_products if p.name in landsat_nlaps]
-
-                landsat_nlaps = None
-
-                set_products_unavailable(_nlaps, 'TMA data cannot be processed')
-
-        def get_contactids_for_submitted_landsat_products():
-
-            logger.info("Retrieving contact ids for submitted landsat products")
-
-            scenes = Scene.where("status = 'submitted' AND sensor_type = 'landsat'")
-            user_ids = [s.order_attr('user_id') for s in scenes]
-            users = User.where("id in {0}".format(tuple(user_ids)))
-            contact_ids = set([user.contactid for user in users])
-
-            logger.info("Found contact ids:{0}".format(contact_ids))
-
-            return contact_ids
-
-        def update_landsat_product_status(contact_id):
-            ''' updates the product status for all landsat products for the
-            ee contact id '''
-
-            logger.debug("Updating landsat product status")
-
-            user = User.where("contactid = '{0}'".format(contactid))[0]
-
-            product_list = Order.get_user_scenes(user.id, ["sensor_type = 'landsat' AND status = 'submitted'"])
-
-            logger.debug("Ordering {0} scenes for contact:{1}"
-                         .format(len(product_list), contact_id))
-
-            results = lta.order_scenes(product_list, contact_id)
-
-            logger.debug("Checking ordering results for contact:{0}"
-                         .format(contact_id))
-
-            if 'available' in results and len(results['available']) > 0:
-                available_product_ids = [product.id for product in product_list if product.name in results['available']]
-                Scene.bulk_update(available_product_ids, {"status":"oncache", "note":"''"})
-
-            if 'ordered' in results and len(results['ordered']) > 0:
-                ordered_product_ids = [product.id for product in product_list if product.name in results['ordered']]
-                Scene.bulk_update(ordered_product_ids, {"status":"onorder", "tram_order_id":results['lta_order_id'], "note":"''"})
-
-            if 'invalid' in results and len(results['invalid']) > 0:
-                #look to see if they are ee orders.  If true then update the
-                #unit status
-
-                invalid = [p for p in products if p.name in results['invalid']]
-
-                set_products_unavailable(invalid, 'Not found in landsat archive')
-
         logger.info('Handling submitted landsat products...')
 
         #Here's the real logic for this handling submitted landsat products
-        mark_nlaps_unavailable()
+        self.mark_nlaps_unavailable()
 
-        for contact_id in get_contactids_for_submitted_landsat_products():
+        for contact_id in self.get_contactids_for_submitted_landsat_products():
             try:
                 logger.info("Updating landsat_product_status for {0}"
                             .format(contact_id))
 
-                update_landsat_product_status(contact_id)
+                self.update_landsat_product_status(contact_id)
 
             except Exception, e:
                 msg = ('Could not update_landsat_product_status for {0}\n'
                        'Exception:{1}'.format(contact_id, e))
                 logger.exception(msg)
+
+        return True
 
     def handle_submitted_modis_products(self):
         ''' Moves all submitted modis products to oncache if true '''
@@ -873,6 +865,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         handle_submitted_landsat_products()
         handle_submitted_modis_products()
         handle_submitted_plot_products()
+        return True
 
     def send_completion_email(self, order):
         ''' public interface to send the completion email '''
