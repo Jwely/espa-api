@@ -6,8 +6,8 @@ import datetime
 import subprocess
 import datetime
 
-from api.util.dbconnect import DBConnect
-import psycopg2.extras
+from api.util.dbconnect import DBConnect, db_extras
+# import psycopg2.extras
 
 def get_cfg(cfgfile=".cfgnfo"):
     """
@@ -41,7 +41,7 @@ def api_cfg(cfgfile=".cfgnfo"):
         pass
 
     config = get_cfg(cfgfile)['config']
-    config['cursor_factory'] = psycopg2.extras.DictCursor
+    config['cursor_factory'] = db_extras.DictCursor
     return config
 
 def send_email(sender, recipient, subject, body):
