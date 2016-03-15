@@ -294,11 +294,62 @@ class TestProductionAPI(unittest.TestCase):
         self.assertIsInstance(response, set)
         self.assertTrue(len(response) > 0)
 
-    def test_production_handle_submitted_modis_products(self):
-        pass
+    @patch('api.external.lpdaac.input_exists', lpdaac.input_exists_true)
+    def test_production_handle_submitted_modis_products_input_exists(self):
+        # handle oncache scenario
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        scenes = Order.where("id = {0}".format(order_id))[0].scenes()
+        for scene in scenes:
+            scene.status = 'submitted'
+            scene.sensor_type = 'modis'
+            scene.save()
+        response = production_provider.handle_submitted_modis_products()
+        scene = Scene.where("id = {0}".format(scenes[0].id))[0]
+        self.assertTrue(response)
+        self.assertEquals(scene.status, "oncache")
+
+    @patch('api.external.lpdaac.input_exists', lpdaac.input_exists_false)
+    def test_production_handle_submitted_modis_products_input_missing(self):
+        # handle unavailable scenario
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        scenes = Order.where("id = {0}".format(order_id))[0].scenes()
+        for scene in scenes:
+            scene.status = 'submitted'
+            scene.sensor_type = 'modis'
+            scene.save()
+        response = production_provider.handle_submitted_modis_products()
+        scene = Scene.where("id = {0}".format(scenes[0].id))[0]
+        self.assertTrue(response)
+        self.assertEquals(scene.status, "unavailable")
 
     def test_production_handle_submitted_plot_products(self):
-        pass
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        order = Order.where("id = {0}".format(order_id))[0]
+        order.status = 'ordered'
+        order.order_type = 'lpcs'
+        order.save()
+        plot_id = None
+        for idx, scene in enumerate(order.scenes()):
+            # at the moment, mock_order.generate_testing_order
+            # creates 21 products for the order. divvy those
+            # up between 'complete' and 'unavailable', setting
+            # one aside as the 'plot' product
+            if idx % 2 == 0:
+                if idx == 0:
+                    # need to define a plot product
+                    scene.update('status', 'submitted')
+                    scene.update('sensor_type', 'plot')
+                    plot_id = scene.id
+                else:
+                    scene.update('status', 'complete')
+            else:
+                scene.update('status', 'unavailable')
+
+        response = production_provider.handle_submitted_plot_products()
+
+        plot_product = Scene.where("id = {0}".format(plot_id))[0]
+        self.assertEqual(plot_product.status, "oncache")
+        self.assertTrue(response)
 
     @patch('api.providers.ordering.production_provider.ProductionProvider.update_order_if_complete',
            mock_production_provider.respond_true)

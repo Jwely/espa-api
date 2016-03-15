@@ -705,17 +705,17 @@ class ProductionProvider(ProductionProviderInterfaceV0):
     def update_landsat_product_status(self, contact_id):
         ''' updates the product status for all landsat products for the
         ee contact id '''
-        logger.debug("Updating landsat product status")
+        logger.info("Updating landsat product status")
 
         user = User.where("contactid = '{0}'".format(contact_id))[0]
         product_list = Order.get_user_scenes(user.id, ["sensor_type = 'landsat' AND status = 'submitted'"])
 
-        logger.debug("Ordering {0} scenes for contact:{1}"
+        logger.info("Ordering {0} scenes for contact:{1}"
                      .format(len(product_list), contact_id))
 
         results = lta.order_scenes(product_list, contact_id)
 
-        logger.debug("Checking ordering results for contact:{0}"
+        logger.info("Checking ordering results for contact:{0}"
                      .format(contact_id))
 
         if 'available' in results and len(results['available']) > 0:
@@ -801,10 +801,10 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             for product in modis_products:
                 if lpdaac.input_exists(product.name) is True:
                     lpdaac_ids.append(product.id)
-                    logger.debug('{0} is on cache'.format(product.name))
+                    logger.warn('{0} is on cache'.format(product.name))
                 else:
                     nonlp_ids.append(product.id)
-                    logger.debug('{0} was not found in the modis data pool'
+                    logger.warn('{0} was not found in the modis data pool'
                                  .format(product.name))
 
             if lpdaac_ids:
@@ -812,6 +812,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             if nonlp_ids:
                 Scene.bulk_update(nonlp_ids, {"status":"unavailable", "note":"not found in modis data pool"})
 
+        return True
 
     def handle_submitted_plot_products(self):
         ''' Moves plot products from submitted to oncache status once all
@@ -821,7 +822,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         plot_orders = Order.where("status = 'ordered' AND order_type = 'lpcs'")
 
-        logger.debug("Found {0} submitted plot orders"
+        logger.info("Found {0} submitted plot orders"
                      .format(len(plot_orders)))
 
         for order in plot_orders:
@@ -839,6 +840,10 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             #in next step.  Plotting cannot run unless everything else
             #is done.
 
+            #logger.info("product_count = {0}".format(product_count))
+            #logger.info("unavailable_count = {0}".format(unavailable_count))
+            #logger.info("complete_count = {0}".format(complete_count))
+
             if product_count - (unavailable_count + complete_count) == 1:
                 plot = order.scenes(["status = 'submitted'", "sensor_type = 'plot'"])
                 if len(plot) >= 1:
@@ -854,9 +859,10 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                         else:
                             p.status = 'oncache'
                             p.note = ''
-                            logger.debug("{0} plot is on cache"
+                            logger.info("{0} plot is on cache"
                                          .format(order.orderid))
                         p.save()
+        return True
 
     def handle_submitted_products(self):
         ''' handles all submitted products in the system '''
