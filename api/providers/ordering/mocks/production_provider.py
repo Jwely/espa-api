@@ -1,5 +1,5 @@
 from api.domain.scene import Scene
-
+from api.domain.user import User
 
 class MockProductionProvider(object):
 
@@ -21,3 +21,7 @@ class MockProductionProvider(object):
 
     def respond_true(self, *args, **kwargs):
         return True
+
+    def contact_ids_list(self):
+        users = User.where("id > 0")
+        return [u.contactid for u in users]

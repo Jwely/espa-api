@@ -89,7 +89,8 @@ class TestAPI(unittest.TestCase):
 
     def test_fetch_item_status_valid(self):
         response = api.item_status(self.orderid)
-        self.assertEqual(response.keys(), ['orderid', 'status', 'completion_date', 'note', 'name'])
+        self.assertEqual(response.keys(), ['orderid'])
+        self.assertIsInstance(response['orderid'], dict)
 
     def test_fetch_item_status_invalid(self):
         invalid_orderid = 'invalidorderid'

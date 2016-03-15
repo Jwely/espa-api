@@ -3,8 +3,7 @@ import os
 import unittest
 import datetime
 from mock import patch
-import time
-from api.external.mocks import lta, lpdaac, onlinecache
+from api.external.mocks import lta, lpdaac, onlinecache, nlaps
 
 from api.domain.mocks.order import MockOrder
 from api.domain.mocks.user import MockUser
@@ -239,8 +238,128 @@ class TestProductionAPI(unittest.TestCase):
     def test_production_load_ee_orders(self):
         production_provider.load_ee_orders()
 
+    @patch('api.providers.ordering.production_provider.ProductionProvider.handle_submitted_landsat_products',
+           mock_production_provider.respond_true)
+    @patch('api.providers.ordering.production_provider.ProductionProvider.handle_submitted_modis_products',
+           mock_production_provider.respond_true)
+    @patch('api.providers.ordering.production_provider.ProductionProvider.handle_submitted_plot_products',
+           mock_production_provider.respond_true)
     def test_production_handle_submitted_products(self):
-        pass
+        response = production_provider.handle_submitted_products()
+        self.assertTrue(response)
+
+    @patch('api.providers.ordering.production_provider.ProductionProvider.mark_nlaps_unavailable',
+           mock_production_provider.respond_true)
+    @patch('api.providers.ordering.production_provider.ProductionProvider.update_landsat_product_status',
+           mock_production_provider.respond_true)
+    @patch('api.providers.ordering.production_provider.ProductionProvider.get_contactids_for_submitted_landsat_products',
+           mock_production_provider.contact_ids_list)
+    def test_production_handle_submitted_landsat_products(self):
+        response = production_provider.handle_submitted_landsat_products()
+        self.assertTrue(response)
+
+    # !!! need to write test for nlaps.products_are_nlaps !!!
+    @patch('api.external.nlaps.products_are_nlaps', nlaps.products_are_nlaps)
+    @patch('api.providers.ordering.production_provider.ProductionProvider.set_products_unavailable',
+           mock_production_provider.respond_true)
+    def test_production_mark_nlaps_unavailable(self):
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        scenes = Order.where("id = {0}".format(order_id))[0].scenes()
+        for scene in scenes:
+            scene.status = 'submitted'
+            scene.sensor_type = 'landsat'
+            scene.save()
+        response = production_provider.mark_nlaps_unavailable()
+        self.assertTrue(response)
+
+    @patch('api.external.lta.update_order_status', lta.update_order_status)
+    def test_production_set_products_unavailable(self):
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        scenes = Order.where("id = {0}".format(order_id))[0].scenes()
+        response = production_provider.set_products_unavailable(scenes, "you want a reason?")
+        self.assertTrue(response)
+
+    @patch('api.external.lta.order_scenes', lta.order_scenes)
+    @patch('api.providers.ordering.production_provider.ProductionProvider.set_products_unavailable',
+           mock_production_provider.respond_true)
+    def test_production_update_landsat_product_status(self):
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        scenes = Order.where("id = {0}".format(order_id))[0].scenes()
+        for scene in scenes:
+            scene.status = 'submitted'
+            scene.sensor_type = 'landsat'
+            scene.save()
+        user = User.where("id = {0}".format(self.user_id))[0]
+        response = production_provider.update_landsat_product_status(user.contactid)
+        self.assertTrue(response)
+
+    def test_production_get_contactids_for_submitted_landsat_products(self):
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        scenes = Order.where("id = {0}".format(order_id))[0].scenes()
+        for scene in scenes:
+            scene.status = 'submitted'
+            scene.sensor_type = 'landsat'
+            scene.save()
+        response = production_provider.get_contactids_for_submitted_landsat_products()
+        self.assertIsInstance(response, set)
+        self.assertTrue(len(response) > 0)
+
+    @patch('api.external.lpdaac.input_exists', lpdaac.input_exists_true)
+    def test_production_handle_submitted_modis_products_input_exists(self):
+        # handle oncache scenario
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        scenes = Order.where("id = {0}".format(order_id))[0].scenes()
+        for scene in scenes:
+            scene.status = 'submitted'
+            scene.sensor_type = 'modis'
+            scene.save()
+        response = production_provider.handle_submitted_modis_products()
+        scene = Scene.where("id = {0}".format(scenes[0].id))[0]
+        self.assertTrue(response)
+        self.assertEquals(scene.status, "oncache")
+
+    @patch('api.external.lpdaac.input_exists', lpdaac.input_exists_false)
+    def test_production_handle_submitted_modis_products_input_missing(self):
+        # handle unavailable scenario
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        scenes = Order.where("id = {0}".format(order_id))[0].scenes()
+        for scene in scenes:
+            scene.status = 'submitted'
+            scene.sensor_type = 'modis'
+            scene.save()
+        response = production_provider.handle_submitted_modis_products()
+        scene = Scene.where("id = {0}".format(scenes[0].id))[0]
+        self.assertTrue(response)
+        self.assertEquals(scene.status, "unavailable")
+
+    def test_production_handle_submitted_plot_products(self):
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        order = Order.where("id = {0}".format(order_id))[0]
+        order.status = 'ordered'
+        order.order_type = 'lpcs'
+        order.save()
+        plot_id = None
+        for idx, scene in enumerate(order.scenes()):
+            # at the moment, mock_order.generate_testing_order
+            # creates 21 products for the order. divvy those
+            # up between 'complete' and 'unavailable', setting
+            # one aside as the 'plot' product
+            if idx % 2 == 0:
+                if idx == 0:
+                    # need to define a plot product
+                    scene.update('status', 'submitted')
+                    scene.update('sensor_type', 'plot')
+                    plot_id = scene.id
+                else:
+                    scene.update('status', 'complete')
+            else:
+                scene.update('status', 'unavailable')
+
+        response = production_provider.handle_submitted_plot_products()
+
+        plot_product = Scene.where("id = {0}".format(plot_id))[0]
+        self.assertEqual(plot_product.status, "oncache")
+        self.assertTrue(response)
 
     @patch('api.providers.ordering.production_provider.ProductionProvider.update_order_if_complete',
            mock_production_provider.respond_true)

@@ -2,6 +2,7 @@ ecdsa==0.13
 Flask==0.10.1
 Flask-Login==0.3.2
 flask-restful
+flask-httpauth
 funcsigs==0.4
 itsdangerous==0.24
 Jinja2==2.8
