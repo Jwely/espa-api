@@ -1,7 +1,7 @@
 from api.util import chunkify
 
 def get_user_name(arg1):
-    return arg1
+    return 'klsmith@usgs.gov'
 
 # product_list is type list, contact_id is type str
 # needs to return a dict of dicts
