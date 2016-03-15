@@ -281,7 +281,15 @@ class TestProductionAPI(unittest.TestCase):
         self.assertTrue(response)
 
     def test_production_get_contactids_for_submitted_landsat_products(self):
-        pass
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        scenes = Order.where("id = {0}".format(order_id))[0].scenes()
+        for scene in scenes:
+            scene.status = 'submitted'
+            scene.sensor_type = 'landsat'
+            scene.save()
+        response = production_provider.get_contactids_for_submitted_landsat_products()
+        self.assertIsInstance(response, set)
+        self.assertTrue(len(response) > 0)
 
     def test_production_handle_submitted_modis_products(self):
         pass
