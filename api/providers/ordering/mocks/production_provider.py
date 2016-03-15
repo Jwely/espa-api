@@ -1,5 +1,5 @@
 from api.domain.scene import Scene
-
+from api.domain.user import User
 
 class MockProductionProvider(object):
 

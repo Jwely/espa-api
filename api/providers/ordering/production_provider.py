@@ -862,9 +862,9 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         ''' handles all submitted products in the system '''
 
         logger.info('Handling submitted products...')
-        handle_submitted_landsat_products()
-        handle_submitted_modis_products()
-        handle_submitted_plot_products()
+        self.handle_submitted_landsat_products()
+        self.handle_submitted_modis_products()
+        self.handle_submitted_plot_products()
         return True
 
     def send_completion_email(self, order):
