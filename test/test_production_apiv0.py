@@ -217,17 +217,25 @@ class TestProductionAPI(unittest.TestCase):
         self.assertTrue(response)
 
     @patch('api.external.lta.get_order_status', lta.get_order_status)
+    @patch('api.external.lta.update_order_status', lta.update_order_status)
     def test_production_handle_onorder_landsat_products(self):
+        tram_order_ids = lta.sample_tram_order_ids()[0:3]
+        scene_names = lta.sample_scene_names()[0:3]
         order_id = self.mock_order.generate_testing_order(self.user_id)
         order = Order.where("id = {0}".format(order_id))[0]
-        self.mock_order.update_scenes(order_id, 'tram_order_id', ['T1234'])
-        self.mock_order.update_scenes(order_id, 'status', ['onorder'])
+        scenes = order.scenes()[0:3]
+        for idx, scene in enumerate(scenes):
+            scene.tram_order_id = tram_order_ids[idx]
+            scene.status = 'onorder'
+            # save() doesn't let you update name,
+            # b/c updating a scene name is not acceptable
+            # outside of testing
+            scene.update('name', scene_names[idx])
+            scene.save()
 
-        production_provider.handle_onorder_landsat_products()
+        response = production_provider.handle_onorder_landsat_products()
 
-        scenes = Scene.where('order_id = {0}'.format(order_id))
-        for s in scenes:
-            self.assertTrue(s.status != 'onorder')
+        self.assertTrue(response)
 
     def test_production_handle_retry_products(self):
         prev = datetime.datetime.now() - datetime.timedelta(hours=1)

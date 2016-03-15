@@ -142,6 +142,9 @@ class Scene(object):
         vals = tuple(updates.values())
         ids = tuple(ids)
 
+        if ",)" in sql:
+            sql = sql.replace(",)", ")")
+
         try:
             with DBConnect(**cfg) as db:
                 logger.info(db.cursor.mogrify(sql, (db_extns.AsIs(fields), vals, ids)))
