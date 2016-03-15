@@ -218,7 +218,16 @@ class TestProductionAPI(unittest.TestCase):
 
     @patch('api.external.lta.get_order_status', lta.get_order_status)
     def test_production_handle_onorder_landsat_products(self):
-        pass
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        order = Order.where("id = {0}".format(order_id))[0]
+        self.mock_order.update_scenes(order_id, 'tram_order_id', ['T1234'])
+        self.mock_order.update_scenes(order_id, 'status', ['onorder'])
+
+        production_provider.handle_onorder_landsat_products()
+
+        scenes = Scene.where('order_id = {0}'.format(order_id))
+        for s in scenes:
+            self.assertTrue(s.status != 'onorder')
 
     def test_production_handle_retry_products(self):
         prev = datetime.datetime.now() - datetime.timedelta(hours=1)

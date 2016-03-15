@@ -640,7 +640,6 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                    "retry_after < '{0}'".format(now)]
 
         products = Scene.where(filters)
-        print len(products)
         if len(products) > 0:
             Scene.bulk_update([p.id for p in products], {'status': 'submitted', 'note': ''})
 

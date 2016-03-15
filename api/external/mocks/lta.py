@@ -1,4 +1,5 @@
 from api.util import chunkify
+from api.domain.scene import Scene
 
 def get_user_name(arg1):
     return 'klsmith@usgs.gov'
@@ -53,6 +54,9 @@ def get_available_orders():
 
 
 def get_order_status(tid):
+    filters = ["tram_order_id IS NOT NULL", "status = 'onorder'"]
+    products = Scene.where(filters)
+
     retval = {}
 
     retval['order_num'] = str(tid)
@@ -60,11 +64,11 @@ def get_order_status(tid):
     retval['units'] = list()
 
     status = ['R', 'C']
-    for s in status:
+    for idx, product in enumerate(products):
         unit = dict()
         unit['unit_num'] = 0
-        unit['unit_status'] = str(u.unitStatus)
-        unit['sceneid'] = str(u.orderingId)
+        unit['unit_status'] = status[idx % 2]
+        unit['sceneid'] = product.name
         retval['units'].append(unit)
 
     return retval
