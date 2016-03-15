@@ -217,6 +217,7 @@ class TestProductionAPI(unittest.TestCase):
         response = emails.Emails().send_all_initial()
         self.assertTrue(response)
 
+    @patch('api.external.lta.get_order_status', lta.get_order_status)
     def test_production_handle_onorder_landsat_products(self):
         pass
 

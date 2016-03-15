@@ -668,24 +668,23 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                 elif unit['unit_status'] == 'C':
                     available.append(unit['sceneid'])
 
-        #Go find all the tram units that were rejected and mark them
-        #unavailable in our database.  Note that we are not looking for
-        #specific tram_order_id/sceneids as duplicate tram orders may have been
-        #submitted and we want to bulk update all scenes that are onorder but
-        #have been rejected
+        # Go find all the tram units that were rejected and mark them
+        # unavailable in our database.  Note that we are not looking for
+        # specific tram_order_id/sceneids as duplicate tram orders may have been
+        # submitted and we want to bulk update all scenes that are onorder but
+        # have been rejected
         if len(rejected) > 0:
             rejected_products = [p for p in products if p.name in rejected]
-            set_products_unavailable(rejected_products,
-                                     'Level 1 product could not be produced')
+            self.set_products_unavailable(rejected_products,
+                                          'Level 1 product could not be produced')
 
-        #Now update everything that is now on cache
-        filters = [
-            "status = 'onorder'",
-            "name in {0}".format(tuple(available))
-        ]
+        # Now update everything that is now on cache
+        filters = ["status = 'onorder'",
+                   "name in {0}".format(tuple(available))]
+
         if len(available) > 0:
             products = Scene.where(filters)
-            Scene.bulk_update([p.id for p in products], {"status":"oncache", "note":"''"})
+            Scene.bulk_update([p.id for p in products], {'status': 'oncache', 'note': ''})
 
     def send_initial_emails(self):
         return emails.Emails().send_all_initial()
