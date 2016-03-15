@@ -635,11 +635,12 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         ''' handles all products in retry status '''
         now = datetime.datetime.now()
         filters = ["status = 'retry'",
-                        "retry_after < '{0}'".format(now)]
-        products = Scene.where(filters)
+                   "retry_after < '{0}'".format(now)]
 
+        products = Scene.where(filters)
+        print len(products)
         if len(products) > 0:
-            Scene.bulk_update([p.id for p in products], {"status":"submitted", "note":"''"})
+            Scene.bulk_update([p.id for p in products], {'status': 'submitted', 'note': ''})
 
     def handle_onorder_landsat_products(self):
         ''' handles landsat products still on order '''

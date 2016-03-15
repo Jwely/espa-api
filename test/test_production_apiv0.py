@@ -3,6 +3,7 @@ import os
 import unittest
 import datetime
 from mock import patch
+import time
 from api.external.mocks import lta, lpdaac, onlinecache
 
 from api.domain.mocks.order import MockOrder
@@ -220,7 +221,16 @@ class TestProductionAPI(unittest.TestCase):
         pass
 
     def test_production_handle_retry_products(self):
-        pass
+        prev = datetime.datetime.now() - datetime.timedelta(hours=1)
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        self.mock_order.update_scenes(order_id, 'status', ['retry'])
+        self.mock_order.update_scenes(order_id, 'retry_after', [prev])
+
+        production_provider.handle_retry_products()
+
+        scenes = Scene.where('order_id = {0}'.format(order_id))
+        for s in scenes:
+            self.assertTrue(s.status == 'submitted')
 
     @patch('api.external.lta.get_available_orders', lta.get_available_orders)
     @patch('api.external.lta.update_order_status', lta.update_order_status)

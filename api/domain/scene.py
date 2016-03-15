@@ -1,6 +1,6 @@
 """ Holds domain objects for scenes """
 
-from api.util.dbconnect import DBConnect, DBConnectException
+from api.util.dbconnect import DBConnect, DBConnectException, db_extns
 from api.system.logger import api_logger as logger
 from api.util import api_cfg
 import datetime
@@ -125,35 +125,27 @@ class Scene(object):
         return returnlist
 
     @classmethod
-    def bulk_update(cls, ids=[], updates={}):
-        if not isinstance(ids, list):
+    def bulk_update(cls, ids=None, updates=None):
+        if not ids:
+            ids = ()
+        if not updates:
+            updates = {}
+
+        if not isinstance(ids, (list, tuple)):
             raise TypeError("Scene.bulk_update ids should be a list")
         if not isinstance(updates, dict):
             raise TypeError("Scene.bulk_update updates should be a dict")
 
-        sql_list = ["UPDATE ordering_scene SET "]
-        val_list = []
+        sql = 'UPDATE ordering_scene SET %s = %s WHERE id in %s'
 
-        fields = tuple(updates.keys())
+        fields = '({})'.format(','.join(updates.keys()))
         vals = tuple(updates.values())
-
-        #field_list = "{0} = (".format(fields).replace("'","")
-        field_list = ", ".join(fields)
-        sql_list.append(" ( ")
-        sql_list.append(field_list)
-        sql_list.append(" ) = (")
-
-        for val in vals:
-            val_hold = "{0}" if isinstance(val, int) else "'{0}'"
-            val_list.append(val_hold.format(val))
-
-        sql_list.append(", ".join(val_list))
-        sql_list.append(") WHERE id in {0};".format(tuple(ids)))
-        sql = " ".join(sql_list)
+        ids = tuple(ids)
 
         try:
             with DBConnect(**cfg) as db:
-                db.execute(sql)
+                logger.info(db.cursor.mogrify(sql, (db_extns.AsIs(fields), vals, ids)))
+                db.execute(sql, (db_extns.AsIs(fields), vals, ids))
                 db.commit()
         except DBConnectException, e:
             raise SceneException(e.message)
