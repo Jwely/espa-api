@@ -512,11 +512,10 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                     username = lta.get_user_name(contactid)
                     local_cache[contactid] = username
 
-                # now look the user up in our db. make sure the email we have on file is current
-                # we'll want to put some caching in place here too
-                user_params = ["username = '{0}'".format(username), "email = '{0}'".format(email_addr)]
-                # User.where will create the user if they dont exist locally
-                user = User.where(user_params)
+                # Find or create the user
+                db_id = User.find_or_create_user(username, email_addr, '', '', contactid)
+                user = User.where('id = {}'.format(db_id))[0]
+
                 # the contactid attr has been moved to the auth_user table
                 if not user.contactid:
                     user.update('contactid', contactid)
@@ -533,6 +532,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                 order_dict['note'] = 'EarthExplorer order id: %s' % eeorder
                 order_dict['product_opts'] = Order.get_default_ee_options(
                     orders[eeorder, email_addr, contactid])
+                order_dict['product_options'] = ''
                 order_dict['ee_order_id'] = eeorder
                 order_dict['order_source'] = 'ee'
                 order_dict['order_date'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
@@ -540,7 +540,6 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                 order_dict['email'] = user.email
                 order = Order.create(order_dict)
 
-            bulk_ls = []
             for s in orders[eeorder, email_addr, contactid]:
                 #go look for the scene by ee_unit_id.  This will stop
                 #duplicate key update collisions
@@ -588,7 +587,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                                        "status code:%s") % (msg, status)
 
                             logger.error(log_msg)
-                except DBConnectException:  # Scene does not exist
+                except IndexError:  # Scene does not exist
                     product = None
                     try:
                         product = sensor.instance(s['sceneid'])

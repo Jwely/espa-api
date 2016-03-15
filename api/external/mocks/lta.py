@@ -1,5 +1,6 @@
-def get_user_name(arg1):
-    return arg1
+# Return username associated with a contact id
+def get_user_name(contactid):
+    return 'klsmith@usgs.gov'
 
 # product_list is type list, contact_id is type str
 # needs to return a dict of dicts
@@ -15,7 +16,7 @@ def get_download_urls(product_list, contact_id):
 
 
 def update_order_status(ee_order_id, ee_unit_id, something):
-    return True
+    return True, True, True
 
 
 def get_available_orders():

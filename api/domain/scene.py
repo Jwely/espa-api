@@ -82,8 +82,8 @@ class Scene(object):
                     '', '', '', '', '') for s in params]
         else:
             template = '%s'
-            args = (params['name'], params['order_id'], params['status'], params['sensor_type'], params['ee_unit_id'],
-                    '', '', '', '', '')
+            args = [(params['name'], params['order_id'], params['status'], params['sensor_type'], params['ee_unit_id'],
+                    '', '', '', '', '')]
 
         sql = ("INSERT INTO ordering_scene (name, order_id, status, sensor_type, ee_unit_id, "
                "product_distro_location, product_dload_url, cksum_distro_location, cksum_download_url, "
