@@ -1,0 +1,9 @@
+[run]
+branch  = True
+source  = api
+omit    = api/providers/storage*
+          api/interfaces/admin/migrations*
+          api/providers/configuration*
+          api/providers/metrics*
+          api/providers/ordering/__init__.py
+          venv*
