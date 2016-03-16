@@ -63,7 +63,8 @@ class MockOrder(object):
 
     def names_tuple(self, number, user_id):
         order_id = self.generate_testing_order(user_id)
-        scene_names = [i.name for i in Order.where("id = {0}".format(order_id))[0].scenes()]
+        order = Order.where("id = {0}".format(order_id))[0]
+        scene_names = [i.name for i in order.scenes()]
         scene_names = scene_names[0:number]
-        list_of_tuples = [(order_id, s) for s in scene_names]
+        list_of_tuples = [(order.orderid, s) for s in scene_names]
         return list_of_tuples

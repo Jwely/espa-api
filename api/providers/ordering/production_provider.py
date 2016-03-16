@@ -37,7 +37,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         if not isinstance(order_name_tuple_list, list):
             msg = list()
             msg.append("queue_products expects a list of ")
-            msg.append("tuples(order_id, product_id) for the first argument")
+            msg.append("tuples(orderid, scene_name) for the first argument")
             raise TypeError(''.join(msg))
 
         # this should be a dictionary of lists, with order as the key and
@@ -54,7 +54,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             products = orders[order]
 
             product_tup = tuple(products)
-            order = Order.where("orderid = '{0}'".format(orderid)[0])
+            order = Order.where("orderid = '{0}'".format(order))[0]
             scene_filters = ["name in {0}".format(product_tup)]
             scene_filters.append("order_id = {0}".format(order.id))
             scenes = Scene.where(scene_filters)
