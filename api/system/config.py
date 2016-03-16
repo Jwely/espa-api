@@ -5,7 +5,10 @@ on the configuration table
 
 from api.util import api_cfg
 from api.util.dbconnect import DBConnect
-import psycopg2.extras
+import os
+
+class ApiConfigException(Exception):
+    pass
 
 class ApiConfig(object):
     """
@@ -34,10 +37,12 @@ class ApiConfig(object):
     @property
     def mode(self):
         apimode = 'dev'
-        if self.cfg['dbuser'] == 'espa':
-            apimode = 'ops'
-        elif self.cfg['dbuser'] == 'espatst':
-            apimode = 'tst'
+
+        if 'ESPA_ENV' in os.environ.keys():
+            apimode = os.environ['ESPA_ENV']
+
+        if apimode not in ['dev', 'tst', 'ops']:
+            raise ApiConfigException('Invalid environment value for ESPA_ENV: {0}'.format(apimode))
 
         return apimode
 
