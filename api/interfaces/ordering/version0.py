@@ -261,7 +261,7 @@ class API(object):
 
         return response
 
-    def queue_products(params):
+    def queue_products(self, params):
         """Place products into queued status in bulk
 
         Args:

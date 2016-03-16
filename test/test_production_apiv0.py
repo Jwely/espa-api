@@ -59,8 +59,8 @@ class TestProductionAPI(unittest.TestCase):
         user = User.where("id = {0}".format(self.user_id))[0]
         params = {'for_user': user.username, 'product_types': ['landsat']}
 
-        response = api.fetch_production_products(params)
-        #response = production_provider.get_products_to_process(**params)
+        #response = api.fetch_production_products(params)
+        response = production_provider.get_products_to_process(**params)
         self.assertTrue('bilbo' in response[0]['orderid'])
 
     def test_production_set_product_retry(self):
@@ -406,13 +406,14 @@ class TestProductionAPI(unittest.TestCase):
         names_tuple = self.mock_order.names_tuple(3, self.user_id)
         processing_loc = "get_products_to_process"
         job_name = 'jobname49'
-        params = {names_tuple, processing_loc, job_name}
+        params = (names_tuple, processing_loc, job_name)
         response = api.queue_products(params)
         self.assertTrue(response)
 
     def test_production_get_key(self):
         key = 'system_message_title'
-        val = api.get_production_key(key)
+        response = api.get_production_key(key)
+        val = response[key]
         self.assertIsInstance(val, str)
 
 
