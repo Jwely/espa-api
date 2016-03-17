@@ -124,11 +124,8 @@ class TestProductionAPI(unittest.TestCase):
         scene = order.scenes()[0]
         processing_loc = "L8SRLEXAMPLE"
         status = 'Queued'
-        #response = production_provider.update_product('update_status',
-        response = api.update_product_details('update_status',
-                                                      {name=scene.name, orderid=order.orderid,
-                                                      processing_loc=processing_loc, status=status})
-
+        response = api.update_product_details('update_status', {'name': scene.name, 'orderid': order.orderid,
+                                                                'processing_loc':processing_loc, 'status': status})
         self.assertTrue(response)
 
     @patch('api.external.lta.update_order_status', lta.update_order_status)
