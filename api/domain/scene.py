@@ -4,7 +4,7 @@ from api.util.dbconnect import DBConnect, DBConnectException, db_extns
 from api.system.logger import api_logger as logger
 from api.util import api_cfg
 import datetime
-cfg = api_cfg()
+cfg = api_cfg('db')
 
 class SceneException(Exception):
     pass

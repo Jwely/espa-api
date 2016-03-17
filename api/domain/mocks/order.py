@@ -23,7 +23,7 @@ class MockOrder(object):
         except:
             raise MockOrderException("MockOrder objects only allowed while testing")
         self.base_order = build_base_order()
-        self.cfg = api_cfg()
+        self.cfg = api_cfg('db')
         self.ordering_provider = OrderingProvider()
 
     def __repr__(self):

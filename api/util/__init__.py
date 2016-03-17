@@ -30,7 +30,7 @@ def get_cfg(cfgfile=".cfgnfo"):
 
     return cfg_info
 
-def api_cfg(cfgfile=".cfgnfo"):
+def api_cfg(section='config',cfgfile=".cfgnfo"):
     try:
         mode = os.environ["espa_api_testing"]
         if mode == "True":
@@ -38,7 +38,7 @@ def api_cfg(cfgfile=".cfgnfo"):
     except:
         pass
 
-    config = get_cfg(cfgfile)['config']
+    config = get_cfg(cfgfile)[section]
     return config
 
 def send_email(sender, recipient, subject, body):
