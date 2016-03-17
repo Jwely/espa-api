@@ -70,26 +70,36 @@ class ProductionTransportTestCase(unittest.TestCase):
                         'priority': None}
         assert response_data == correct_resp
 
-
+    @patch('api.providers.ordering.production_provider.ProductionProvider.update_product_details',
+            production_provider.get_update_product_detail_inputs)
     def test_post_production_api_update_status(self):
-        pass
+        url = "/production-api/v0/update_status"
+        data_dict = {'name': scene_name, 'orderid': orderid, 'processing_loc': processing_loc, 'status': status}
+        response = self.app.post(url, data=json.dumps(data_dict), headers=self.headers)
+
 
     def test_post_production_api_set_product_error(self):
+        url = "/production-api/v0/set_product_error"
         pass
 
     def test_post_production_api_set_product_unavailable(self):
+        url = "/production-api/v0/set_product_unavailable"
         pass
 
     def test_post_production_api_mark_product_complete(self):
+        url = "/production-api/v0/mark_product_complete"
         pass
 
     def test_post_production_api_handle_orders(self):
+        url = "/production-api/v0/handle_orders"
         pass
 
     def test_post_production_api_queue_products(self):
+        url = "/production-api/v0/queue_products"
         pass
 
     def test_get_production_api_configurations(self):
+        url = "/production-api/v0/system_message_title"
         pass
 
 
