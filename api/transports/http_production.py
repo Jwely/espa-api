@@ -23,7 +23,9 @@ class ProductionVersion(Resource):
 class ProductionOperations(Resource):
     def get(self):
         if 'products' in request.url:
-            return espa.fetch_production_products(request.args)
+            # request.args is an ImmutableMultiDict
+            params = request.args.to_dict(flat=True)
+            return espa.fetch_production_products(params)
 
     # Probably best to split these up into their own classes
     def post(self, action=None):

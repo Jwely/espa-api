@@ -349,7 +349,13 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         buff.write('o.status = \'ordered\' ')
         buff.write('AND s.status = \'oncache\' ')
 
-        if product_types is not None and len(product_types) > 0:
+        if product_types and len(product_types) > 0:
+            ptypes = copy.deepcopy(product_types)
+
+            # product_types comes in as a list from the transport layer
+            if isinstance(ptypes, str):
+                ptypes = ptypes.split(",")
+
             type_str = ','.join('\'{0}\''.format(x) for x in product_types)
             buff.write('AND s.sensor_type IN ({0}) '.format(type_str))
 

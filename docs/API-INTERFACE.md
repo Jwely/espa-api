@@ -500,7 +500,7 @@ The Production API is intended to be used by the system or systems that are fulf
 **GET /production-api/v0**
 * List available operations
 
-**GET /production-api/v0/products?priority=['high'|'normal'|'low']&user='username'&sensor=['modis'|'landsat'|'plot']**
+**GET /production-api/v0/products?priority=['high'|'normal'|'low']&for_user='username'&product_types=['modis'|'landsat'|'plot']**
 * Returns products ready for production
 
 **POST /production-api/v0/\<action\>**

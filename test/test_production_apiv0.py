@@ -45,8 +45,8 @@ class TestProductionAPI(unittest.TestCase):
         user = User.where("id = {0}".format(self.user_id))[0]
         params = {'for_user': user.username, 'product_types': ['modis']}
 
-        # api.fetch_production_products calls to ->
-        response = production_provider.get_products_to_process(**params)
+        response = api.fetch_production_products(params)
+        #response = production_provider.get_products_to_process(**params)
         self.assertTrue('bilbo' in response[0]['orderid'])
 
     @patch('api.external.lta.get_download_urls', lta.get_download_urls)
@@ -59,8 +59,8 @@ class TestProductionAPI(unittest.TestCase):
         user = User.where("id = {0}".format(self.user_id))[0]
         params = {'for_user': user.username, 'product_types': ['landsat']}
 
-        #response = api.fetch_production_products(params)
-        response = production_provider.get_products_to_process(**params)
+        response = api.fetch_production_products(params)
+        #response = production_provider.get_products_to_process(**params)
         self.assertTrue('bilbo' in response[0]['orderid'])
 
     def test_production_set_product_retry(self):
@@ -124,9 +124,10 @@ class TestProductionAPI(unittest.TestCase):
         scene = order.scenes()[0]
         processing_loc = "L8SRLEXAMPLE"
         status = 'Queued'
-        response = production_provider.update_product('update_status',
-                                                      name=scene.name, orderid=order.orderid,
-                                                      processing_loc=processing_loc, status=status)
+        #response = production_provider.update_product('update_status',
+        response = api.update_product_details('update_status',
+                                                      {name=scene.name, orderid=order.orderid,
+                                                      processing_loc=processing_loc, status=status})
 
         self.assertTrue(response)
 

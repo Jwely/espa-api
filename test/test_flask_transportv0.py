@@ -5,7 +5,6 @@ import json
 import unittest
 import tempfile
 import base64
-from api.transports import http_testing
 from api.transports import http_main
 import version0_testorders as testorders
 import copy
