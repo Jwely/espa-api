@@ -444,3 +444,184 @@ class Order(object):
         d = datetime.datetime.now()
 
         return '{}-{}'.format(email, d.strftime('%m%d%Y-%H%M%S'))
+
+
+class OptionsMappings(object):
+    # [(old, new, old val)]
+    proj_map = [('std_parallel_1', 'standard_parallel_1', None),
+                ('std_parallel_2', 'standard_parallel_2', None),
+                ('central_meridian', 'central_meridian', None),
+                ('false_easting', 'false_easting', None),
+                ('false_northing', 'false_northing', None),
+                ('origin_lat', 'latitude_of_origin', None),
+                ('datum', 'datum', None),
+                ('longitude_pole', 'longitudinal_pole', None),
+                ('latitude_true_scale', 'latitude_true_scale', None),
+                ('utm_zone', 'zone', None),
+                ('utm_north_south', 'zone_ns', None)]
+
+    ext_map = [('image_extents_units', 'units', None),
+               ('minx', 'west', None),
+               ('miny', 'south', None),
+               ('maxx', 'east', None),
+               ('maxy', 'north', None)]
+
+    res_map = [('pixel_size', 'pixel_size', None),
+               ('pixel_size_units', 'pixel_size_units', None)]
+
+    prod_map = [('include_source_data', 'l1', True),
+                ('include_statistics', 'stats', True),
+                ('include_source_metadata', 'source_metadata', True),
+                ('include_sr_toa', 'toa', True),
+                ('include_sr_thermal', 'bt', True),
+                ('include_sr', 'sr', True),
+                ('include_dswe', 'dswe', True),
+                ('include_sr_ndvi', 'sr_ndvi', True),
+                ('include_sr_ndmi', 'sr_ndmi', True),
+                ('include_sr_nbr', 'sr_nbr', True),
+                ('include_sr_nbr2', 'sr_nbr2', True),
+                ('include_sr_savi', 'sr_savi', True),
+                ('include_sr_msavi', 'sr_msavi', True),
+                ('include_sr_evi', 'sr_evi', True),
+                ('include_lst', 'lst', True),
+                ('include_cfmask', 'cloud', True)]
+
+    keywords_map = [('resize', 'resize', res_map),
+                    ('resample_method', 'resample_method', None),
+                    ('output_format', 'format', None),
+                    ('image_extents', 'image_extents', ext_map),
+                    ('reproject', 'projection', proj_map)]
+
+    @classmethod
+    def convert(cls, new=None, old=None, scenes=None):
+        """
+        Provides the conversion between old and new ordering
+        options
+
+        :param new: New formatted order options
+        :param old: Old formatted order options
+        :param scenes: List of scene id's associated with the order
+        :return: converted format
+        """
+        exc_msg = ''
+        if not new and not old:
+            exc_msg = 'You must provide either new or old order options to convert'
+        elif new and old:
+            exc_msg = 'You must only provide either new or old options to convert, not both'
+        elif old and not scenes:
+            exc_msg = 'Scene list is required to properly convert to the new standard'
+
+        if exc_msg:
+            raise ValueError(exc_msg)
+
+        if not new:
+            new = {}
+        if not old:
+            old = {}
+        if not scenes:
+            scenes = []
+
+        if not isinstance((new, old), dict):
+            raise TypeError('Submitted options must be a dict')
+        if not isinstance(scenes, (list, tuple)):
+            raise TypeError('Submitted scenes must be list or tuple')
+
+        if new:
+            return cls._convert_new_to_old(new)
+        elif old:
+            return cls._convert_old_to_new(old, scenes)
+
+    @classmethod
+    def _convert_new_to_old(cls, opts):
+        """
+        Basically need to make a flat data structure
+        and change the names used
+
+        :param opts: order options in the new format
+        :return: order options in the old format
+        """
+        ret = Order.get_default_options()
+        sensor_keys = sensor.SensorCONST.instances.keys()
+
+        old_keys, new_keys, attr_maps = zip(*cls.keywords_map)
+
+        prod_ls = []
+        for key in opts:
+            if key in sensor_keys:
+                prod_ls.extend(opts[key]['products'])
+
+            elif key in new_keys:
+                idx = new_keys.index(key)
+                attr_map = attr_maps[idx]
+
+                if attr_map:
+                    ret.update({old_keys[idx]: True})
+
+                    # Projection is a double nested structure
+                    if attr_map == cls.proj_map:
+                        ret.update(cls._denest_proj(opts[key], attr_map))
+                    else:
+                        ret.update(cls._denest(opts[key], attr_map))
+
+                else:
+                    ret.update({old_keys[idx]: opts[key]})
+
+            else:
+                raise ValueError('Unrecognized key: {}'.format(key))
+
+        ret.update(cls._denest(prod_ls, cls.prod_map))
+
+        return ret
+
+    @classmethod
+    def _convert_old_to_new(cls, opts, scenes):
+        ret = {}
+        old_prod, new_prod, val_prod = zip(*cls.prod_map)
+
+        for key in opts:
+            if opts[key]:
+                pass
+
+        return ret
+
+    @classmethod
+    def _denest(cls, nested_attr, attr_map):
+        ret = {}
+        old_attr, new_attr, conv_val = zip(*attr_map)
+
+        for attr in nested_attr:
+            idx = new_attr.index(attr)
+
+            if conv_val:
+                val = conv_val
+            else:
+                val = nested_attr[attr]
+
+            ret.update({old_attr[idx]: val})
+
+        return ret
+
+    @classmethod
+    def _denest_proj(cls, nested_attr, attr_map):
+        ret = {}
+        proj = nested_attr.keys()[0]
+
+        ret.update({'target_projection': proj})
+        ret.update(cls._denest(nested_attr[proj], attr_map))
+
+        return ret
+
+    @classmethod
+    def _nest(cls, opts, key_attr):
+        ret = {}
+        old_keys, new_keys, attr_maps = zip(*cls.keywords_map)
+        idx = old_keys.index(key_attr)
+
+        attr_map = None
+
+        return ret
+
+    @classmethod
+    def _prod_list(cls, opts):
+        for key in opts:
+            pass

@@ -1,6 +1,5 @@
 from api.util.dbconnect import DBConnect, DBConnectException
-from api.domain import sensor
-from api.domain.order import Order
+from api.domain.order import OptionsMappings
 from api.util import api_cfg
 
 
@@ -22,8 +21,9 @@ class ConvertProductOptions(object):
             if co['product_opts']:
                 continue
 
-    def _build_opts(self):
-        pass
+            scenes = self._retrieve_scenes(co['id'])
+            prod_opts = OptionsMappings.convert(old=co['product_options'], scenes=scenes)
+            self._update_product_opts(prod_opts, co['id'])
 
     def _retrieve_orders(self):
         sql = ('select id, product_options, product_opts '
@@ -44,7 +44,7 @@ class ConvertProductOptions(object):
 
         return ret
 
-    def _update_productopts(self, opts, oid):
+    def _update_product_opts(self, opts, oid):
         sql = ('update ordering_order '
                'set product_opts = %s '
                'where id = %s')
@@ -55,3 +55,6 @@ class ConvertProductOptions(object):
         except DBConnectException:
             self.db.rollback()
             raise
+
+    def __del__(self):
+        self.db.__del__()

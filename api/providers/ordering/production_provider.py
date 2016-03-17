@@ -1,6 +1,6 @@
 from api.domain import sensor
 from api.domain.scene import Scene
-from api.domain.order import Order
+from api.domain.order import Order, OptionsMappings
 from api.system.config import ApiConfig
 from api.util.dbconnect import DBConnect, DBConnectException
 from api.util import api_cfg
@@ -450,11 +450,11 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                         if encode_urls:
                             dload_url = urllib.quote(dload_url, '')
 
-                # Need to strip out everything not directly related to the scene
-                options = self.strip_unrelated(item['name'], item['product_opts'])
-
                 if config.cfg['convertprodopts'] == 'True':
-                    options = convert_options(options)
+                    options = OptionsMappings.convert(new=item['product_opts'])
+                else:
+                    # Need to strip out everything not directly related to the scene
+                    options = self.strip_unrelated(item['name'], item['product_opts'])
 
                 result = {
                     'orderid': item['orderid'],

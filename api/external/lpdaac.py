@@ -115,7 +115,6 @@ class LPDAACService(object):
 
         return urls
 
-
     def _build_modis_input_file_path(self, product):
 
         if isinstance(product, str) or isinstance(product, unicode):
