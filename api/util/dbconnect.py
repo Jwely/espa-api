@@ -13,8 +13,8 @@ class DBConnect(object):
     """
     Class for connecting to a postgresql database using a single with statement
     """
-    def __init__(self, dbhost='localhost', db='postgres', dbuser='postgres', dbpass='postgres',
-                 dbport=5432, autocommit=False, cursor_factory=db_extras.DictCursor, *args, **kwargs):
+    def __init__(self, dbhost, db, dbuser, dbpass, dbport, autocommit=False,
+                 cursor_factory=db_extras.DictCursor):
         try:
             self.conn = psycopg2.connect(host=dbhost, database=db, user=dbuser,
                                          password=dbpass, port=dbport)
