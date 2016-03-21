@@ -1,19 +1,15 @@
 #!/usr/bin/env python
 
-import os
+import base64
 import json
 import unittest
-import tempfile
-import base64
-import urllib
-from api.util import api_cfg
-from api.util.dbconnect import DBConnect
-from api.transports import http_main
-
-from mock import patch
 
 from api.interfaces.ordering.mocks.version0 import MockAPI
-from api.providers.ordering.mocks.production_provider import MockProductionProvider
+from api.providers.production.mocks.production_provider import MockProductionProvider
+from api.transports import http_main
+from api.util import api_cfg
+from mock import patch
+
 api = MockAPI()
 production_provider = MockProductionProvider()
 
@@ -49,7 +45,7 @@ class ProductionTransportTestCase(unittest.TestCase):
         assert response_data['0'].keys() == ["operations", "description"]
         assert "ESPA Production" in response_data['0']['description']
 
-    @patch('api.providers.ordering.production_provider.ProductionProvider.get_products_to_process',
+    @patch('api.providers.production.production_provider.ProductionProvider.get_products_to_process',
             production_provider.get_products_to_process_inputs)
     def test_get_production_api_products_modis(self):
         url = "/production-api/v0/products?for_user=bilbo&product_types=modis"
@@ -60,7 +56,7 @@ class ProductionTransportTestCase(unittest.TestCase):
                         'priority': None}
         assert response_data == correct_resp
 
-    @patch('api.providers.ordering.production_provider.ProductionProvider.get_products_to_process',
+    @patch('api.providers.production.production_provider.ProductionProvider.get_products_to_process',
             production_provider.get_products_to_process_inputs)
     def test_get_production_api_products_landsat(self):
         url = "/production-api/v0/products?for_user=bilbo&product_types=landsat"
@@ -71,7 +67,7 @@ class ProductionTransportTestCase(unittest.TestCase):
                         'priority': None}
         assert response_data == correct_resp
 
-    @patch('api.providers.ordering.production_provider.ProductionProvider.update_status',
+    @patch('api.providers.production.production_provider.ProductionProvider.update_status',
             production_provider.update_status_inputs)
     def test_post_production_api_update_status(self):
         url = "/production-api/v0/update_status"

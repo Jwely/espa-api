@@ -1,21 +1,20 @@
 #!/usr/bin/env python
-import os
-import unittest
 import datetime
-from mock import patch
-from api.external.mocks import lta, lpdaac, onlinecache, nlaps
+import unittest
 
+import os
 from api.domain.mocks.order import MockOrder
 from api.domain.mocks.user import MockUser
-from api.system.mocks import errors
-from api.domain.user import User
 from api.domain.order import Order
 from api.domain.scene import Scene
+from api.domain.user import User
+from api.external.mocks import lta, lpdaac, onlinecache, nlaps
 from api.interfaces.ordering.version0 import API
 from api.notification import emails
-from api.providers.ordering.mocks.production_provider import MockProductionProvider
-
-from api.providers.ordering.production_provider import ProductionProvider
+from api.providers.production.mocks.production_provider import MockProductionProvider
+from api.providers.production.production_provider import ProductionProvider
+from api.system.mocks import errors
+from mock import patch
 
 api = API()
 production_provider = ProductionProvider()
@@ -37,7 +36,7 @@ class TestProductionAPI(unittest.TestCase):
         os.environ['espa_api_testing'] = ''
 
     @patch('api.external.lpdaac.get_download_urls', lpdaac.get_download_urls)
-    @patch('api.providers.ordering.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
+    @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
     def test_fetch_production_products_modis(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
         # need scenes with statuses of 'processing' and 'ordered'
@@ -50,7 +49,7 @@ class TestProductionAPI(unittest.TestCase):
         self.assertTrue('bilbo' in response[0]['orderid'])
 
     @patch('api.external.lta.get_download_urls', lta.get_download_urls)
-    @patch('api.providers.ordering.production_provider.ProductionProvider.set_product_retry',
+    @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry',
            mock_production_provider.set_product_retry)
     def test_fetch_production_products_landsat(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
@@ -100,7 +99,7 @@ class TestProductionAPI(unittest.TestCase):
                                                          processing_loc, error)
         self.assertTrue(response)
 
-    @patch('api.providers.ordering.production_provider.ProductionProvider.set_product_retry',
+    @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry',
            mock_production_provider.set_product_retry)
     @patch('api.system.errors.resolve', errors.resolve_retry)
     def test_production_set_product_error_retry(self):
@@ -117,7 +116,7 @@ class TestProductionAPI(unittest.TestCase):
         pass
 
     @patch('api.external.lta.update_order_status', lta.update_order_status)
-    @patch('api.providers.ordering.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
+    @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
     def test_update_product_details_update_status(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
         order = Order.where("id = {0}".format(order_id))[0]
@@ -129,7 +128,7 @@ class TestProductionAPI(unittest.TestCase):
         self.assertTrue(response)
 
     @patch('api.external.lta.update_order_status', lta.update_order_status)
-    @patch('api.providers.ordering.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
+    @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
     # @patch('api.external.onlinecache.capacity', onlinecache.capacity)
     def test_update_product_details_set_product_error(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
@@ -143,7 +142,7 @@ class TestProductionAPI(unittest.TestCase):
         self.assertTrue(response)
 
     @patch('api.external.lta.update_order_status', lta.update_order_status)
-    @patch('api.providers.ordering.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
+    @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
     def test_update_product_details_set_product_unavailable(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
         order = Order.where("id = {0}".format(order_id))[0]
@@ -156,7 +155,7 @@ class TestProductionAPI(unittest.TestCase):
         self.assertTrue(response)
 
     @patch('api.external.lta.update_order_status', lta.update_order_status)
-    @patch('api.providers.ordering.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
+    @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
     def test_update_product_details_mark_product_complete(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
         order = Order.where("id = {0}".format(order_id))[0]
@@ -173,19 +172,19 @@ class TestProductionAPI(unittest.TestCase):
                                                       log_file_contents=logfile)
         self.assertTrue(response)
 
-    @patch('api.providers.ordering.production_provider.ProductionProvider.send_initial_emails',
+    @patch('api.providers.production.production_provider.ProductionProvider.send_initial_emails',
            mock_production_provider.respond_true)
-    @patch('api.providers.ordering.production_provider.ProductionProvider.handle_onorder_landsat_products',
+    @patch('api.providers.production.production_provider.ProductionProvider.handle_onorder_landsat_products',
            mock_production_provider.respond_true)
-    @patch('api.providers.ordering.production_provider.ProductionProvider.handle_retry_products',
+    @patch('api.providers.production.production_provider.ProductionProvider.handle_retry_products',
            mock_production_provider.respond_true)
-    @patch('api.providers.ordering.production_provider.ProductionProvider.load_ee_orders',
+    @patch('api.providers.production.production_provider.ProductionProvider.load_ee_orders',
            mock_production_provider.respond_true)
-    @patch('api.providers.ordering.production_provider.ProductionProvider.handle_submitted_products',
+    @patch('api.providers.production.production_provider.ProductionProvider.handle_submitted_products',
            mock_production_provider.respond_true)
-    @patch('api.providers.ordering.production_provider.ProductionProvider.finalize_orders',
+    @patch('api.providers.production.production_provider.ProductionProvider.finalize_orders',
            mock_production_provider.respond_true)
-    @patch('api.providers.ordering.production_provider.ProductionProvider.purge_orders',
+    @patch('api.providers.production.production_provider.ProductionProvider.purge_orders',
            mock_production_provider.respond_true)
     def test_handle_orders_success(self):
         response = api.handle_orders()
@@ -255,21 +254,21 @@ class TestProductionAPI(unittest.TestCase):
     def test_production_load_ee_orders(self):
         production_provider.load_ee_orders()
 
-    @patch('api.providers.ordering.production_provider.ProductionProvider.handle_submitted_landsat_products',
+    @patch('api.providers.production.production_provider.ProductionProvider.handle_submitted_landsat_products',
            mock_production_provider.respond_true)
-    @patch('api.providers.ordering.production_provider.ProductionProvider.handle_submitted_modis_products',
+    @patch('api.providers.production.production_provider.ProductionProvider.handle_submitted_modis_products',
            mock_production_provider.respond_true)
-    @patch('api.providers.ordering.production_provider.ProductionProvider.handle_submitted_plot_products',
+    @patch('api.providers.production.production_provider.ProductionProvider.handle_submitted_plot_products',
            mock_production_provider.respond_true)
     def test_production_handle_submitted_products(self):
         response = production_provider.handle_submitted_products()
         self.assertTrue(response)
 
-    @patch('api.providers.ordering.production_provider.ProductionProvider.mark_nlaps_unavailable',
+    @patch('api.providers.production.production_provider.ProductionProvider.mark_nlaps_unavailable',
            mock_production_provider.respond_true)
-    @patch('api.providers.ordering.production_provider.ProductionProvider.update_landsat_product_status',
+    @patch('api.providers.production.production_provider.ProductionProvider.update_landsat_product_status',
            mock_production_provider.respond_true)
-    @patch('api.providers.ordering.production_provider.ProductionProvider.get_contactids_for_submitted_landsat_products',
+    @patch('api.providers.production.production_provider.ProductionProvider.get_contactids_for_submitted_landsat_products',
            mock_production_provider.contact_ids_list)
     def test_production_handle_submitted_landsat_products(self):
         response = production_provider.handle_submitted_landsat_products()
@@ -277,7 +276,7 @@ class TestProductionAPI(unittest.TestCase):
 
     # !!! need to write test for nlaps.products_are_nlaps !!!
     @patch('api.external.nlaps.products_are_nlaps', nlaps.products_are_nlaps)
-    @patch('api.providers.ordering.production_provider.ProductionProvider.set_products_unavailable',
+    @patch('api.providers.production.production_provider.ProductionProvider.set_products_unavailable',
            mock_production_provider.respond_true)
     def test_production_mark_nlaps_unavailable(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
@@ -297,7 +296,7 @@ class TestProductionAPI(unittest.TestCase):
         self.assertTrue(response)
 
     @patch('api.external.lta.order_scenes', lta.order_scenes)
-    @patch('api.providers.ordering.production_provider.ProductionProvider.set_products_unavailable',
+    @patch('api.providers.production.production_provider.ProductionProvider.set_products_unavailable',
            mock_production_provider.respond_true)
     def test_production_update_landsat_product_status(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
@@ -378,7 +377,7 @@ class TestProductionAPI(unittest.TestCase):
         self.assertEqual(plot_product.status, "oncache")
         self.assertTrue(response)
 
-    @patch('api.providers.ordering.production_provider.ProductionProvider.update_order_if_complete',
+    @patch('api.providers.production.production_provider.ProductionProvider.update_order_if_complete',
            mock_production_provider.respond_true)
     def test_production_finalize_orders(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
@@ -387,7 +386,7 @@ class TestProductionAPI(unittest.TestCase):
         response = production_provider.finalize_orders()
         self.assertTrue(response)
 
-    @patch('api.providers.ordering.production_provider.ProductionProvider.send_completion_email',
+    @patch('api.providers.production.production_provider.ProductionProvider.send_completion_email',
            mock_production_provider.respond_true)
     def test_production_update_order_if_complete(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)

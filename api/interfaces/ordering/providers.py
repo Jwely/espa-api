@@ -3,10 +3,10 @@
 from api.providers.inventory.inventory_provider import MockInventoryProvider, InventoryProvider
 from api.providers.metrics import MockMetricsProvider, MetricsProvider
 from api.providers.ordering import MockOrderingProvider
-from api.providers.validation import MockValidationProvider, ValidationProvider
 from api.providers.ordering.ordering_provider import OrderingProvider
+from api.providers.production.production_provider import ProductionProvider
+from api.providers.validation import MockValidationProvider
 from api.providers.validation import ValidationProvider
-from api.providers.ordering.production_provider import ProductionProvider
 
 
 class DefaultProviders(object):
