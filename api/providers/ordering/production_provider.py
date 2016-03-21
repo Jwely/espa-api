@@ -69,12 +69,12 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         return True
 
-    def mark_product_complete(self, name=None, orderid=None, processing_loc=None,
+    def mark_product_complete(self, name, orderid, processing_loc=None,
                                 completed_file_location=None, destination_cksum_file=None,
                                 log_file_contents=None):
 
-        order_id = Scene.get('order_id', name=name, orderid=orderid)
-        order_source = Scene.get('order_source', name=name, orderid=orderid)
+        order_id = Scene.get('order_id', name, orderid)
+        order_source = Scene.get('order_source', name, orderid)
         base_url = config.url_for('distribution.cache')
 
         product_file_parts = completed_file_location.split('/')
@@ -97,8 +97,8 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         if order_source == 'ee':
             # update EE
-            ee_order_id = Scene.get('ee_order_id', name=name, orderid=orderid)
-            ee_unit_id = Scene.get('ee_unit_id', name=name, orderid=orderid)
+            ee_order_id = Scene.get('ee_order_id', name, orderid)
+            ee_unit_id = Scene.get('ee_unit_id', name, orderid)
             lta.update_order_status(ee_order_id, ee_unit_id, 'C')
 
         try:
@@ -110,11 +110,11 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         return True
 
-    def set_product_unavailable(self, name=None, orderid=None,
+    def set_product_unavailable(self, name, orderid,
                                 processing_loc=None, error=None, note=None):
 
-        order_id = Scene.get('order_id', name=name, orderid=orderid)
-        order_source = Scene.get('order_source', name=name, orderid=orderid)
+        order_id = Scene.get('order_id', name, orderid)
+        order_source = Scene.get('order_source', name, orderid)
 
         scene = Scene.where("name = '{0}' and order_id = {1}".format(name, order_id))[0]
         scene.status = 'unavailable'
@@ -126,8 +126,8 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         if order_source == 'ee':
             # update EE
-            ee_order_id = Scene.get('ee_order_id', name=name, orderid=orderid)
-            ee_unit_id = Scene.get('ee_unit_id', name=name, orderid=orderid)
+            ee_order_id = Scene.get('ee_order_id', name, orderid)
+            ee_unit_id = Scene.get('ee_unit_id', name, orderid)
             lta.update_order_status(ee_order_id, ee_unit_id, 'R')
 
         try:
@@ -167,7 +167,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         return True
 
-    def update_status(self, name=None, orderid=None,
+    def update_status(self, name, orderid,
                         processing_loc=None, status=None):
         order_id = Scene.get('order_id', name=name, orderid=orderid)
         sql_list = ["update ordering_scene set "]
@@ -205,20 +205,18 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             return {"msg": "{0} is not an accepted action for update_product".format(action)}
 
         if action == 'update_status':
-            result = self.update_status(name=name, orderid=orderid,
-                                        processing_loc=processing_loc, status=status)
+            result = self.update_status(name, orderid, processing_loc=processing_loc, status=status)
 
         if action == 'set_product_error':
-            result = self.set_product_error(name=name, orderid=orderid,
-                                            processing_loc=processing_loc, error=error)
+            result = self.set_product_error(name, orderid, processing_loc=processing_loc, error=error)
 
         if action == 'set_product_unavailable':
-            result = self.set_product_unavailable(name=name, orderid=orderid,
+            result = self.set_product_unavailable(name, orderid,
                                                   processing_loc=processing_loc,
                                                   error=error, note=note)
 
         if action == 'mark_product_complete':
-            result = self.mark_product_complete(name=name, orderid=orderid,
+            result = self.mark_product_complete(name, orderid,
                                                 processing_loc=processing_loc,
                                                 completed_file_location=completed_file_location,
                                                 destination_cksum_file=cksum_file_location,

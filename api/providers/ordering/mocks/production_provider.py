@@ -33,3 +33,11 @@ class MockProductionProvider(object):
                                 encode_urls=False):
         return {'record_limit': record_limit, 'for_user': for_user, 'priority': priority,
                 'product_types': product_types, 'encode_urls': encode_urls}
+
+    def update_status_inputs(self, name, orderid,
+                        processing_loc=None, status=None):
+        response = {'name': name, 'orderid': orderid,
+                    'processing_loc': processing_loc,
+                    'status': status}
+
+        return response

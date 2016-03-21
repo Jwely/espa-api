@@ -5,6 +5,7 @@ import json
 import unittest
 import tempfile
 import base64
+import urllib
 from api.util import api_cfg
 from api.util.dbconnect import DBConnect
 from api.transports import http_main
@@ -70,13 +71,15 @@ class ProductionTransportTestCase(unittest.TestCase):
                         'priority': None}
         assert response_data == correct_resp
 
-    @patch('api.providers.ordering.production_provider.ProductionProvider.update_product_details',
-            production_provider.get_update_product_detail_inputs)
+    @patch('api.providers.ordering.production_provider.ProductionProvider.update_status',
+            production_provider.update_status_inputs)
     def test_post_production_api_update_status(self):
         url = "/production-api/v0/update_status"
-        data_dict = {'name': scene_name, 'orderid': orderid, 'processing_loc': processing_loc, 'status': status}
+        data_dict = {'name': 't10000xyz401', 'orderid': 'kyle@usgs.gov-09222015-123456',
+                    'processing_loc': 'update_status', 'status': 'updated'}
         response = self.app.post(url, data=json.dumps(data_dict), headers=self.headers)
-
+        response_data = json.loads(response.get_data())
+        assert response_data == data_dict
 
     def test_post_production_api_set_product_error(self):
         url = "/production-api/v0/set_product_error"

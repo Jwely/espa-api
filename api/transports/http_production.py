@@ -29,12 +29,16 @@ class ProductionOperations(Resource):
 
     # Probably best to split these up into their own classes
     def post(self, action=None):
+        # in testing, request.form always empty. post call looks like:
+        # app.post(url, data=json.dumps(data_dict), headers=self.headers)
+        #params = request.form.to_dict(flat=True)
+        params = request.get_json(force=True)
         if 'handle-orders' in request.url:
             return espa.handle_orders()
         elif 'queue-products' in request.url:
-            return espa.queue_products(request.form)
+            return espa.queue_products(params)
         elif action:
-            return espa.update_product_details(action, request.form)
+            return espa.update_product_details(action, params)
 
 
 class ProductionConfiguration(Resource):
