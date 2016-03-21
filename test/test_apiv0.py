@@ -62,10 +62,6 @@ class TestAPI(unittest.TestCase):
         for item in self.restricted_list['internal_only']:
             self.assertFalse(item in return_dict['etm7']['outputs'])
 
-    def test_get_available_products_by_none(self):
-        none_user = "this_is_from_testing"
-        self.assertIn("msg", api.available_products(self.product_id, none_user).keys())
-
     def test_fetch_user_orders_by_email_val(self):
         orders = api.fetch_user_orders(self.usermail)
         self.assertEqual(orders.keys()[0], "orders")
