@@ -31,7 +31,7 @@ class ApiConfig(object):
             for i in db:
                 cfgout[i['key']] = i['value']
 
-        self.cfg = api_cfg() 
+        self.cfg = api_cfg()
         self.settings = cfgout
 
     @property

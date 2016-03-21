@@ -5,6 +5,7 @@ import json
 import unittest
 import tempfile
 import base64
+import urllib
 from api.util import api_cfg
 from api.util.dbconnect import DBConnect
 from api.transports import http_main
@@ -70,26 +71,38 @@ class ProductionTransportTestCase(unittest.TestCase):
                         'priority': None}
         assert response_data == correct_resp
 
-
+    @patch('api.providers.ordering.production_provider.ProductionProvider.update_status',
+            production_provider.update_status_inputs)
     def test_post_production_api_update_status(self):
-        pass
+        url = "/production-api/v0/update_status"
+        data_dict = {'name': 't10000xyz401', 'orderid': 'kyle@usgs.gov-09222015-123456',
+                    'processing_loc': 'update_status', 'status': 'updated'}
+        response = self.app.post(url, data=json.dumps(data_dict), headers=self.headers)
+        response_data = json.loads(response.get_data())
+        assert response_data == data_dict
 
     def test_post_production_api_set_product_error(self):
+        url = "/production-api/v0/set_product_error"
         pass
 
     def test_post_production_api_set_product_unavailable(self):
+        url = "/production-api/v0/set_product_unavailable"
         pass
 
     def test_post_production_api_mark_product_complete(self):
+        url = "/production-api/v0/mark_product_complete"
         pass
 
     def test_post_production_api_handle_orders(self):
+        url = "/production-api/v0/handle_orders"
         pass
 
     def test_post_production_api_queue_products(self):
+        url = "/production-api/v0/queue_products"
         pass
 
     def test_get_production_api_configurations(self):
+        url = "/production-api/v0/system_message_title"
         pass
 
 

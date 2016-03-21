@@ -220,7 +220,7 @@ class API(object):
 
         return response
 
-    def update_product_details(self, action, params=None):
+    def update_product_details(self, action, params):
         """Update product details
 
         Args:
