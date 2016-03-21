@@ -9,7 +9,7 @@ from api.domain import sensor
 from api.system.logger import api_logger as logger
 from psycopg2.extras import Json
 
-cfg = api_cfg()
+cfg = api_cfg('db')
 
 class OrderException(Exception):
     pass

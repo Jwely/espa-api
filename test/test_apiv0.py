@@ -16,7 +16,7 @@ api = API()
 
 class TestAPI(unittest.TestCase):
     def setUp(self):
-        db = DBConnect(**api_cfg())
+        db = DBConnect(**api_cfg('db'))
         uidsql = "select user_id, orderid from ordering_order limit 1;"
         unmsql = "select username, email from auth_user where id = %s;"
         db.select(uidsql)
@@ -115,7 +115,7 @@ class TestAPI(unittest.TestCase):
 
 class TestValidation(unittest.TestCase):
     def setUp(self):
-        with DBConnect(**api_cfg()) as db:
+        with DBConnect(**api_cfg('db')) as db:
             staffusersql = "select username, email, is_staff from auth_user where is_staff = True limit 1;"
             pubusersql = "select username, email, is_staff from auth_user where is_staff = False limit 1;"
 

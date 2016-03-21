@@ -30,7 +30,7 @@ class TransportTestCase(unittest.TestCase):
 
         self.useremail = cfg['devmail']
 
-        with DBConnect(**cfg) as db:
+        with DBConnect(**api_cfg('db')) as db:
             uidsql = "select user_id, orderid from ordering_order limit 1;"
             db.select(uidsql)
             self.userid = db[0]['user_id']

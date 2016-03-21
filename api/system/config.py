@@ -21,9 +21,9 @@ class ApiConfig(object):
         cfgout = {}
 
         if cfgfile is None:
-            cfg = api_cfg()
+            cfg = api_cfg('db')
         else:
-            cfg = api_cfg(cfgfile)
+            cfg = api_cfg('db', cfgfile)
 
         with DBConnect(**cfg) as db:
             con_query = "select key, value from ordering_configuration;"
@@ -31,7 +31,7 @@ class ApiConfig(object):
             for i in db:
                 cfgout[i['key']] = i['value']
 
-        self.cfg = cfg
+        self.cfg = api_cfg() 
         self.settings = cfgout
 
     @property

@@ -95,7 +95,7 @@ class User(UserMixin):
         arg_tup = (username, email, first_name, last_name,
                     'pass', 'f', 't', 'f', nownow, nownow, contactid)
 
-        with DBConnect(**api_cfg()) as db:
+        with DBConnect(**api_cfg('db')) as db:
             user_sql = "select id from auth_user where username = %s;"
             db.select(user_sql, username)
             if len(db) == 0:
@@ -128,7 +128,7 @@ class User(UserMixin):
 
         sql.append(";")
         sql = " ".join(sql)
-        with DBConnect(**api_cfg()) as db:
+        with DBConnect(**api_cfg('db')) as db:
             db.select(sql)
             returnlist = []
             for i in db:
@@ -149,7 +149,7 @@ class User(UserMixin):
 
     def roles(self):
         result = None
-        with DBConnect(**api_cfg()) as db:
+        with DBConnect(**api_cfg('db')) as db:
             db.select("select is_staff, is_active, is_superuser from auth_user where id = %s;" % self.id)
         try:
             result = db[0]

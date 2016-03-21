@@ -17,7 +17,7 @@ class MockUser(object):
         except:
             raise MockUserException("MockUser objects only allowed while testing")
 
-        self.cfg = api_cfg()
+        self.cfg = api_cfg('db')
 
     def __repr__(self):
         return "MockUser: {0}".format(self.__dict__)
