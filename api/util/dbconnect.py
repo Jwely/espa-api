@@ -6,6 +6,8 @@ import psycopg2.extensions as db_extns
 import numbers
 import os
 
+from api.util import api_cfg
+
 class DBConnectException(Exception):
     pass
 
@@ -128,3 +130,7 @@ class DBConnect(object):
             del self.conn
         except Exception as e:
             raise DBConnectException(e)
+
+def db_instance():
+    return DBConnect(**api_cfg('db'))
+

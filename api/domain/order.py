@@ -3,7 +3,7 @@ import json
 import datetime
 
 from api.util import api_cfg
-from api.util.dbconnect import DBConnect, DBConnectException
+from api.util.dbconnect import DBConnectException, db_instance
 from api.domain.scene import Scene
 from api.domain import sensor
 from api.system.logger import api_logger as logger
@@ -42,7 +42,7 @@ class Order(object):
                 self.ee_order_id = ee_order_id
                 self.email = email
                 self.priority = priority
-                with DBConnect(**cfg) as db:
+                with db_instance() as db:
                     db.select("select id from ordering_order where orderid = '{0}';".format(orderid))
                     if db:
                         self.id = db[0]['id']
@@ -85,7 +85,7 @@ class Order(object):
         logger.info("Order creation parameters: {0}".format(params))
 
         try:
-            with DBConnect(**cfg) as db:
+            with db_instance() as db:
                 logger.info('New order complete SQL: {}'.format(db.cursor.mogrify(sql, params)))
                 db.execute(sql, params)
                 db.commit()
@@ -143,7 +143,7 @@ class Order(object):
         sql.append(";")
         sql = " ".join(sql)
         results = []
-        with DBConnect(**cfg) as db:
+        with db_instance() as db:
             db.select(sql)
             returnlist = []
             for i in db:
@@ -344,7 +344,7 @@ class Order(object):
 
     def user_email(self):
         sql = "select email from auth_user where id = {0};".format(self.user_id)
-        with DBConnect(**cfg) as db:
+        with db_instance() as db:
             db.select(sql)
             return db[0]['email']
 
@@ -411,7 +411,7 @@ class Order(object):
         logger.info("{0} order {1}\n sql: {2}\n\n".format(verbage, self.orderid, sql))
         #return sql
 
-        with DBConnect(**cfg) as db:
+        with db_instance() as db:
             db.execute(sql)
             db.commit()
         return True
@@ -424,7 +424,7 @@ class Order(object):
             val = "\'{0}\'".format(val)
         sql = "update ordering_order set {0} = {1} where id = {2};".format(att, val, self.id)
         #return sql
-        with DBConnect(**cfg) as db:
+        with db_instance() as db:
             db.execute(sql)
             db.commit()
         return True

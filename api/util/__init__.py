@@ -5,8 +5,6 @@ import os
 import subprocess
 import datetime
 
-from api.util.dbconnect import DBConnect
-
 def get_cfg(cfgfile=".cfgnfo"):
     """
     Retrieve the configuration information from the .cfgnfo file
@@ -67,22 +65,6 @@ def send_email(sender, recipient, subject, body):
     smtp = smtplib.SMTP("localhost")
     smtp.sendmail(sender, recipient, msg.as_string())
     smtp.quit()
-
-
-def get_email_addr(dbinfo, who):
-    """
-    Retrieve email address(es) from the database
-    for a specified role
-    """
-    key = 'email.{0}'.format(who)
-    sql = "select value from ordering_configuration where key = %s"
-
-    with DBConnect(**dbinfo) as db:
-        db.select(sql, key)
-        out = db[0][0].split(',')
-
-    return out
-
 
 def backup_cron():
     """

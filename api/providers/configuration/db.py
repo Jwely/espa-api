@@ -1,5 +1,3 @@
-from api.util.dbconnect import DBConnect
-import psycopg2.extras
 
 class Configuration(object):
 

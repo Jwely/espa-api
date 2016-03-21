@@ -1,12 +1,10 @@
 import sys
 import time
 import traceback
-import psycopg2
 from flask.ext.login import UserMixin
 
 from api.external import lta
-from api.util.dbconnect import DBConnect
-from api.util import api_cfg
+from api.util.dbconnect import db_instance
 from validate_email import validate_email
 
 from api.system.logger import api_logger as logger
@@ -95,7 +93,7 @@ class User(UserMixin):
         arg_tup = (username, email, first_name, last_name,
                     'pass', 'f', 't', 'f', nownow, nownow, contactid)
 
-        with DBConnect(**api_cfg('db')) as db:
+        with db_instance() as db:
             user_sql = "select id from auth_user where username = %s;"
             db.select(user_sql, username)
             if len(db) == 0:
@@ -128,7 +126,7 @@ class User(UserMixin):
 
         sql.append(";")
         sql = " ".join(sql)
-        with DBConnect(**api_cfg('db')) as db:
+        with db_instance() as db:
             db.select(sql)
             returnlist = []
             for i in db:
@@ -142,14 +140,14 @@ class User(UserMixin):
         if isinstance(val, str) or isinstance(val, datetime.datetime):
             val = "\'{0}\'".format(val)
         sql = "update auth_user set {0} = {1} where id = {2};".format(att, val, self.id)
-        with DBConnect(**cfg) as db:
+        with db_instance() as db:
             db.execute(sql)
             db.commit()
         return True
 
     def roles(self):
         result = None
-        with DBConnect(**api_cfg('db')) as db:
+        with db_instance() as db:
             db.select("select is_staff, is_active, is_superuser from auth_user where id = %s;" % self.id)
         try:
             result = db[0]

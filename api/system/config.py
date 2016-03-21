@@ -4,7 +4,7 @@ on the configuration table
 """
 
 from api.util import api_cfg
-from api.util.dbconnect import DBConnect
+from api.util.dbconnect import db_instance
 import os
 
 class ApiConfigException(Exception):
@@ -20,12 +20,7 @@ class ApiConfig(object):
 
         cfgout = {}
 
-        if cfgfile is None:
-            cfg = api_cfg('db')
-        else:
-            cfg = api_cfg('db', cfgfile)
-
-        with DBConnect(**cfg) as db:
+        with db_instance() as db:
             con_query = "select key, value from ordering_configuration;"
             db.select(con_query)
             for i in db:

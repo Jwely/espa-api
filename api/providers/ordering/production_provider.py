@@ -2,9 +2,7 @@ from api.domain import sensor
 from api.domain.scene import Scene
 from api.domain.order import Order
 from api.system.config import ApiConfig
-from api.util.dbconnect import DBConnect, DBConnectException
-from api.util import api_cfg
-from validate_email import validate_email
+from api.util.dbconnect import DBConnectException, db_instance
 from api.providers.ordering import ProductionProviderInterfaceV0
 from api.external import lpdaac, lta, onlinecache, nlaps
 from api.system import errors
@@ -12,11 +10,9 @@ from api.notification import emails
 from api.domain.user import User
 from api.providers.ordering.options_conversion import convert_options
 
-import yaml
 import copy
 import memcache
 import datetime
-import json
 import urllib
 
 from cStringIO import StringIO
@@ -183,7 +179,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         sql = " ".join(sql_list)
 
         try:
-            with DBConnect(**api_cfg('db')) as db:
+            with db_instance() as db:
                 db.execute(sql)
                 db.commit()
         except DBConnectException, e:
@@ -253,7 +249,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         sql_list.append(" where name = '{0}' AND order_id = {1};".format(name, order_id))
         sql = " ".join(sql_list)
         try:
-            with DBConnect(**api_cfg('db')) as db:
+            with db_instance() as db:
                 db.execute(sql)
                 db.commit()
         except DBConnectException, e:
@@ -372,7 +368,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         query_results = None
 
-        with DBConnect(**api_cfg('db')) as db:
+        with db_instance() as db:
             db.select(query)
 
         query_results = db.fetcharr

@@ -1,5 +1,4 @@
-from api.util import api_cfg
-from api.util.dbconnect import DBConnect
+from api.util.dbconnect import db_instance
 from api.domain.order import Order
 from api.domain.scene import Scene
 from api.domain.user import User
@@ -23,7 +22,6 @@ class MockOrder(object):
         except:
             raise MockOrderException("MockOrder objects only allowed while testing")
         self.base_order = build_base_order()
-        self.cfg = api_cfg('db')
         self.ordering_provider = OrderingProvider()
 
     def __repr__(self):
@@ -42,12 +40,12 @@ class MockOrder(object):
     def tear_down_testing_orders(self):
         # delete scenes first
         scene_sql = "DELETE FROM ordering_scene where id > 0;"
-        with DBConnect(**self.cfg) as db:
+        with db_instance() as db:
             db.execute(scene_sql)
             db.commit()
         # now you can delete orders
         ord_sql = "DELETE FROM ordering_order where id > 0;"
-        with DBConnect(**self.cfg) as db:
+        with db_instance() as db:
             db.execute(ord_sql)
             db.commit()
         return True
