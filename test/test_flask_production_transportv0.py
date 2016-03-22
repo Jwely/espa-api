@@ -77,25 +77,58 @@ class ProductionTransportTestCase(unittest.TestCase):
         response_data = json.loads(response.get_data())
         assert response_data == data_dict
 
+    @patch('api.providers.production.production_provider.ProductionProvider.set_product_error',
+            production_provider.set_product_error_inputs)
     def test_post_production_api_set_product_error(self):
         url = "/production-api/v0/set_product_error"
-        pass
+        data_dict = {'name': 't10000xyz401', 'orderid': 'kyle@usgs.gov-09222015-123456',
+                     'processing_loc': 'xyz', 'error': 'oopsie'}
+        response = self.app.post(url, data=json.dumps(data_dict), headers=self.headers)
+        response_data = json.loads(response.get_data())
+        assert response_data == data_dict
 
+    @patch('api.providers.production.production_provider.ProductionProvider.set_product_unavailable',
+            production_provider.set_product_unavailable_inputs)
     def test_post_production_api_set_product_unavailable(self):
         url = "/production-api/v0/set_product_unavailable"
-        pass
+        data_dict = {'name': 't10000xyz401', 'orderid': 'kyle@usgs.gov-09222015-123456',
+                     'processing_loc': 'xyz', 'error': 'oopsie', 'note': 'them notes'}
+        response = self.app.post(url, data=json.dumps(data_dict), headers=self.headers)
+        response_data = json.loads(response.get_data())
+        assert response_data == data_dict
 
+    @patch('api.providers.production.production_provider.ProductionProvider.mark_product_complete',
+            production_provider.set_mark_product_complete_inputs)
     def test_post_production_api_mark_product_complete(self):
         url = "/production-api/v0/mark_product_complete"
-        pass
+        data_dict = {'name': 't10000xyz401', 'orderid': 'kyle@usgs.gov-09222015-123456',
+                     'processing_loc': 'xyz',
+                     'completed_file_location': '/tmp',
+                     'cksum_file_location': '/tmp/txt.txt',
+                     'log_file_contents': 'details'}
+        response = self.app.post(url, data=json.dumps(data_dict), headers=self.headers)
+        response_data = json.loads(response.get_data())
+        assert response_data == data_dict
 
+    @patch('api.providers.production.production_provider.ProductionProvider.handle_orders',
+            production_provider.respond_true)
     def test_post_production_api_handle_orders(self):
-        url = "/production-api/v0/handle_orders"
-        pass
+        url = "/production-api/v0/handle-orders"
+        response = self.app.post(url, data=json.dumps({}), headers=self.headers)
+        response_data = json.loads(response.get_data())
+        assert response_data is True
 
+    @patch('api.providers.production.production_provider.ProductionProvider.queue_products',
+            production_provider.queue_products_inputs)
     def test_post_production_api_queue_products(self):
         url = "/production-api/v0/queue_products"
-        pass
+        data_dict = {'order_name_tuple_list': 'order_name_tuple_list',
+                     'processing_location': 'processing_location',
+                     'job_name': 'job_name'}
+        response = self.app.post(url, data=json.dumps(data_dict), headers=self.headers)
+        response_data = json.loads(response.get_data())
+        print response_data
+        assert response_data == data_dict
 
     def test_get_production_api_configurations(self):
         url = "/production-api/v0/system_message_title"

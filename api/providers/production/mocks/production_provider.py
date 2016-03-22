@@ -41,3 +41,27 @@ class MockProductionProvider(object):
                     'status': status}
 
         return response
+
+    def set_product_error_inputs(self, name, orderid, processing_loc, error):
+        return {'name': name, 'orderid': orderid, 'processing_loc': processing_loc,
+                'error': error}
+
+    def set_product_unavailable_inputs(self, name, orderid,
+                                processing_loc=None, error=None, note=None):
+        return {'name': name, 'orderid': orderid, 'processing_loc': processing_loc,
+                'error': error, 'note': note}
+
+    def set_mark_product_complete_inputs(self, name, orderid, processing_loc=None,
+                                         completed_file_location=None,
+                                         destination_cksum_file=None,
+                                         log_file_contents=None):
+        return {'name': name, 'orderid': orderid, 'processing_loc': processing_loc,
+                'completed_file_location': completed_file_location,
+                'cksum_file_location': destination_cksum_file,
+                'log_file_contents': log_file_contents}
+
+    def queue_products_inputs(self, order_name_tuple_list, processing_location, job_name):
+        return {'order_name_tuple_list': order_name_tuple_list,'processing_location': processing_location,
+                'job_name': job_name}
+
+
