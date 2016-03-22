@@ -2,7 +2,6 @@ import datetime
 
 from api.domain import sensor
 from api.domain.order import Order
-from api.system.config import ApiConfig
 from api.util.dbconnect import db_instance
 from validate_email import validate_email
 from api.providers.ordering import ProviderInterfaceV0
@@ -11,7 +10,6 @@ import yaml
 import copy
 import memcache
 
-config = ApiConfig()
 cache = memcache.Client(['127.0.0.1:11211'], debug=0)
 
 class OrderingProviderException(Exception):

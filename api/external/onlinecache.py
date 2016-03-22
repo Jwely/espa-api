@@ -3,10 +3,10 @@ cache '''
 
 import re
 from api.util import sshcmd
-from api.system.config import ApiConfig
+from api.providers.configuration.configuration_provider import ConfigurationProvider
 from api.system.logger import api_logger as logger
 
-config = ApiConfig()
+config = ConfigurationProvider()
 
 class OnlineCacheException(Exception):
     ''' General exception raised from the OnlineCache '''
@@ -21,16 +21,16 @@ class OnlineCache(object):
     def __init__(self, host=None, user=None, pw=None):
 
         if host is None:
-            host = config.settings['landsatds.host']
+            host = config.get('landsatds.host')
         if user is None:
-            user = config.settings['landsatds.username']
+            user = config.get('landsatds.username')
         if pw is None:
-            pw = config.settings['landsatds.password']
+            pw = config.get('landsatds.password')
 
         self.client = sshcmd.RemoteHost(host, user, pw, debug=False)
 
         try:
-            self.orderpath = config.settings[self.__order_path_key]
+            self.orderpath = config.get(self.__order_path_key)
         except:
             logger.info('{0} not defined in configurations, setting objects orderpath to {1}'
                 .format(self.__order_path_key, self.__default_order_path))

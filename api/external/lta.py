@@ -12,11 +12,10 @@ from suds.client import Client as SoapClient
 from suds.cache import ObjectCache
 
 from api.domain import sensor
-from api.system.config import ApiConfig
-
+from api.providers.configuration.configuration_provider import ConfigurationProvider
 from api.system.logger import api_logger as logger
 
-config = ApiConfig()
+config = ConfigurationProvider()
 
 class LTAService(object):
     ''' Abstract service client for all of LTA services '''
@@ -41,8 +40,8 @@ class LTASoapService(LTAService):
 
     def build_object_cache(self):
         cache = ObjectCache()
-        cache.setduration(seconds=config.settings['soap.client_timeout'])
-        cache.setlocation(config.settings['soap.cache_location'])
+        cache.setduration(seconds=config.get('soap.client_timeout'))
+        cache.setlocation(config.get('soap.cache_location'))
         return cache
 
 

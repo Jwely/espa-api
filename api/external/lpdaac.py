@@ -9,10 +9,10 @@ import os
 from api.domain import sensor
 from api import util as utils
 
-from api.system.config import ApiConfig
+from api.providers.configuration.configuration_provider import ConfigurationProvider
 from api.system.logger import api_logger as logger
 
-config = ApiConfig()
+config = ConfigurationProvider()
 
 class LPDAACService(object):
 
@@ -122,9 +122,9 @@ class LPDAACService(object):
             product = sensor.instance(product)
 
         if isinstance(product, sensor.Aqua):
-            base_path = config.settings['path.aqua_base_source']
+            base_path = config.get('path.aqua_base_source')
         elif isinstance(product, sensor.Terra):
-            base_path = config.settings['path.terra_base_source']
+            base_path = config.get('path.terra_base_source')
         else:
             msg = "Cant build input file path for unknown LPDAAC product:%s"
             raise Exception(msg % product.product_id)
@@ -135,7 +135,7 @@ class LPDAACService(object):
                                   str(date.month).zfill(2),
                                   str(date.day).zfill(2))
 
-        input_extension = config.settings['file.extension.modis.input.filename']
+        input_extension = config.get('file.extension.modis.input.filename')
 
         parts = product.product_id.split('.')
         prod_id = '.'.join([parts[0].upper(),

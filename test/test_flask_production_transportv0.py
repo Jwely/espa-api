@@ -6,8 +6,8 @@ import unittest
 
 from api.interfaces.ordering.mocks.version0 import MockAPI
 from api.providers.production.mocks.production_provider import MockProductionProvider
-from api.transports import http_main
-from api.util import api_cfg
+from api.transports import http
+from api.providers.configuration.configuration_provider import ConfigurationProvider
 from mock import patch
 
 api = MockAPI()
@@ -16,16 +16,16 @@ production_provider = MockProductionProvider()
 class ProductionTransportTestCase(unittest.TestCase):
 
     def setUp(self):
-        cfg = api_cfg()
+        cfg = ConfigurationProvider()
 
-        self.app = http_main.app.test_client()
+        self.app = http.app.test_client()
         self.app.testing = True
 
-        token = '{}:{}'.format(cfg['devuser'], cfg['devword'])
+        token = '{}:{}'.format(cfg.devuser, cfg.devword)
         auth_string = "Basic {}".format(base64.b64encode(token))
         self.headers = {"Authorization": auth_string}
 
-        self.useremail = cfg['devmail']
+        self.useremail = cfg.devmail
 
 
     def tearDown(self):

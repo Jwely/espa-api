@@ -1,7 +1,7 @@
 from api.domain import sensor
 from api.domain.scene import Scene
 from api.domain.order import Order
-from api.system.config import ApiConfig
+from api.providers.configuration.configuration_provider import ConfigurationProvider
 from api.util.dbconnect import DBConnectException, db_instance
 from api.providers.ordering import ProductionProviderInterfaceV0
 from api.external import lpdaac, lta, onlinecache, nlaps
@@ -19,7 +19,7 @@ from cStringIO import StringIO
 
 from api.system.logger import api_logger as logger
 
-config = ApiConfig()
+config = ConfigurationProvider()
 cache = memcache.Client(['127.0.0.1:11211'], debug=0)
 
 class ProductionProviderException(Exception):
@@ -410,8 +410,8 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                     if ('status' in landsat_urls[item['name']] and
                             landsat_urls[item['name']]['status'] != 'available'):
                         try:
-                            limit = config.settings['retry.retry_missing_l1.retries']
-                            timeout = int(config.settings['retry.retry_missing_l1.timeout'])
+                            limit = config.get('retry.retry_missing_l1.retries')
+                            timeout = int(config.get('retry.retry_missing_l1.timeout'))
                             ts = datetime.datetime.now()
                             after = ts + datetime.timedelta(seconds=timeout)
 
@@ -453,7 +453,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                 # Need to strip out everything not directly related to the scene
                 options = self.strip_unrelated(item['name'], item['product_opts'])
 
-                if config.cfg['convertprodopts'] == 'True':
+                if config.get('convertprodopts') == 'True':
                     options = convert_options(options)
 
                 result = {
@@ -484,7 +484,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         '''
 
         #check to make sure this operation is enabled.  Bail if not
-        enabled = config.settings["system.load_ee_orders_enabled"]
+        enabled = config.get("system.load_ee_orders_enabled")
         if enabled.lower() != 'true':
             logger.info('system.load_ee_orders_enabled is disabled,'
                         'skipping load_ee_orders()')
@@ -936,7 +936,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         ''' Will move any orders older than X days to purged status and will also
         remove the files from disk'''
 
-        days = config.settings['policy.purge_orders_after']
+        days = config.get('policy.purge_orders_after')
 
         logger.info('Using purge policy of {0} days'.format(days))
 
@@ -999,7 +999,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             logger.info('Purge lock expired... running')
 
             # first thing, populate the cached lock field
-            timeout = int(config.settings['system.run_order_purge_every'])
+            timeout = int(config.get('system.run_order_purge_every'))
             cache.set(cache_key, datetime.datetime.now(), timeout)
 
             #purge the orders from disk now

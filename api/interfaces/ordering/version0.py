@@ -8,7 +8,6 @@
 import traceback
 from api.system.logger import api_logger as logger
 from api.domain import default_error_message
-from api.system.config import ApiConfig
 from api import ValidationException, InventoryException
 
 
@@ -25,6 +24,7 @@ class API(object):
         self.validation = self.providers.validation
         self.metrics = self.providers.metrics
         self.production = self.providers.production
+        self.configuration = self.providers.configuration
 
     def api_versions(self):
         """
@@ -289,8 +289,8 @@ class API(object):
         """
         try:
             response = {"msg": "'{0}' is not a valid key".format(key)}
-            if key in ApiConfig().settings.keys():
-                response = {key: ApiConfig().settings[key]}
+            if key in self.configuration.configuration_keys:
+                response = {key: self.configuration.get(key)}
         except:
             logger.debug("ERR version0 get_production_key, arg: {0}\ntrace: {1}\n".format(key, traceback.format_exc()))
             response = default_error_message

@@ -11,9 +11,9 @@ from api.system.logger import api_logger as logger
 import collections
 import datetime
 from api.domain import sensor
-from api.system.config import ApiConfig
+from api.providers.configuration.configuration_provider import ConfigurationProvider
 
-config = ApiConfig()
+config = ConfigurationProvider()
 
 class Errors(object):
     '''Implementation for ESPA errors.resolve(error_message) interface'''
@@ -86,10 +86,10 @@ class Errors(object):
         A dictionary with retry_after populated with the datetimestamp after
         which an operation should be retried.
         '''
-        timeout = config.settings['retry.{0}.timeout'.format(timeout_key)]
+        timeout = config.get('retry.{0}.timeout'.format(timeout_key))
         ts = datetime.datetime.now()
         extras['retry_after'] = ts + datetime.timedelta(seconds=int(timeout))
-        extras['retry_limit'] = config.settings['retry.{0}.retries'.format(timeout_key)]
+        extras['retry_limit'] = config.get('retry.{0}.retries'.format(timeout_key))
         return extras
 
     def ssh_errors(self, error_message):

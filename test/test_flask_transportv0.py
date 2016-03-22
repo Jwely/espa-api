@@ -5,32 +5,32 @@ import json
 import unittest
 import tempfile
 import base64
-from api.transports import http_main
+from api.transports import http
 import version0_testorders as testorders
 import copy
 
-from api.util import api_cfg, lowercase_all
-from api.util.dbconnect import DBConnect
+from api.util import lowercase_all
+from api.util.dbconnect import db_instance
+from api.providers.configuration.configuration_provider import ConfigurationProvider
 
 class TransportTestCase(unittest.TestCase):
 
     def setUp(self):
         # os.environ['espa_api_testing'] = 'True'
 
-        cfg = api_cfg()
-        #self.app = http.app.test_client()
-        self.app = http_main.app.test_client()
+        cfg = ConfigurationProvider()
+        self.app = http.app.test_client()
         self.app.testing = True
 
         self.sceneids = ['LT50150401987120XXX02', 'LE70450302003206EDC01']
 
-        token = '{}:{}'.format(cfg['devuser'], cfg['devword'])
+        token = '{}:{}'.format(cfg.devuser, cfg.devword)
         auth_string = "Basic {}".format(base64.b64encode(token))
         self.headers = {"Authorization": auth_string}
 
-        self.useremail = cfg['devmail']
+        self.useremail = cfg.devmail
 
-        with DBConnect(**api_cfg('db')) as db:
+        with db_instance() as db:
             uidsql = "select user_id, orderid from ordering_order limit 1;"
             db.select(uidsql)
             self.userid = db[0]['user_id']

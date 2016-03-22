@@ -1,8 +1,6 @@
 import abc
 
 import memcache
-from api.system.config import ApiConfig
-
 
 class CachingInterfaceV0(object):
     __metaclass__ = abc.ABCMeta
