@@ -1,7 +1,6 @@
 import sys
 import time
 import traceback
-from flask.ext.login import UserMixin
 
 from api.external import lta
 from api.util.dbconnect import db_instance
@@ -12,7 +11,7 @@ from api.system.logger import api_logger as logger
 class UserException(Exception):
     pass
 
-class User(UserMixin):
+class User(object):
 
     base_sql = "SELECT username, email, first_name, last_name, contactid "\
                 "FROM auth_user WHERE "
