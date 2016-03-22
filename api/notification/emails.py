@@ -13,7 +13,6 @@ from smtplib import SMTP
 
 from api.domain.order import Order
 from api.domain.scene import Scene
-from api.system.logger import api_logger as logger
 from api.providers.configuration.configuration_provider import ConfigurationProvider
 
 config = ConfigurationProvider()

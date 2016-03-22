@@ -9,7 +9,7 @@ from api.interfaces.ordering.version0 import API
 from api.domain.user import User
 from api.util import lowercase_all
 from api.domain import api_operations_v0
-from api.system.logger import api_logger as logger
+from api.system.logger import ilogger as logger
 
 import memcache
 

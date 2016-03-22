@@ -6,7 +6,7 @@
    just logic.  Implementations are touched through the registry.
 """
 import traceback
-from api.system.logger import api_logger as logger
+from api.system.logger import ilogger as logger
 from api.domain import default_error_message
 from api import ValidationException, InventoryException
 

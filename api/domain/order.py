@@ -2,14 +2,11 @@
 import json
 import datetime
 
-from api.util import api_cfg
 from api.util.dbconnect import DBConnectException, db_instance
 from api.domain.scene import Scene
 from api.domain import sensor
-from api.system.logger import api_logger as logger
+from api.system.logger import ilogger as logger
 from psycopg2.extras import Json
-
-cfg = api_cfg('db')
 
 class OrderException(Exception):
     pass

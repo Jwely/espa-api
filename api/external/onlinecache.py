@@ -4,7 +4,7 @@ cache '''
 import re
 from api.util import sshcmd
 from api.providers.configuration.configuration_provider import ConfigurationProvider
-from api.system.logger import api_logger as logger
+from api.system.logger import ilogger as logger
 
 config = ConfigurationProvider()
 

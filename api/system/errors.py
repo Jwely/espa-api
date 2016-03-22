@@ -7,7 +7,7 @@ Purpose: master error handler for system level errors.  there are many
 Author: David V. Hill
 '''
 
-from api.system.logger import api_logger as logger
+from api.system.logger import ilogger as logger
 import collections
 import datetime
 from api.domain import sensor

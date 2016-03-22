@@ -1,7 +1,8 @@
 """ Holds domain objects for scenes """
 
-from api.util.dbconnect import DBConnectException, db_extns, db_instance
-from api.system.logger import api_logger as logger
+from api.util.dbconnect import DBConnectException, db_instance
+import psycopg2.extensions as db_extns
+from api.system.logger import ilogger as logger
 import datetime
 
 class SceneException(Exception):

@@ -2,7 +2,6 @@
 # TODO built in functionality
 import psycopg2
 import psycopg2.extras as db_extras
-import psycopg2.extensions as db_extns
 import numbers
 import os
 

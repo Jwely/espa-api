@@ -6,7 +6,7 @@ from api.external import lta
 from api.util.dbconnect import db_instance
 from validate_email import validate_email
 
-from api.system.logger import api_logger as logger
+from api.system.logger import ilogger as logger
 
 class UserException(Exception):
     pass

@@ -10,7 +10,7 @@ from api.domain import sensor
 from api import util as utils
 
 from api.providers.configuration.configuration_provider import ConfigurationProvider
-from api.system.logger import api_logger as logger
+from api.system.logger import ilogger as logger
 
 config = ConfigurationProvider()
 

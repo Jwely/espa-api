@@ -17,7 +17,7 @@ import urllib
 
 from cStringIO import StringIO
 
-from api.system.logger import api_logger as logger
+from api.system.logger import ilogger as logger
 
 config = ConfigurationProvider()
 cache = memcache.Client(['127.0.0.1:11211'], debug=0)

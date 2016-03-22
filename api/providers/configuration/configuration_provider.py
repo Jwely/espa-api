@@ -20,6 +20,8 @@ class ConfigurationProvider(ConfigurationProviderInterfaceV0):
         for k, v in api_cfg().iteritems():
             self.__setattr__(k, v)
 
+        self.db_creds = api_cfg('db')
+
 
     @property
     def mode(self):
