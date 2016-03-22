@@ -1,11 +1,12 @@
 import os
 from api.util.dbconnect import db_instance
+from api.providers.configuration import ConfigurationProviderInterfaceV0
 from api.util import api_cfg
 
 class ConfigurationProviderException(Exception):
     pass
 
-class ConfigurationProvider(object):
+class ConfigurationProvider(ConfigurationProviderInterfaceV0):
 
     def __init__(self):
         cfgout = {}

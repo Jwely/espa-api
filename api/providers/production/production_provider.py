@@ -3,7 +3,7 @@ from api.domain.scene import Scene
 from api.domain.order import Order
 from api.providers.configuration.configuration_provider import ConfigurationProvider
 from api.util.dbconnect import DBConnectException, db_instance
-from api.providers.ordering import ProductionProviderInterfaceV0
+from api.providers.production import ProductionProviderInterfaceV0
 from api.external import lpdaac, lta, onlinecache, nlaps
 from api.system import errors
 from api.notification import emails

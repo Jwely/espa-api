@@ -7,11 +7,11 @@ it into ops '''
 
 import abc
 
-class Configuration(object):
+class ConfigurationProviderInterfaceV0(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def __init__(self, use_cache=True):
+    def __init__(self):
         '''
         Keyword args:
         use_cache - Whether to check the cache provider for
@@ -21,43 +21,58 @@ class Configuration(object):
         A dictionary with retry_after populated with the datetimestamp after
         which an operation should be retried.
         '''
-        raise NotImplementedError
+        return
+
+    @abc.abstractmethod
+    def mode(self):
+        ''' Returns operational mode [ 'dev' | 'tst' | 'ops' ] '''
+        return
+
+    @abc.abstractmethod
+    def configuration_keys(self):
+        ''' return list of available configuration keys '''
+        return
+
+    @abc.abstractmethod
+    def url_for(self, service_name):
+        ''' return the url for the provided service_name '''
+        return
 
     @abc.abstractmethod
     def get(self, key):
         ''' Retrieves a value for a named key. '''
-        raise NotImplementedError
+        return
 
     @abc.abstractmethod
     def put(self, key, value):
         ''' Stores a key/value '''
-        raise NotImplementedError
+        return
 
     @abc.abstractmethod
     def mget(self, keys):
         ''' Retrieves multiple values for an iterable of keys '''
-        raise NotImplementedError
+        return
 
     @abc.abstractmethod
     def mput(self, kv_dict):
         ''' Stores a dictionary of key values '''
-        raise NotImplementedError
+        return
 
     @abc.abstractmethod
     def mdelete(self, keys):
         ''' Deletes multiple values for an iterable of keys '''
-        raise NotImplementedError
+        return
 
     @abc.abstractmethod
     def exists(self, key):
         ''' Determines if a key exists in the configuration '''
-        raise NotImplementedError
+        return
 
 # Public interface methods.  May be called directly
 def load(self, config):
     '''' Loads a configuration dump file into the provider '''
-    raise NotImplementedError
+    return
 
 def dump(self, path):
     ''' Exports current configuration into a dump file '''
-    raise NotImplementedError
+    return
