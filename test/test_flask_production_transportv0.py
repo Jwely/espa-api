@@ -121,19 +121,16 @@ class ProductionTransportTestCase(unittest.TestCase):
     @patch('api.providers.production.production_provider.ProductionProvider.queue_products',
             production_provider.queue_products_inputs)
     def test_post_production_api_queue_products(self):
-        url = "/production-api/v0/queue_products"
+        url = "/production-api/v0/queue-products"
         data_dict = {'order_name_tuple_list': 'order_name_tuple_list',
                      'processing_location': 'processing_location',
                      'job_name': 'job_name'}
         response = self.app.post(url, data=json.dumps(data_dict), headers=self.headers)
         response_data = json.loads(response.get_data())
-        print response_data
         assert response_data == data_dict
 
     def test_get_production_api_configurations(self):
-        url = "/production-api/v0/system_message_title"
-        pass
-
-
-
-
+        url = "/production-api/v0/configuration/system_message_title"
+        response = self.app.get(url, headers=self.headers)
+        response_data = json.loads(response.get_data())
+        assert response_data.keys() == ['system_message_title']

@@ -30,7 +30,7 @@ class ProductionOperations(Resource):
         if 'handle-orders' in request.url:
             return espa.handle_orders()
         elif 'queue-products' in request.url:
-            return espa.queue_products(params)
+            return espa.queue_products(**params)
         elif action:
             return espa.update_product_details(action, params)
 
