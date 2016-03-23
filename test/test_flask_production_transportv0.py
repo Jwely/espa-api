@@ -44,8 +44,6 @@ class ProductionTransportTestCase(unittest.TestCase):
         auth_string = "Basic {}".format(base64.b64encode(token))
         self.headers = {"Authorization": auth_string}
 
-        self.user.email
-
         with db_instance() as db:
             uidsql = "select user_id, orderid from ordering_order limit 1;"
             db.select(uidsql)

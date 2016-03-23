@@ -44,7 +44,10 @@ class ConfigurationProvider(ConfigurationProviderInterfaceV0):
         return self.settings[key]
 
     def get(self, key):
-        return self.settings[key]
+        val = self.settings[key]
+        if 'apiemailreceive' in os.environ.keys():
+            val = os.environ['apiemailreceive']
+        return val
 
     def put(self, key, value):
         raise NotImplementedError
