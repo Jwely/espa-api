@@ -30,3 +30,8 @@ class MockUser(object):
         with db_instance() as db:
             db.execute(sql)
             db.commit()
+
+    @classmethod
+    def get(cls, username, password):
+        user = User.where("id > 0")[0]
+        return (user.username, user.email, user.first_name, user.last_name, user.contactid)

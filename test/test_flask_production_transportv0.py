@@ -3,12 +3,21 @@
 import base64
 import json
 import unittest
+import os
 
 from api.interfaces.ordering.mocks.version0 import MockAPI
 from api.providers.production.mocks.production_provider import MockProductionProvider
 from api.transports import http
 from api.providers.configuration.configuration_provider import ConfigurationProvider
 from mock import patch
+from api.domain.user import User
+from api.domain.mocks.order import MockOrder
+from api.domain.mocks.user import MockUser
+
+from api.util.dbconnect import db_instance
+from api.util import lowercase_all
+
+import version0_testorders as testorders
 
 api = MockAPI()
 production_provider = MockProductionProvider()
@@ -16,20 +25,51 @@ production_provider = MockProductionProvider()
 class ProductionTransportTestCase(unittest.TestCase):
 
     def setUp(self):
-        cfg = ConfigurationProvider()
+        os.environ['espa_api_testing'] = 'True'
+        # create a user
+        self.mock_user = MockUser()
+        self.mock_order = MockOrder()
+        self.user_id = self.mock_user.add_testing_user()
+        self.order_id = self.mock_order.generate_testing_order(self.user_id)
 
+        cfg = ConfigurationProvider()
         self.app = http.app.test_client()
         self.app.testing = True
 
-        token = '{}:{}'.format(cfg.devuser, cfg.devword)
+        self.sceneids = self.mock_order.scene_names_list(self.order_id)[0:2]
+
+        self.user = User.where("id = {0}".format(self.user_id))[0]
+
+        token = ''.format(self.user.username, 'foo')
         auth_string = "Basic {}".format(base64.b64encode(token))
         self.headers = {"Authorization": auth_string}
 
-        self.useremail = cfg.devmail
+        self.user.email
 
+        with db_instance() as db:
+            uidsql = "select user_id, orderid from ordering_order limit 1;"
+            db.select(uidsql)
+            self.userid = db[0]['user_id']
+            self.orderid = db[0]['orderid']
+
+            itemsql = "select name, order_id from ordering_scene limit 1;"
+            db.select(itemsql)
+            self.itemid = db[0][0]
+            itemorderid = db[0][1]
+
+            ordersql = "select orderid from ordering_order where id = {};".format(itemorderid)
+            db.select(ordersql)
+            self.itemorderid = db[0][0]
+
+        self.base_order = lowercase_all(testorders.build_base_order())
 
     def tearDown(self):
-        pass
+        # clean up orders
+        self.mock_order.tear_down_testing_orders()
+        # clean up users
+        self.mock_user.cleanup()
+        os.environ['espa_api_testing'] = ''
+
 
     def test_get_production_api(self):
         response = self.app.get('/production-api', headers=self.headers)

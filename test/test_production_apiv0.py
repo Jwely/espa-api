@@ -404,7 +404,7 @@ class TestProductionAPI(unittest.TestCase):
         processing_loc = "get_products_to_process"
         job_name = 'jobname49'
         params = (names_tuple, processing_loc, job_name)
-        response = api.queue_products(params)
+        response = api.queue_products(*params)
         self.assertTrue(response)
 
     def test_production_get_key(self):

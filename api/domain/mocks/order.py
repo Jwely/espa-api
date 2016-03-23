@@ -37,6 +37,11 @@ class MockOrder(object):
         order = Order.where("orderid = '{0}'".format(orderid))[0]
         return order.id
 
+    def scene_names_list(self, order_id):
+        scenes = Scene.where("order_id = {0}".format(order_id))
+        names_list = [s.name for s in scenes]
+        return names_list
+
     def tear_down_testing_orders(self):
         # delete scenes first
         scene_sql = "DELETE FROM ordering_scene where id > 0;"
