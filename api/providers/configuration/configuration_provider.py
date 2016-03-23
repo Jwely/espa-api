@@ -45,7 +45,7 @@ class ConfigurationProvider(ConfigurationProviderInterfaceV0):
 
     def get(self, key):
         val = self.settings[key]
-        if 'apiemailreceive' in os.environ.keys():
+        if key is 'apiemailreceive' and 'apiemailreceive' in os.environ.keys():
             val = os.environ['apiemailreceive']
         return val
 
@@ -59,7 +59,7 @@ class ConfigurationProvider(ConfigurationProviderInterfaceV0):
         raise NotImplementedError
 
     def mdelete(self, keys):
-        raise NotImplementedError   
+        raise NotImplementedError
 
     def exists(self, key):
         raise NotImplementedError
