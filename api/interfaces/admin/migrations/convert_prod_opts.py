@@ -1,5 +1,5 @@
 from api.util.dbconnect import DBConnect, DBConnectException
-from api.domain.order import OptionsMappings
+from api.domain.order import OptionsConversion
 from api.util import api_cfg
 
 
@@ -22,7 +22,7 @@ class ConvertProductOptions(object):
                 continue
 
             scenes = self._retrieve_scenes(co['id'])
-            prod_opts = OptionsMappings.convert(old=co['product_options'], scenes=scenes)
+            prod_opts = OptionsConversion.convert(old=co['product_options'], scenes=scenes)
             self._update_product_opts(prod_opts, co['id'])
 
     def _retrieve_orders(self):
@@ -30,9 +30,8 @@ class ConvertProductOptions(object):
                'from ordering_order')
 
         self.db.select(sql)
-        ret = [r for r in self.db]
 
-        return ret
+        return [r for r in self.db]
 
     def _retrieve_scenes(self, oid):
         sql = ('select name, completion_date '
@@ -40,9 +39,8 @@ class ConvertProductOptions(object):
                'where order_id = %s')
 
         self.db.select(sql, (oid,))
-        ret = [r for r in self.db]
 
-        return ret
+        return [r for r in self.db]
 
     def _update_product_opts(self, opts, oid):
         sql = ('update ordering_order '

@@ -1,6 +1,7 @@
 """ Holds domain objects for orders and the items attached to them """
 import json
 import datetime
+import copy
 
 from api.util import api_cfg
 from api.util.dbconnect import DBConnect, DBConnectException
@@ -109,21 +110,26 @@ class Order(object):
 
                 if isinstance(sensor.instance(item1), sensor.Landsat):
                     sensor_type = 'landsat'
-
-                    # Fix input cases to avoid problems later on
-                    opts[key]['inputs'] = [_.upper() for _ in opts[key]['inputs']]
                 elif isinstance(sensor.instance(item1), sensor.Modis):
                     sensor_type = 'modis'
 
                 for s in opts[key]['inputs']:
-                    scene_dict = {}
-                    scene_dict['name'] = s
-                    scene_dict['sensor_type'] = sensor_type
-                    scene_dict['order_id'] = order.id
-                    scene_dict['status'] = 'ordered'
-                    scene_dict['ee_unit_id'] = None  # Comes from EE
+                    scene_dict = {'name': s,
+                                  'sensor_type': sensor_type,
+                                  'order_id': order.id,
+                                  'status': 'ordered',
+                                  'ee_unit_id': None}
 
                     bulk_ls.append(scene_dict)
+
+        if 'plot_statistics' in opts and opts['plot_statistics']:
+            scene_dict = {'name': 'plot',
+                          'sensor_type': 'plot',
+                          'order_id': order.id,
+                          'status': 'ordered',
+                          'ee_unit_id': None}
+
+            bulk_ls.append(scene_dict)
 
         Scene.create(bulk_ls)
 
@@ -446,19 +452,33 @@ class Order(object):
         return '{}-{}'.format(email, d.strftime('%m%d%Y-%H%M%S'))
 
 
-class OptionsMappings(object):
+class OptionsConversion(object):
     # [(old, new, old val)]
-    proj_map = [('std_parallel_1', 'standard_parallel_1', None),
-                ('std_parallel_2', 'standard_parallel_2', None),
-                ('central_meridian', 'central_meridian', None),
+    aea_map = [('std_parallel_1', 'standard_parallel_1', None),
+               ('std_parallel_2', 'standard_parallel_2', None),
+               ('central_meridian', 'central_meridian', None),
+               ('false_easting', 'false_easting', None),
+               ('false_northing', 'false_northing', None),
+               ('origin_lat', 'latitude_of_origin', None),
+               ('datum', 'datum', None)]
+
+    ps_map = [('longitude_pole', 'longitudinal_pole', None),
+              ('latitude_true_scale', 'latitude_true_scale', None)]
+
+    utm_map = [('utm_zone', 'zone', None),
+               ('utm_north_south', 'zone_ns', None)]
+
+    sinu_map = [('central_meridian', 'central_meridian', None),
                 ('false_easting', 'false_easting', None),
-                ('false_northing', 'false_northing', None),
-                ('origin_lat', 'latitude_of_origin', None),
-                ('datum', 'datum', None),
-                ('longitude_pole', 'longitudinal_pole', None),
-                ('latitude_true_scale', 'latitude_true_scale', None),
-                ('utm_zone', 'zone', None),
-                ('utm_north_south', 'zone_ns', None)]
+                ('false_northing', 'false_northing', None)]
+
+    lonlat_map = [(None, None, None)]
+
+    proj_names_map = [('target_projection', 'aea', aea_map),
+                      ('target_projection', 'ps', ps_map),
+                      ('target_projection', 'utm', utm_map),
+                      ('target_projection', 'lonlat', lonlat_map),
+                      ('target_projection', 'sinu', sinu_map)]
 
     ext_map = [('image_extents_units', 'units', None),
                ('minx', 'west', None),
@@ -475,7 +495,7 @@ class OptionsMappings(object):
                 ('include_sr_toa', 'toa', True),
                 ('include_sr_thermal', 'bt', True),
                 ('include_sr', 'sr', True),
-                ('include_dswe', 'dswe', True),
+                ('include_dswe', 'swe', True),
                 ('include_sr_ndvi', 'sr_ndvi', True),
                 ('include_sr_ndmi', 'sr_ndmi', True),
                 ('include_sr_nbr', 'sr_nbr', True),
@@ -487,10 +507,10 @@ class OptionsMappings(object):
                 ('include_cfmask', 'cloud', True)]
 
     keywords_map = [('resize', 'resize', res_map),
-                    ('resample_method', 'resample_method', None),
+                    ('resample_method', 'resampling_method', None),
                     ('output_format', 'format', None),
                     ('image_extents', 'image_extents', ext_map),
-                    ('reproject', 'projection', proj_map)]
+                    ('reproject', 'projection', proj_names_map)]
 
     @classmethod
     def convert(cls, new=None, old=None, scenes=None):
@@ -521,7 +541,9 @@ class OptionsMappings(object):
         if not scenes:
             scenes = []
 
-        if not isinstance((new, old), dict):
+        if not isinstance(new, dict):
+            raise TypeError('Submitted options must be a dict')
+        if not isinstance(old, dict):
             raise TypeError('Submitted options must be a dict')
         if not isinstance(scenes, (list, tuple)):
             raise TypeError('Submitted scenes must be list or tuple')
@@ -541,87 +563,141 @@ class OptionsMappings(object):
         :return: order options in the old format
         """
         ret = Order.get_default_options()
-        sensor_keys = sensor.SensorCONST.instances.keys()
 
-        old_keys, new_keys, attr_maps = zip(*cls.keywords_map)
+        ret.update(cls._flatten(opts, cls.keywords_map))
+
+        return ret
+
+    @classmethod
+    def _convert_old_to_new(cls, old, scenes):
+        ret = {}
+        opts = copy.deepcopy(old)
+
+        old_prods, _, _ = zip(*cls.prod_map)
 
         prod_ls = []
-        for key in opts:
+        opts_keys = opts.keys()
+        for key in opts_keys:
+            if key in old_prods:
+                prod_ls.append(key)
+                opts.pop(key)  # Reduce further iterations
+
+        prods = cls._translate(cls.prod_map, prod_ls).keys()
+
+        ret.update(cls._build_nested(opts, cls.keywords_map))
+        ret.update(cls._build_nested_sensors(prods, scenes))
+
+        return ret
+
+    @classmethod
+    def _flatten(cls, opts, attr_map):
+        ret = {}
+
+        if opts is None:
+            return ret
+
+        sensor_keys = sensor.SensorCONST.instances.keys()
+
+        old_attrs, new_attrs, conv_attrs = zip(*attr_map)
+        # Reverse the old and new lists to reuse the _translate method
+        conv_map = zip(new_attrs, old_attrs, conv_attrs)
+
+        prod_ls = []
+        for key, val in opts.items():
             if key in sensor_keys:
                 prod_ls.extend(opts[key]['products'])
 
-            elif key in new_keys:
-                idx = new_keys.index(key)
-                attr_map = attr_maps[idx]
+            elif key in new_attrs:
+                idx = new_attrs.index(key)
+                conv_attr = conv_attrs[idx]
 
-                if attr_map:
-                    ret.update({old_keys[idx]: True})
-
-                    # Projection is a double nested structure
-                    if attr_map == cls.proj_map:
-                        ret.update(cls._denest_proj(opts[key], attr_map))
-                    else:
-                        ret.update(cls._denest(opts[key], attr_map))
-
+                if isinstance(conv_attr, list):
+                    ret.update(cls._translate(conv_map, {key: val}))
+                    ret.update(cls._flatten(val, conv_attr))
                 else:
-                    ret.update({old_keys[idx]: opts[key]})
+                    ret.update(cls._translate(conv_map, {key: val}))
+
+            elif key == 'plot_statistics':
+                # No appropriate mapping as it is handled as a dummy scene in the DB
+                continue
 
             else:
                 raise ValueError('Unrecognized key: {}'.format(key))
 
-        ret.update(cls._denest(prod_ls, cls.prod_map))
+        old_prods, new_prods, conv_prods = zip(*cls.prod_map)
+        conv_map = zip(new_prods, old_prods, conv_prods)
+        ret.update(cls._translate(conv_map, prod_ls))
 
         return ret
 
     @classmethod
-    def _convert_old_to_new(cls, opts, scenes):
+    def _build_nested(cls, opts, attr_map):
         ret = {}
-        old_prod, new_prod, val_prod = zip(*cls.prod_map)
+
+        old_attrs, new_attrs, conv_maps = zip(*attr_map)
 
         for key in opts:
-            if opts[key]:
-                pass
+            if key in old_attrs:
+                if key == 'target_projection':
+                    idx = new_attrs.index(opts[key])
+                else:
+                    idx = old_attrs.index(key)
+
+                conv_map = conv_maps[idx]
+
+                if isinstance(conv_map, list):
+                    ret[new_attrs[idx]] = cls._build_nested(opts, conv_map)
+                elif conv_map is None:
+                    ret.update({new_attrs[idx]: opts[key]})
+                else:
+                    ret.update(cls._translate(conv_map, {key: opts[key]}))
+
+        if not ret:
+            ret = None
 
         return ret
 
     @classmethod
-    def _denest(cls, nested_attr, attr_map):
+    def _build_nested_sensors(cls, prods, scenes):
         ret = {}
-        old_attr, new_attr, conv_val = zip(*attr_map)
 
-        for attr in nested_attr:
-            idx = new_attr.index(attr)
+        for scene in scenes:
+            if scene == 'plot':
+                ret.update({'plot_statistics': True})
+                continue
 
-            if conv_val:
-                val = conv_val
+            short = sensor.instance(scene).shortname
+
+            if short in ret:
+                ret[short]['inputs'].append(scene)
             else:
-                val = nested_attr[attr]
-
-            ret.update({old_attr[idx]: val})
+                ret[short] = {'inputs': [scene],
+                              'products': prods}
 
         return ret
 
     @classmethod
-    def _denest_proj(cls, nested_attr, attr_map):
+    def _translate(cls, transl_map, opts):
         ret = {}
-        proj = nested_attr.keys()[0]
+        frm, to, conv = zip(*transl_map)
 
-        ret.update({'target_projection': proj})
-        ret.update(cls._denest(nested_attr[proj], attr_map))
+        o_major_keys, n_major_keys, _ = zip(*cls.keywords_map)
 
-        return ret
-
-    @classmethod
-    def _nest(cls, opts, key_attr):
-        ret = {}
-        old_keys, new_keys, attr_maps = zip(*cls.keywords_map)
-        idx = old_keys.index(key_attr)
-
-        attr_map = None
-
-        return ret
-
-    @classmethod
-    def _prod_list(cls, opts):
         for key in opts:
-            pass
+            try:
+                idx = frm.index(key)
+            except:
+                exc_msg = '{} Not found in tuple: {}'.format(key, frm)
+                raise ValueError(exc_msg)
+
+            if isinstance(conv[idx], list):
+                if key in n_major_keys:
+                    ret.update({to[idx]: True})
+                else:  # Catch projections
+                    ret.update({to[idx]: key})
+            elif conv[idx] is not None:  # Predefined value
+                ret.update({to[idx]: conv[idx]})
+            else:  # Catch the value
+                ret.update({to[idx]: opts[key]})
+
+        return ret

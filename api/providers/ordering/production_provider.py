@@ -1,6 +1,6 @@
 from api.domain import sensor
 from api.domain.scene import Scene
-from api.domain.order import Order, OptionsMappings
+from api.domain.order import Order, OptionsConversion
 from api.system.config import ApiConfig
 from api.util.dbconnect import DBConnect, DBConnectException
 from api.util import api_cfg
@@ -10,7 +10,6 @@ from api.external import lpdaac, lta, onlinecache, nlaps
 from api.system import errors
 from api.notification import emails
 from api.domain.user import User
-from api.providers.ordering.options_conversion import convert_options
 
 import yaml
 import copy
@@ -451,7 +450,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                             dload_url = urllib.quote(dload_url, '')
 
                 if config.cfg['convertprodopts'] == 'True':
-                    options = OptionsMappings.convert(new=item['product_opts'])
+                    options = OptionsConversion.convert(new=item['product_opts'])
                 else:
                     # Need to strip out everything not directly related to the scene
                     options = self.strip_unrelated(item['name'], item['product_opts'])
