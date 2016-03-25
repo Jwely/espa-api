@@ -7,7 +7,8 @@ from api.interfaces.ordering.version0 import API
 from api.util import lowercase_all
 from api.util.dbconnect import db_instance
 import version0_testorders as testorders
-from api.providers.validation import validation_schema
+#from api.providers.validation import validation_schema
+from api.providers.validation import ivalidictory as validation_schema
 from api import ValidationException, InventoryException
 
 import os
@@ -108,20 +109,6 @@ class TestAPI(unittest.TestCase):
         response = api.order_status(invalid_orderid)
         self.assertEqual(response.keys(), ['msg'])
 
-    def test_fetch_production_products(self):
-        parms = {'for_user': self.user.username}
-        response = api.fetch_production_products(parms)
-        self.assertIsInstance(response, list)
-
-    def test_get_production_key_valid(self):
-        valid_key = 'sensor.LT4.name'
-        response = api.get_production_key(valid_key)
-        self.assertEqual(response, {valid_key: 'tm'})
-
-    def test_get_production_key_invalid(self):
-        bad_key = 'foobar'
-        response = api.get_production_key(bad_key)
-        self.assertEqual(response.keys(), ['msg'])
 
 class TestValidation(unittest.TestCase):
     def setUp(self):

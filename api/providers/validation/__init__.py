@@ -2,8 +2,10 @@ import abc
 import copy
 
 import validictory
-from validation_provider import OrderValidatorV0
-from validation_schema import Version0Schema
+#from validation_provider import OrderValidatorV0
+#from validation_schema import Version0Schema
+from ivalidictory import OrderValidatorV0
+from ivalidictory import Version0Schema
 from api import ValidationException
 from api.domain import sensor
 

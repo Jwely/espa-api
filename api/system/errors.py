@@ -12,6 +12,7 @@ import collections
 import datetime
 from api.domain import sensor
 from api.providers.configuration.configuration_provider import ConfigurationProvider
+from api.notification import emails
 
 config = ConfigurationProvider()
 
@@ -153,6 +154,7 @@ class Errors(object):
         if resolution is not None and is_landsat:
             logger.debug("err api/errors.py gzip_errors_online_cache\n"\
                         "product_name: {0}\nerror_message: {1}".format(self.product_name, error_message))
+            emails.Emails().send_gzip_error_email(self.product_name)
 
         return resolution
 
