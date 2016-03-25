@@ -1,7 +1,6 @@
 import os
-from api.util import api_cfg
 from api.domain.user import User
-from api.util.dbconnect import DBConnect
+from api.util.dbconnect import db_instance
 
 class MockUserException(Exception):
     pass
@@ -17,8 +16,6 @@ class MockUser(object):
         except:
             raise MockUserException("MockUser objects only allowed while testing")
 
-        self.cfg = api_cfg()
-
     def __repr__(self):
         return "MockUser: {0}".format(self.__dict__)
 
@@ -30,6 +27,11 @@ class MockUser(object):
 
     def cleanup(self):
         sql = "DELETE from auth_user where id > 0;"
-        with DBConnect(**self.cfg) as db:
+        with db_instance() as db:
             db.execute(sql)
             db.commit()
+
+    @classmethod
+    def get(cls, username, password):
+        user = User.where("id > 0")[0]
+        return (user.username, user.email, user.first_name, user.last_name, user.contactid)

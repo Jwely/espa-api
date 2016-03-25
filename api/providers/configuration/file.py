@@ -16,7 +16,7 @@ class Configuration(object):
         raise NotImplementedError
 
     def mdelete(self, keys):
-        raise NotImplementedError   
+        raise NotImplementedError
 
     def exists(self, key):
         raise NotImplementedError
@@ -26,5 +26,3 @@ class Configuration(object):
 
     def dump(self, path):
         raise NotImplementedError
-
-

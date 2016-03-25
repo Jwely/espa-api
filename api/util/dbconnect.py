@@ -2,9 +2,10 @@
 # TODO built in functionality
 import psycopg2
 import psycopg2.extras as db_extras
-import psycopg2.extensions as db_extns
 import numbers
 import os
+
+from api.util import api_cfg
 
 class DBConnectException(Exception):
     pass
@@ -13,8 +14,8 @@ class DBConnect(object):
     """
     Class for connecting to a postgresql database using a single with statement
     """
-    def __init__(self, dbhost='localhost', db='postgres', dbuser='postgres', dbpass='postgres',
-                 dbport=5432, autocommit=False, cursor_factory=None, *args, **kwargs):
+    def __init__(self, dbhost, db, dbuser, dbpass, dbport, autocommit=False,
+                 cursor_factory=db_extras.DictCursor):
         try:
             self.conn = psycopg2.connect(host=dbhost, database=db, user=dbuser,
                                          password=dbpass, port=dbport)
@@ -128,3 +129,7 @@ class DBConnect(object):
             del self.conn
         except Exception as e:
             raise DBConnectException(e)
+
+def db_instance():
+    return DBConnect(**api_cfg('db'))
+

@@ -1,28 +1,24 @@
 from api.domain import sensor
 from api.domain.scene import Scene
-from api.domain.order import Order, OptionsConversion
-from api.system.config import ApiConfig
-from api.util.dbconnect import DBConnect, DBConnectException
-from api.util import api_cfg
-from validate_email import validate_email
-from api.providers.ordering import ProductionProviderInterfaceV0
+from api.domain.order import Order
+from api.providers.configuration.configuration_provider import ConfigurationProvider
+from api.util.dbconnect import DBConnectException, db_instance
+from api.providers.production import ProductionProviderInterfaceV0
 from api.external import lpdaac, lta, onlinecache, nlaps
 from api.system import errors
 from api.notification import emails
 from api.domain.user import User
 
-import yaml
 import copy
 import memcache
 import datetime
-import json
 import urllib
 
 from cStringIO import StringIO
 
-from api.system.logger import api_logger as logger
+from api.system.logger import ilogger as logger
 
-config = ApiConfig()
+config = ConfigurationProvider()
 cache = memcache.Client(['127.0.0.1:11211'], debug=0)
 
 class ProductionProviderException(Exception):
@@ -36,7 +32,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         if not isinstance(order_name_tuple_list, list):
             msg = list()
             msg.append("queue_products expects a list of ")
-            msg.append("tuples(order_id, product_id) for the first argument")
+            msg.append("tuples(orderid, scene_name) for the first argument")
             raise TypeError(''.join(msg))
 
         # this should be a dictionary of lists, with order as the key and
@@ -53,7 +49,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             products = orders[order]
 
             product_tup = tuple(products)
-            order = Order.where("orderid = '{0}'".format(orderid)[0])
+            order = Order.where("orderid = '{0}'".format(order))[0]
             scene_filters = ["name in {0}".format(product_tup)]
             scene_filters.append("order_id = {0}".format(order.id))
             scenes = Scene.where(scene_filters)
@@ -68,12 +64,12 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         return True
 
-    def mark_product_complete(self, name=None, orderid=None, processing_loc=None,
+    def mark_product_complete(self, name, orderid, processing_loc=None,
                                 completed_file_location=None, destination_cksum_file=None,
                                 log_file_contents=None):
 
-        order_id = Scene.get('order_id', name=name, orderid=orderid)
-        order_source = Scene.get('order_source', name=name, orderid=orderid)
+        order_id = Scene.get('order_id', name, orderid)
+        order_source = Scene.get('order_source', name, orderid)
         base_url = config.url_for('distribution.cache')
 
         product_file_parts = completed_file_location.split('/')
@@ -96,8 +92,8 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         if order_source == 'ee':
             # update EE
-            ee_order_id = Scene.get('ee_order_id', name=name, orderid=orderid)
-            ee_unit_id = Scene.get('ee_unit_id', name=name, orderid=orderid)
+            ee_order_id = Scene.get('ee_order_id', name, orderid)
+            ee_unit_id = Scene.get('ee_unit_id', name, orderid)
             lta.update_order_status(ee_order_id, ee_unit_id, 'C')
 
         try:
@@ -109,11 +105,11 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         return True
 
-    def set_product_unavailable(self, name=None, orderid=None,
+    def set_product_unavailable(self, name, orderid,
                                 processing_loc=None, error=None, note=None):
 
-        order_id = Scene.get('order_id', name=name, orderid=orderid)
-        order_source = Scene.get('order_source', name=name, orderid=orderid)
+        order_id = Scene.get('order_id', name, orderid)
+        order_source = Scene.get('order_source', name, orderid)
 
         scene = Scene.where("name = '{0}' and order_id = {1}".format(name, order_id))[0]
         scene.status = 'unavailable'
@@ -125,8 +121,8 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         if order_source == 'ee':
             # update EE
-            ee_order_id = Scene.get('ee_order_id', name=name, orderid=orderid)
-            ee_unit_id = Scene.get('ee_unit_id', name=name, orderid=orderid)
+            ee_order_id = Scene.get('ee_order_id', name, orderid)
+            ee_unit_id = Scene.get('ee_unit_id', name, orderid)
             lta.update_order_status(ee_order_id, ee_unit_id, 'R')
 
         try:
@@ -166,7 +162,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         return True
 
-    def update_status(self, name=None, orderid=None,
+    def update_status(self, name, orderid,
                         processing_loc=None, status=None):
         order_id = Scene.get('order_id', name=name, orderid=orderid)
         sql_list = ["update ordering_scene set "]
@@ -182,7 +178,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         sql = " ".join(sql_list)
 
         try:
-            with DBConnect(**api_cfg()) as db:
+            with db_instance() as db:
                 db.execute(sql)
                 db.commit()
         except DBConnectException, e:
@@ -204,20 +200,18 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             return {"msg": "{0} is not an accepted action for update_product".format(action)}
 
         if action == 'update_status':
-            result = self.update_status(name=name, orderid=orderid,
-                                        processing_loc=processing_loc, status=status)
+            result = self.update_status(name, orderid, processing_loc=processing_loc, status=status)
 
         if action == 'set_product_error':
-            result = self.set_product_error(name=name, orderid=orderid,
-                                            processing_loc=processing_loc, error=error)
+            result = self.set_product_error(name, orderid, processing_loc=processing_loc, error=error)
 
         if action == 'set_product_unavailable':
-            result = self.set_product_unavailable(name=name, orderid=orderid,
+            result = self.set_product_unavailable(name, orderid,
                                                   processing_loc=processing_loc,
                                                   error=error, note=note)
 
         if action == 'mark_product_complete':
-            result = self.mark_product_complete(name=name, orderid=orderid,
+            result = self.mark_product_complete(name, orderid,
                                                 processing_loc=processing_loc,
                                                 completed_file_location=completed_file_location,
                                                 destination_cksum_file=cksum_file_location,
@@ -254,7 +248,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         sql_list.append(" where name = '{0}' AND order_id = {1};".format(name, order_id))
         sql = " ".join(sql_list)
         try:
-            with DBConnect(**api_cfg()) as db:
+            with db_instance() as db:
                 db.execute(sql)
                 db.commit()
         except DBConnectException, e:
@@ -348,7 +342,13 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         buff.write('o.status = \'ordered\' ')
         buff.write('AND s.status = \'oncache\' ')
 
-        if product_types is not None and len(product_types) > 0:
+        if product_types and len(product_types) > 0:
+            ptypes = copy.deepcopy(product_types)
+
+            # product_types comes in as a list from the transport layer
+            if isinstance(ptypes, str):
+                ptypes = ptypes.split(",")
+
             type_str = ','.join('\'{0}\''.format(x) for x in product_types)
             buff.write('AND s.sensor_type IN ({0}) '.format(type_str))
 
@@ -367,7 +367,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         query_results = None
 
-        with DBConnect(**api_cfg()) as db:
+        with db_instance() as db:
             db.select(query)
 
         query_results = db.fetcharr
@@ -409,8 +409,8 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                     if ('status' in landsat_urls[item['name']] and
                             landsat_urls[item['name']]['status'] != 'available'):
                         try:
-                            limit = config.settings['retry.retry_missing_l1.retries']
-                            timeout = int(config.settings['retry.retry_missing_l1.timeout'])
+                            limit = config.get('retry.retry_missing_l1.retries')
+                            timeout = int(config.get('retry.retry_missing_l1.timeout'))
                             ts = datetime.datetime.now()
                             after = ts + datetime.timedelta(seconds=timeout)
 
@@ -449,7 +449,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                         if encode_urls:
                             dload_url = urllib.quote(dload_url, '')
 
-                if config.cfg['convertprodopts'] == 'True':
+                if config.get['convertprodopts'] == 'True':
                     options = OptionsConversion.convert(new=item['product_opts'])
                 else:
                     # Need to strip out everything not directly related to the scene
@@ -483,7 +483,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         '''
 
         #check to make sure this operation is enabled.  Bail if not
-        enabled = config.settings["system.load_ee_orders_enabled"]
+        enabled = config.get("system.load_ee_orders_enabled")
         if enabled.lower() != 'true':
             logger.info('system.load_ee_orders_enabled is disabled,'
                         'skipping load_ee_orders()')
@@ -645,7 +645,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
     def handle_onorder_landsat_products(self):
         ''' handles landsat products still on order '''
 
-        filters = ["tram_order_id IS NOT NULL", "status = 'onorder'"]
+        filters = "tram_order_id IS NOT NULL AND status = 'onorder'"
 
         products = Scene.where(filters)
         product_tram_ids = [product.tram_order_id for product in products]
@@ -679,12 +679,15 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                                           'Level 1 product could not be produced')
 
         # Now update everything that is now on cache
-        filters = ["status = 'onorder'",
-                   "name in {0}".format(tuple(available))]
+        filters = "status = 'onorder' AND name in {0}".format(tuple(available))
+        # pull the trailing comma for single item tuples
+        filters = filters.replace(",)", ")")
 
         if len(available) > 0:
             products = Scene.where(filters)
             Scene.bulk_update([p.id for p in products], {'status': 'oncache', 'note': ''})
+
+        return True
 
     def send_initial_emails(self):
         return emails.Emails().send_all_initial()
@@ -932,7 +935,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         ''' Will move any orders older than X days to purged status and will also
         remove the files from disk'''
 
-        days = config.settings['policy.purge_orders_after']
+        days = config.get('policy.purge_orders_after')
 
         logger.info('Using purge policy of {0} days'.format(days))
 
@@ -995,7 +998,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             logger.info('Purge lock expired... running')
 
             # first thing, populate the cached lock field
-            timeout = int(config.settings['system.run_order_purge_every'])
+            timeout = int(config.get('system.run_order_purge_every'))
             cache.set(cache_key, datetime.datetime.now(), timeout)
 
             #purge the orders from disk now

@@ -4,4 +4,7 @@
 Centos: postgresql-devel
 Ubuntu: libpq-dev
 
+# UWSGI
+Centos: uwsgi, uwsgi-plugin-python
+
 

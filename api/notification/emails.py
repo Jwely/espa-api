@@ -1,5 +1,5 @@
 '''
-Purpose: holds all the emails + email logic for espa-web
+Purpose: holds all the emails + email logic for espa-api
 Author: David V. Hill
 '''
 
@@ -13,9 +13,9 @@ from smtplib import SMTP
 
 from api.domain.order import Order
 from api.domain.scene import Scene
-from api.system.logger import api_logger as logger
-from api.system.config import ApiConfig
-config = ApiConfig()
+from api.providers.configuration.configuration_provider import ConfigurationProvider
+
+config = ConfigurationProvider()
 
 class Emails(object):
 
@@ -51,8 +51,8 @@ class Emails(object):
         msg = MIMEText(body)
         msg['Subject'] = subject
         msg['To'] = to_header
-        msg['From'] = config.settings['email.espa_address']
-        s = SMTP(host=config.settings['email.espa_server'])
+        msg['From'] = config.get('email.espa_address')
+        s = SMTP(host=config.get('email.espa_server'))
         s.sendmail(msg['From'], recipient, msg.as_string())
         s.quit()
 
@@ -79,7 +79,7 @@ class Emails(object):
         '''Sends an email to our people telling them to reprocess
            a bad gzip on the online cache'''
 
-        address_block = config.settings['email.corrupt_gzip_notification_list']
+        address_block = config.get('email.corrupt_gzip_notification_list')
         addresses = address_block.split(',')
 
         subject = "Corrupt gzip detected: %s" % product_id
@@ -241,7 +241,7 @@ class Emails(object):
         subject = 'Purged orders for {month}-{day}-{year}'.format(day=now.day,
                                                                   month=now.month,
                                                                   year=now.year)
-        recipients = config.settings['email.purge_report_list']
+        recipients = config.get('email.purge_report_list')
         return self.__send(recipient=recipients, subject=subject, body=body)
 
 def send_purge_report(start_capacity, end_capacity, orders):

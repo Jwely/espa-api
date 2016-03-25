@@ -1,25 +1,22 @@
 # Contains user facing REST functionality
 
 import flask
-from flask import Flask, jsonify, abort, make_response, request
+from flask import jsonify, make_response, request
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal
 from flask.ext.httpauth import HTTPBasicAuth
 
 from api.interfaces.ordering.version0 import API
 from api.domain.user import User
-from api.system.config import ApiConfig
 from api.util import lowercase_all
 from api.domain import api_operations_v0
-from api.system.logger import api_logger as logger
+from api.system.logger import ilogger as logger
 
 import memcache
-
 
 espa = API()
 auth = HTTPBasicAuth()
 
 cache = memcache.Client(['127.0.0.1:11211'], debug=0)
-
 
 @auth.error_handler
 def unauthorized():

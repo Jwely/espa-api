@@ -2,12 +2,8 @@ import smtplib
 from email.mime.text import MIMEText
 import ConfigParser
 import os
-import datetime
 import subprocess
 import datetime
-
-from api.util.dbconnect import DBConnect, db_extras
-# import psycopg2.extras
 
 def get_cfg(cfgfile=".cfgnfo"):
     """
@@ -16,8 +12,8 @@ def get_cfg(cfgfile=".cfgnfo"):
 
     :return: dict
     """
-    if cfgfile == ".cfgnfo" or cfgfile == '.cfgnfo-test':
-        cfg_path = os.path.join(os.path.expanduser('~'), cfgfile)
+    if cfgfile == ".cfgnfo":
+        cfg_path = os.path.join(os.path.expanduser('~/.usgs'), cfgfile)
     else:
         cfg_path = cfgfile
 
@@ -32,16 +28,8 @@ def get_cfg(cfgfile=".cfgnfo"):
 
     return cfg_info
 
-def api_cfg(cfgfile=".cfgnfo"):
-    try:
-        mode = os.environ["espa_api_testing"]
-        if mode == "True":
-            cfgfile = ".cfgnfo-test"
-    except:
-        pass
-
-    config = get_cfg(cfgfile)['config']
-    config['cursor_factory'] = db_extras.DictCursor
+def api_cfg(section='config', cfgfile=".cfgnfo"):
+    config = get_cfg(cfgfile)[section]
     return config
 
 def send_email(sender, recipient, subject, body):
@@ -70,22 +58,6 @@ def send_email(sender, recipient, subject, body):
     smtp = smtplib.SMTP("localhost")
     smtp.sendmail(sender, recipient, msg.as_string())
     smtp.quit()
-
-
-def get_email_addr(dbinfo, who):
-    """
-    Retrieve email address(es) from the database
-    for a specified role
-    """
-    key = 'email.{0}'.format(who)
-    sql = "select value from ordering_configuration where key = %s"
-
-    with DBConnect(**dbinfo) as db:
-        db.select(sql, key)
-        out = db[0][0].split(',')
-
-    return out
-
 
 def backup_cron():
     """

@@ -16,7 +16,6 @@ def get_download_urls(product_list, contact_id):
         response[item] = item_dict
     return response
 
-
 def update_order_status(ee_order_id, ee_unit_id, something):
     return True, True, True
 
@@ -29,8 +28,6 @@ def order_scenes(product_list, contact_id):
     results["invalid"] = [p.name for p in chunked_list[2]]
     results["lta_order_id"] = "tramorderid1"
     return results
-
-
 
 def get_available_orders():
     """
@@ -52,23 +49,20 @@ def get_available_orders():
                                                'unit_num': 799}]
     return ret
 
+def sample_tram_order_ids():
+    return ('0611512239617', '0611512239618', '0611512239619')
 
-def get_order_status(tid):
-    filters = ["tram_order_id IS NOT NULL", "status = 'onorder'"]
-    products = Scene.where(filters)
+def sample_scene_names():
+    return ('LC81370432014073LGN00', 'LC81390422014071LGN00', 'LC81370422014073LGN00')
 
-    retval = {}
-
-    retval['order_num'] = str(tid)
-    retval['order_status'] = 'some status'
-    retval['units'] = list()
-
-    status = ['R', 'C']
-    for idx, product in enumerate(products):
-        unit = dict()
-        unit['unit_num'] = 0
-        unit['unit_status'] = status[idx % 2]
-        unit['sceneid'] = product.name
-        retval['units'].append(unit)
-
-    return retval
+def get_order_status(tramid):
+    response = None
+    if tramid == sample_tram_order_ids()[0]:
+        response = {'units': [{'sceneid':sample_scene_names()[0], 'unit_status': 'R'}]}
+    elif tramid == sample_tram_order_ids()[1]:
+        response = {'units': [{'sceneid':sample_scene_names()[1], 'unit_status': 'C'}]}
+    elif tramid == sample_tram_order_ids()[2]:
+        response = {'units': [{'sceneid':sample_scene_names()[2], 'unit_status': 'R'}]}
+    else:
+        response = {'units': [{'sceneid': sample_scene_names()[0], 'unit_status': 'C'}]}
+    return response

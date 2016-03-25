@@ -1,10 +1,9 @@
 """ Holds domain objects for scenes """
 
-from api.util.dbconnect import DBConnect, DBConnectException, db_extns
-from api.system.logger import api_logger as logger
-from api.util import api_cfg
+from api.util.dbconnect import DBConnectException, db_instance
+import psycopg2.extensions as db_extns
+from api.system.logger import ilogger as logger
 import datetime
-cfg = api_cfg()
 
 class SceneException(Exception):
     pass
@@ -42,7 +41,7 @@ class Scene(object):
         self.retry_after = retry_after
         self.retry_limit = retry_limit
         self.retry_count = retry_count
-        with DBConnect(**cfg) as db:
+        with db_instance() as db:
             sql = "select id from ordering_scene where "\
                     "name = '{0}' and order_id = {1};".format(self.name, self.order_id)
             db.select(sql)
@@ -60,7 +59,7 @@ class Scene(object):
                 " on ordering_order.id = ordering_scene.order_id"\
                 " where name = '{1}' and orderid = '{2}';".format(value, name, orderid)
         try:
-            with DBConnect(**cfg) as db:
+            with db_instance() as db:
                 db.select(sql)
             return db[0][value]
         except DBConnectException, e:
@@ -90,7 +89,7 @@ class Scene(object):
                "processing_location) VALUES {}".format(template))
 
         try:
-            with DBConnect(**cfg) as db:
+            with db_instance() as db:
                 logger.info("scene creation sql: {0}".format(db.cursor.mogrify(sql, args)))
                 db.execute(sql, args)
                 db.commit()
@@ -113,7 +112,7 @@ class Scene(object):
 
         sql.append(";")
         sql = " ".join(sql)
-        with DBConnect(**cfg) as db:
+        with db_instance() as db:
             db.select(sql)
             returnlist = []
             for i in db:
@@ -142,8 +141,11 @@ class Scene(object):
         vals = tuple(updates.values())
         ids = tuple(ids)
 
+        if ",)" in sql:
+            sql = sql.replace(",)", ")")
+
         try:
-            with DBConnect(**cfg) as db:
+            with db_instance() as db:
                 logger.info(db.cursor.mogrify(sql, (db_extns.AsIs(fields), vals, ids)))
                 db.execute(sql, (db_extns.AsIs(fields), vals, ids))
                 db.commit()
@@ -157,7 +159,7 @@ class Scene(object):
         if isinstance(val, str) or isinstance(val, datetime.datetime):
             val = "\'{0}\'".format(val)
         sql = "update ordering_scene set {0} = {1} where id = {2};".format(att, val, self.id)
-        with DBConnect(**cfg) as db:
+        with db_instance() as db:
             db.execute(sql)
             db.commit()
         return True
@@ -201,7 +203,7 @@ class Scene(object):
         sql = " ".join(sql_list)
         logger.info("saving updates to scene {0}\n sql: {1}\n\n".format(self.name, sql))
         try:
-            with DBConnect(**cfg) as db:
+            with db_instance() as db:
                 db.execute(sql)
                 db.commit()
                 return True
@@ -214,7 +216,7 @@ class Scene(object):
                 "on ordering_order.id = ordering_scene.order_id "\
                 "where name = '{1}';".format(att, self.name)
         try:
-            with DBConnect(**cfg) as db:
+            with db_instance() as db:
                 db.select(sql)
             return db[0][att]
         except DBConnectException as e:

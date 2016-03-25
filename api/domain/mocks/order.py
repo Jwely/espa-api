@@ -1,5 +1,4 @@
-from api.util import api_cfg
-from api.util.dbconnect import DBConnect
+from api.util.dbconnect import db_instance
 from api.domain.order import Order
 from api.domain.scene import Scene
 from api.domain.user import User
@@ -23,7 +22,6 @@ class MockOrder(object):
         except:
             raise MockOrderException("MockOrder objects only allowed while testing")
         self.base_order = build_base_order()
-        self.cfg = api_cfg()
         self.ordering_provider = OrderingProvider()
 
     def __repr__(self):
@@ -39,15 +37,20 @@ class MockOrder(object):
         order = Order.where("orderid = '{0}'".format(orderid))[0]
         return order.id
 
+    def scene_names_list(self, order_id):
+        scenes = Scene.where("order_id = {0}".format(order_id))
+        names_list = [s.name for s in scenes]
+        return names_list
+
     def tear_down_testing_orders(self):
         # delete scenes first
         scene_sql = "DELETE FROM ordering_scene where id > 0;"
-        with DBConnect(**self.cfg) as db:
+        with db_instance() as db:
             db.execute(scene_sql)
             db.commit()
         # now you can delete orders
         ord_sql = "DELETE FROM ordering_order where id > 0;"
-        with DBConnect(**self.cfg) as db:
+        with db_instance() as db:
             db.execute(ord_sql)
             db.commit()
         return True
@@ -63,7 +66,8 @@ class MockOrder(object):
 
     def names_tuple(self, number, user_id):
         order_id = self.generate_testing_order(user_id)
-        scene_names = [i.name for i in Order.where("id = {0}".format(order_id))[0].scenes()]
+        order = Order.where("id = {0}".format(order_id))[0]
+        scene_names = [i.name for i in order.scenes()]
         scene_names = scene_names[0:number]
-        list_of_tuples = [(order_id, s) for s in scene_names]
+        list_of_tuples = [(order.orderid, s) for s in scene_names]
         return list_of_tuples

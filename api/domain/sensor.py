@@ -7,7 +7,6 @@ Author: David V. Hill
 import re
 from api import ProductNotImplemented
 
-from api.system.logger import api_logger as logger
 
 class SensorProduct(object):
     """Base class for all sensor products"""

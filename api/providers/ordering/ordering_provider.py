@@ -1,28 +1,15 @@
 import datetime
-import json
 
 from api.domain import sensor
 from api.domain.order import Order
-from api.domain.scene import Scene
-from api.system.config import ApiConfig
-from api.util.dbconnect import DBConnect, DBConnectException
-from api.util import api_cfg
+from api.util.dbconnect import db_instance
 from validate_email import validate_email
 from api.providers.ordering import ProviderInterfaceV0
-from api.system import errors
-from api.external import lpdaac
-from api.notification import emails
-from api.domain.user import User
 
 import yaml
 import copy
 import memcache
 
-from cStringIO import StringIO
-
-from api.system.logger import api_logger as logger
-
-config = ApiConfig()
 cache = memcache.Client(['127.0.0.1:11211'], debug=0)
 
 class OrderingProviderException(Exception):
@@ -43,7 +30,7 @@ class OrderingProvider(ProviderInterfaceV0):
     @staticmethod
     def fetch_user(username):
         userlist = []
-        with DBConnect(**api_cfg()) as db:
+        with db_instance() as db:
             # username uniqueness enforced on auth_user table at database
             user_sql = "select id, username, email, is_staff, is_active, " \
                        "is_superuser from auth_user where username = %s;"
@@ -86,7 +73,7 @@ class OrderingProvider(ProviderInterfaceV0):
         out_dict = {}
         user_ids = []
 
-        with DBConnect(**api_cfg()) as db:
+        with db_instance() as db:
             user_sql = "select id, username, email from auth_user where "
             user_sql += "email = %s;" if id_type == 'email' else "username = %s;"
             db.select(user_sql, (uid))
@@ -113,7 +100,7 @@ class OrderingProvider(ProviderInterfaceV0):
         scrub_keys = ['initial_email_sent', 'completion_email_sent', 'id', 'user_id',
                       'ee_order_id', 'email']
 
-        with DBConnect(**api_cfg()) as db:
+        with db_instance() as db:
             db.select(sql, (str(ordernum)))
             if db:
                 for key, val in db[0].iteritems():
@@ -158,7 +145,7 @@ class OrderingProvider(ProviderInterfaceV0):
     def order_status(self, orderid):
         sql = "select orderid, status from ordering_order where orderid = %s;"
         response = {}
-        with DBConnect(**api_cfg()) as db:
+        with db_instance() as db:
             db.select(sql, str(orderid))
             if db:
                 for i in ['orderid', 'status']:
@@ -180,7 +167,7 @@ class OrderingProvider(ProviderInterfaceV0):
             argtup = (str(orderid))
             sql += ";"
 
-        with DBConnect(**api_cfg()) as db:
+        with db_instance() as db:
             db.select(sql, argtup)
             items = [_ for _ in db.fetcharr]
 

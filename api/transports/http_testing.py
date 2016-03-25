@@ -1,12 +1,9 @@
-import os
 from flask import Flask
 from flask import jsonify
 from flask import request
-from flask import Response
 from flask.ext.login import LoginManager, login_required, current_user
 from api.interfaces.ordering.version0 import API
 from api.domain.user import User
-from api.system.config import ApiConfig
 from api.util import lowercase_all
 from api.domain import api_operations_v0
 from functools import wraps
@@ -15,11 +12,10 @@ import json
 
 api = API()
 app = Flask(__name__)
-config = ApiConfig()
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-app.secret_key = config.cfg['key']
+app.secret_key = api.configuration.key
 
 # if config.mode == 'dev' or os.environ.get('ESPA_DEBUG'):
 #     app.debug = True

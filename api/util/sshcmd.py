@@ -4,7 +4,7 @@ Original Author: David V. Hill
 '''
 
 import paramiko
-from api.system.logger import api_logger as logger
+from api.system.logger import ilogger as logger
 
 class RemoteHost(object):
     client = None
