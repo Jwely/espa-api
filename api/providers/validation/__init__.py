@@ -89,10 +89,17 @@ class ValidationProvider(ValidationInterfaceV0):
         To avoid complications down the line, we need to ensure proper case formatting
         on the order, while still being somewhat case agnostic
 
+        We also need to add 'stats' product to all the sensors if 'plot_statistics'
+        was set to True
+
         :param order: incoming order after validation
         :return: order with the inputs reformatted
         """
         prod_keys = sensor.SensorCONST.instances.keys()
+
+        stats = False
+        if 'plot_statistics' in order and order['plot_statistics']:
+            stats = True
 
         for key in order:
             if key in prod_keys:
@@ -108,6 +115,10 @@ class ValidationProvider(ValidationInterfaceV0):
                                                       p[2].lower(),
                                                       p[3],
                                                       p[4]]) for p in [s.split('.') for s in order[key]['inputs']])
+
+                if stats:
+                    if 'stats' not in order[key]['products']:
+                        order[key]['products'].append('stats')
 
         return order
 
