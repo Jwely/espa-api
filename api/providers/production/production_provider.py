@@ -1,6 +1,6 @@
 from api.domain import sensor
 from api.domain.scene import Scene
-from api.domain.order import Order
+from api.domain.order import Order, OptionsConversion
 from api.providers.configuration.configuration_provider import ConfigurationProvider
 from api.util.dbconnect import DBConnectException, db_instance
 from api.providers.production import ProductionProviderInterfaceV0
