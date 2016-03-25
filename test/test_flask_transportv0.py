@@ -86,10 +86,12 @@ class TransportTestCase(unittest.TestCase):
         assert "Version 0" in resp_json['description']
 
     @patch('api.domain.user.User.get', MockUser.get)
+    @patch('api.providers.ordering.ordering_provider.OrderingProvider.available_products', mock_api.available_products)
     def test_get_available_prods(self):
         url = '/api/v0/available-products/' + ",".join(self.sceneids)
         response = self.app.get(url, headers=self.headers)
-        assert response.content_type == 'application/json'
+        resp_json = json.loads(response.get_data())
+        assert "etm" in resp_json.keys()
 
     @patch('api.domain.user.User.get', MockUser.get)
     @patch('api.providers.ordering.ordering_provider.OrderingProvider.available_products', mock_api.available_products)

@@ -58,9 +58,6 @@ class TestAPI(unittest.TestCase):
         self.mock_user.cleanup()
         os.environ['espa_api_testing'] = ''
 
-    def test_api_versions_type(self):
-        self.assertIsInstance(api.api_versions(), dict)
-
     def test_api_versions_key_val(self):
         self.assertEqual(api.api_versions().keys()[0], 'versions')
 
