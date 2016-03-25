@@ -9,7 +9,7 @@ from api.domain.order import Order
 from api.domain.scene import Scene
 from api.domain.user import User
 from api.external.mocks import lta, lpdaac, onlinecache, nlaps
-from api.interfaces.ordering.version0 import API
+from api.interfaces.production.version0 import API
 from api.notification import emails
 from api.providers.production.mocks.production_provider import MockProductionProvider
 from api.providers.production.production_provider import ProductionProvider
@@ -412,6 +412,12 @@ class TestProductionAPI(unittest.TestCase):
         response = api.get_production_key(key)
         val = response[key]
         self.assertIsInstance(val, str)
+
+    def test_get_production_key_invalid(self):
+        bad_key = 'foobar'
+        response = api.get_production_key(bad_key)
+        self.assertEqual(response.keys(), ['msg'])
+
 
 
 if __name__ == '__main__':

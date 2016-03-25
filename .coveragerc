@@ -6,6 +6,11 @@ omit    = api/providers/storage*
           api/providers/configuration*
           api/providers/metrics*
           api/providers/ordering/__init__.py
+          api/transports/http_testing.py
+          api/providers/validation/validation_provider.py
+          api/providers/validation/validation_schema.py
+          api/providers/caching/__init__.py
+          *mocks/*
           venv*
           lib/*
           bin/*
