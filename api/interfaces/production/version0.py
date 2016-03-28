@@ -7,7 +7,7 @@ class API(object):
         if providers is not None:
             self.providers = providers()
         else:
-            from api.interfaces.ordering.providers import DefaultProviders
+            from api.interfaces.providers import DefaultProviders
             self.providers = DefaultProviders()
 
         self.ordering = self.providers.ordering
