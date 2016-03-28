@@ -42,7 +42,7 @@ class OrderingProvider(ProviderInterfaceV0):
         pub_prods = OrderingProvider.sensor_products(product_id)
         return_prods = {}
         if userlist['is_staff']:
-            return_prods = OrderingProvider.sensor_products(product_id)
+            return_prods = pub_prods
         else:
             with open('api/domain/restricted.yaml') as f:
                 restricted_list = yaml.load(f.read())
@@ -51,8 +51,8 @@ class OrderingProvider(ProviderInterfaceV0):
                 return_prods[sensor_type] = {'outputs': [],
                                           'inputs': pub_prods[sensor_type]['inputs']}
 
-            for prod in restricted_list:
-                if prod not in pub_prods[sensor_type]['outputs']:
+            for prod in pub_prods[sensor_type]['outputs']:
+                if prod not in restricted_list['internal_only']:
                     return_prods[sensor_type]['outputs'].append(prod)
 
         return return_prods
