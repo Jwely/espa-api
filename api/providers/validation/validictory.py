@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from decimal import Decimal
 import copy
 
@@ -242,30 +243,6 @@ class OrderValidatorV0(validictory.SchemaValidator):
 
 
 class BaseValidationSchema(object):
-    @staticmethod
-    def build_sensor_schema():
-        sensor_reg = sn.SensorCONST.instances
-
-        out_schema = {}
-        for key in sensor_reg:
-            out_schema[key] = {'type': 'object',
-                               # 'enum_keys': ['inputs', 'products'],
-                               'properties': {'inputs': {'type': 'array',
-                                                         'required': True,
-                                                         'ItemCount': 'inputs',
-                                                         'uniqueItems': True,
-                                                         'items': {'type': 'string',
-                                                                   'pattern': sensor_reg[key][0]}},
-                                              'products': {'type': 'array',
-                                                           'uniqueItems': True,
-                                                           'required': True,
-                                                           'role_restricted': True,
-                                                           'items': {'type': 'string',
-                                                                     'enum': sn.instance(
-                                                                             sensor_reg[key][2]).products}}}}
-
-        return out_schema
-
     formats = ['gtiff', 'hdf-eos2', 'envi']
 
     resampling_methods = ['nn', 'bil', 'cc']
@@ -362,7 +339,24 @@ class BaseValidationSchema(object):
                                                            'enum': resampling_methods},
                                      'plot_statistics': {'type': 'boolean'}}}
 
-    sensor_schema = build_sensor_schema()
+    _sensor_reg = sn.SensorCONST.instances
+    sensor_schema = {}
+    for key in _sensor_reg:
+        sensor_schema[key] = {'type': 'object',
+                               'properties': {'inputs': {'type': 'array',
+                                                         'required': True,
+                                                         'ItemCount': 'inputs',
+                                                         'uniqueItems': True,
+                                                         'items': {'type': 'string',
+                                                                   'pattern': _sensor_reg[key][0]}},
+                                              'products': {'type': 'array',
+                                                           'uniqueItems': True,
+                                                           'required': True,
+                                                           'role_restricted': True,
+                                                           'items': {'type': 'string',
+                                                                     'enum': sn.instance(
+                                                                             _sensor_reg[key][2]).products}}}}
+
 
     request_schema['properties'].update(sensor_schema)
     request_schema['oneormoreobjects'] = sensor_schema.keys()
