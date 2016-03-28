@@ -29,7 +29,6 @@ class OrderingProvider(ProviderInterfaceV0):
 
     @staticmethod
     def fetch_user(username):
-        userlist = []
         with db_instance() as db:
             # username uniqueness enforced on auth_user table at database
             user_sql = "select id, username, email, is_staff, is_active, " \
@@ -38,32 +37,23 @@ class OrderingProvider(ProviderInterfaceV0):
 
         return db[0]
 
-    @staticmethod
-    def staff_products(product_id):
-        all_prods = copy.deepcopy(OrderingProvider.sensor_products(product_id))
-        return all_prods
-
-    @staticmethod
-    def pub_products(product_id):
-        pub_prods = copy.deepcopy(OrderingProvider.sensor_products(product_id))
-        with open('api/domain/restricted.yaml') as f:
-            restricted_list = yaml.load(f.read())
-        for prod in restricted_list['internal_only']:
-            for sensor_type in pub_prods:
-                if sensor_type == 'not_implemented':
-                    continue
-                if prod in pub_prods[sensor_type]['outputs']:
-                    pub_prods[sensor_type]['outputs'].remove(prod)
-
-        return pub_prods
-
     def available_products(self, product_id, username):
         userlist = OrderingProvider.fetch_user(username)
+        pub_prods = OrderingProvider.sensor_products(product_id)
         return_prods = {}
         if userlist['is_staff']:
-            return_prods = OrderingProvider.staff_products(product_id)
+            return_prods = OrderingProvider.sensor_products(product_id)
         else:
-            return_prods = OrderingProvider.pub_products(product_id)
+            with open('api/domain/restricted.yaml') as f:
+                restricted_list = yaml.load(f.read())
+
+            for sensor_type in pub_prods.keys():
+                return_prods[sensor_type] = {'outputs': [],
+                                          'inputs': pub_prods[sensor_type]['inputs']}
+
+            for prod in restricted_list:
+                if prod not in pub_prods[sensor_type]['outputs']:
+                    return_prods[sensor_type]['outputs'].append(prod)
 
         return return_prods
 

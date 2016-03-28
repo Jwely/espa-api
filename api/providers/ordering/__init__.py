@@ -14,16 +14,6 @@ class ProviderInterfaceV0(object):
         return
 
     @abc.abstractmethod
-    def staff_products(product_id):
-        """Returns list of products available to staff"""
-        return
-
-    @abc.abstractmethod
-    def pub_products(product_id):
-        """Returns list of products available to the public"""
-        return
-
-    @abc.abstractmethod
     def available_products(self, product_id, username):
         """Returns list of products available for a give user"""
         return
