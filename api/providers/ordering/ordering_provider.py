@@ -40,25 +40,23 @@ class OrderingProvider(ProviderInterfaceV0):
 
     def available_products(self, product_id, username):
         userlist = OrderingProvider.fetch_user(username)
-        pub_prods = OrderingProvider.sensor_products(product_id)
-        return_prods = {}
-        if userlist['is_staff']:
-            return_prods = pub_prods
-        else:
+        pub_prods = copy.deepcopy(OrderingProvider.sensor_products(product_id))
+
+        if not userlist['is_staff']:
             with open('api/domain/restricted.yaml') as f:
                 restricted = yaml.load(f.read())
+
             for sensor_type in pub_prods:
                 sensor_restr = restricted.get(sensor_type, [])
                 sensor_restr.extend(restricted.get('all'))
 
                 if sensor_type == 'not_implemented':
                     continue
-
                 for restr in sensor_restr:
                     if restr in pub_prods[sensor_type]['outputs']:
                         pub_prods[sensor_type]['outputs'].remove(restr)
 
-        return return_prods
+        return pub_prods
 
     def fetch_user_orders(self, uid):
         id_type = 'email' if validate_email(uid) else 'username'

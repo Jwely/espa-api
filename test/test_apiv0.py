@@ -66,6 +66,7 @@ class TestAPI(unittest.TestCase):
 
     def test_get_available_products_by_staff(self):
         # staff should see all available products
+        self.user.update('is_staff', True)
         return_dict = api.available_products(self.staff_product_id, self.staff_user.username)
         for item in self.restricted['all']:
             self.assertTrue(item in return_dict['etm7']['outputs'])
