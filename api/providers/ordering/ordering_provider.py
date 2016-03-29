@@ -30,7 +30,6 @@ class OrderingProvider(ProviderInterfaceV0):
 
     @staticmethod
     def fetch_user(username):
-        userlist = []
         with db_instance() as db:
             # username uniqueness enforced on auth_user table at database
             user_sql = "select id, username, email, is_staff, is_active, " \
@@ -39,36 +38,25 @@ class OrderingProvider(ProviderInterfaceV0):
 
         return db[0]
 
-    @staticmethod
-    def staff_products(product_id):
-        all_prods = copy.deepcopy(OrderingProvider.sensor_products(product_id))
-        return all_prods
-
-    @staticmethod
-    def pub_products(product_id):
-        pub_prods = copy.deepcopy(OrderingProvider.sensor_products(product_id))
-        with open('api/domain/restricted.yaml') as f:
-            restricted = yaml.load(f.read())
-        for sensor_type in pub_prods:
-            sensor_restr = restricted.get(sensor_type, [])
-            sensor_restr.extend(restricted.get('all'))
-
-            if sensor_type == 'not_implemented':
-                continue
-
-            for restr in sensor_restr:
-                if restr in pub_prods[sensor_type]['outputs']:
-                    pub_prods[sensor_type]['outputs'].remove(restr)
-
-        return pub_prods
-
     def available_products(self, product_id, username):
         userlist = OrderingProvider.fetch_user(username)
+        pub_prods = OrderingProvider.sensor_products(product_id)
         return_prods = {}
         if userlist['is_staff']:
-            return_prods = OrderingProvider.staff_products(product_id)
+            return_prods = pub_prods
         else:
-            return_prods = OrderingProvider.pub_products(product_id)
+            with open('api/domain/restricted.yaml') as f:
+                restricted = yaml.load(f.read())
+            for sensor_type in pub_prods:
+                sensor_restr = restricted.get(sensor_type, [])
+                sensor_restr.extend(restricted.get('all'))
+
+                if sensor_type == 'not_implemented':
+                    continue
+
+                for restr in sensor_restr:
+                    if restr in pub_prods[sensor_type]['outputs']:
+                        pub_prods[sensor_type]['outputs'].remove(restr)
 
         return return_prods
 

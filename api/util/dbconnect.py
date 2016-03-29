@@ -5,7 +5,14 @@ import psycopg2.extras as db_extras
 import numbers
 import os
 
+from collections import OrderedDict
 from api.util import api_cfg
+
+def dictfetchall(cursor, fetcharr):
+    ''' Returns all rows from a cursor as a dict '''
+    desc = cursor.description
+    return [OrderedDict(zip([col[0] for col in desc], row))
+            for row in fetcharr]
 
 class DBConnectException(Exception):
     pass
@@ -26,7 +33,7 @@ class DBConnect(object):
         self.autocommit = autocommit
         self.fetcharr = []
 
-        # psycopg2 doesn't allow you to specificy a schema when connecting to the database.
+        # psycopg2 doesn't allow you to specify a schema when connecting to the database.
         # by modifying search_path for the connection, we can ensure were only working with
         # tables in the espa_unit_testing schema
         if 'espa_api_testing' in os.environ.keys():
@@ -60,6 +67,7 @@ class DBConnect(object):
         try:
             self.cursor.execute(sql_str, params)
             self.fetcharr = self.cursor.fetchall()
+            self.dictfetchall = dictfetchall(self.cursor, self.fetcharr)
         except psycopg2.Error as e:
             raise DBConnectException(e)
 

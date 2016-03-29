@@ -58,9 +58,6 @@ class TestAPI(unittest.TestCase):
         self.mock_user.cleanup()
         os.environ['espa_api_testing'] = ''
 
-    def test_api_versions_type(self):
-        self.assertIsInstance(api.api_versions(), dict)
-
     def test_api_versions_key_val(self):
         self.assertEqual(api.api_versions().keys()[0], 'versions')
 
@@ -111,20 +108,6 @@ class TestAPI(unittest.TestCase):
         response = api.order_status(invalid_orderid)
         self.assertEqual(response.keys(), ['msg'])
 
-    def test_fetch_production_products(self):
-        parms = {'for_user': self.user.username}
-        response = api.fetch_production_products(parms)
-        self.assertIsInstance(response, list)
-
-    def test_get_production_key_valid(self):
-        valid_key = 'sensor.LT4.name'
-        response = api.get_production_key(valid_key)
-        self.assertEqual(response, {valid_key: 'tm'})
-
-    def test_get_production_key_invalid(self):
-        bad_key = 'foobar'
-        response = api.get_production_key(bad_key)
-        self.assertEqual(response.keys(), ['msg'])
 
 class TestValidation(unittest.TestCase):
     def setUp(self):
