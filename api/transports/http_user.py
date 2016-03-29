@@ -12,6 +12,7 @@ from api.domain import api_operations_v0
 from api.system.logger import ilogger as logger
 
 import memcache
+import json
 
 espa = API()
 auth = HTTPBasicAuth()
@@ -163,3 +164,15 @@ class ItemStatus(Resource):
 
     def get(self, orderid, itemnum='ALL'):
         return espa.item_status(orderid, itemnum)
+
+
+class Reports(Resource):
+    #decorators = [auth.login_required]
+
+    def get(self, name=None):
+        if name:
+            return espa.get_report(name)
+        else:
+            return espa.available_reports()
+
+

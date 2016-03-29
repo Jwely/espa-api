@@ -10,6 +10,8 @@ from api.system.logger import ilogger as logger
 from api.domain import default_error_message
 from api import ValidationException, InventoryException
 
+import json
+
 
 class API(object):
     def __init__(self, providers=None):
@@ -25,6 +27,7 @@ class API(object):
         self.metrics = self.providers.metrics
         self.production = self.providers.production
         self.configuration = self.providers.configuration
+        self.reporting = self.providers.reporting
 
     def api_versions(self):
         """
@@ -193,3 +196,30 @@ class API(object):
 
         return response
 
+    def get_report(self, name):
+        """
+        retrieve a named report
+        :param name:
+        :return: OrderedDict
+        """
+        try:
+            response = str(self.reporting.run(name))
+        except:
+            logger.debug("ERR version0 get_report name {0}".format(name))
+            response = default_error_message
+
+        return response
+
+    def available_reports(self):
+        """
+        returns list of available reports
+        :return: List
+        """
+        try:
+            response = self.reporting.listing()
+
+        except:
+            logger.debug("ERR version0 available_reports")
+            response = default_error_message
+
+        return response
