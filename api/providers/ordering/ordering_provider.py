@@ -12,11 +12,12 @@ import memcache
 
 cache = memcache.Client(['127.0.0.1:11211'], debug=0)
 
+
 class OrderingProviderException(Exception):
     pass
 
-class OrderingProvider(ProviderInterfaceV0):
 
+class OrderingProvider(ProviderInterfaceV0):
     @staticmethod
     def sensor_products(product_id):
         # coming from uwsgi, product_id is unicode
@@ -47,13 +48,17 @@ class OrderingProvider(ProviderInterfaceV0):
     def pub_products(product_id):
         pub_prods = copy.deepcopy(OrderingProvider.sensor_products(product_id))
         with open('api/domain/restricted.yaml') as f:
-            restricted_list = yaml.load(f.read())
-        for prod in restricted_list['internal_only']:
-            for sensor_type in pub_prods:
-                if sensor_type == 'not_implemented':
-                    continue
-                if prod in pub_prods[sensor_type]['outputs']:
-                    pub_prods[sensor_type]['outputs'].remove(prod)
+            restricted = yaml.load(f.read())
+        for sensor_type in pub_prods:
+            sensor_restr = restricted.get(sensor_type, [])
+            sensor_restr.extend(restricted.get('all'))
+
+            if sensor_type == 'not_implemented':
+                continue
+
+            for restr in sensor_restr:
+                if restr in pub_prods[sensor_type]['outputs']:
+                    pub_prods[sensor_type]['outputs'].remove(restr)
 
         return pub_prods
 

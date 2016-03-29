@@ -1,8 +1,10 @@
 ---
-internal_only: 
+all:
     - swe
-    - lst
     - restricted_prod
+
+oli8:
+    - lst
 
 
 

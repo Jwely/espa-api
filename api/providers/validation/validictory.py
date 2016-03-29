@@ -108,7 +108,7 @@ class OrderValidatorV0(validictory.SchemaValidator):
             else:
                 res_pixel = 30
 
-        # This assumes that the only two valid unit options is
+        # This assumes that the only two valid unit options are
         # decimal degrees and meters
         if res_units != ext_units:
             if ext_units == 'dd':
@@ -343,20 +343,19 @@ class BaseValidationSchema(object):
     sensor_schema = {}
     for key in _sensor_reg:
         sensor_schema[key] = {'type': 'object',
-                               'properties': {'inputs': {'type': 'array',
-                                                         'required': True,
-                                                         'ItemCount': 'inputs',
-                                                         'uniqueItems': True,
-                                                         'items': {'type': 'string',
-                                                                   'pattern': _sensor_reg[key][0]}},
-                                              'products': {'type': 'array',
-                                                           'uniqueItems': True,
-                                                           'required': True,
-                                                           'role_restricted': True,
-                                                           'items': {'type': 'string',
-                                                                     'enum': sn.instance(
-                                                                             _sensor_reg[key][2]).products}}}}
-
+                              'properties': {'inputs': {'type': 'array',
+                                                        'required': True,
+                                                        'ItemCount': 'inputs',
+                                                        'uniqueItems': True,
+                                                        'items': {'type': 'string',
+                                                                  'pattern': _sensor_reg[key][0]}},
+                                             'products': {'type': 'array',
+                                                          'uniqueItems': True,
+                                                          'required': True,
+                                                          'role_restricted': True,
+                                                          'items': {'type': 'string',
+                                                                    'enum': sn.instance(
+                                                                            _sensor_reg[key][2]).products}}}}
 
     request_schema['properties'].update(sensor_schema)
     request_schema['oneormoreobjects'] = sensor_schema.keys()

@@ -263,7 +263,9 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         order = Order.where("orderid = '{0}'".format(orderid))[0]
         product = Scene.where("name = '{0}' and order_id = '{1}'".format(name, order.id))[0]
         #attempt to determine the disposition of this error
-        resolution = errors.resolve(error, name)
+        resolution = None
+        if name != 'plot':
+            resolution = errors.resolve(error, name)
 
         if resolution is not None:
 

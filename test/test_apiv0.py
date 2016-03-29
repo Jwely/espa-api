@@ -7,7 +7,7 @@ from api.interfaces.ordering.version0 import API
 from api.util import lowercase_all
 from api.util.dbconnect import db_instance
 import version0_testorders as testorders
-from api.providers.validation import validation_schema
+from api.providers.validation.validictory import BaseValidationSchema
 from api import ValidationException, InventoryException
 
 import os
@@ -48,8 +48,8 @@ class TestAPI(unittest.TestCase):
         user_scene.update('name', self.staff_product_id)
 
         with open('api/domain/restricted.yaml') as f:
-            self.restricted_list = yaml.load(f.read())
-            self.restricted_list['internal_only'].remove('restricted_prod')
+            self.restricted = yaml.load(f.read())
+            self.restricted['all'].remove('restricted_prod')
 
     def tearDown(self):
         # clean up orders
@@ -70,14 +70,14 @@ class TestAPI(unittest.TestCase):
     def test_get_available_products_by_staff(self):
         # staff should see all available products
         return_dict = api.available_products(self.staff_product_id, self.staff_user.username)
-        for item in self.restricted_list['internal_only']:
+        for item in self.restricted['all']:
             self.assertTrue(item in return_dict['etm7']['outputs'])
 
     def test_get_available_products_by_public(self):
         # public should not see products listed in api/domain.restricted.yaml
         self.user.update('is_staff', False)
         return_dict = api.available_products(self.staff_product_id, self.user.username)
-        for item in self.restricted_list['internal_only']:
+        for item in self.restricted['all']:
             self.assertFalse(item in return_dict['etm7']['outputs'])
 
     def test_fetch_user_orders_by_email_val(self):
@@ -139,7 +139,7 @@ class TestValidation(unittest.TestCase):
             self.pubuser = db[0]['username']
 
         self.base_order = lowercase_all(testorders.build_base_order())
-        self.base_schema = validation_schema.Version0Schema().request_schema
+        self.base_schema = BaseValidationSchema.request_schema
 
     def test_validation_get_order_schema(self):
         """
