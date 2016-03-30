@@ -7,7 +7,7 @@ from flask.ext.restful import Api, Resource, reqparse, fields, marshal
 
 from api.providers.configuration.configuration_provider import ConfigurationProvider
 
-from http_user import Index, VersionInfo, Reports,\
+from http_user import Index, VersionInfo, Reports, SystemStatus,\
     AvailableProducts, ValidationInfo, ListOrders, Ordering, UserInfo, ItemStatus
 
 from http_production import ProductionVersion, ProductionConfiguration, ProductionOperations
@@ -67,6 +67,9 @@ transport_api.add_resource(ItemStatus,
 transport_api.add_resource(Reports,
                            '/api/v0/reports/',
                            '/api/v0/reports/<name>/')
+
+transport_api.add_resource(SystemStatus,
+                           '/api/v0/system-status')
 
 
 # PRODUCTION facing functionality

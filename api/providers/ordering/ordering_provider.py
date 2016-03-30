@@ -181,3 +181,16 @@ class OrderingProvider(ProviderInterfaceV0):
             response['msg'] = 'sorry, no items matched orderid %s , itemid %s' % (orderid, itemid)
 
         return response
+
+    def get_system_status(self):
+        sql = "select key, value from ordering_configuration where " \
+              "key in ('msg.system_message_body', 'msg.system_message_title');"
+        with db_instance() as db:
+            db.select(sql)
+
+        if db:
+            resp_dict = dict(db.fetcharr)
+            return {'system_message_body': resp_dict['msg.system_message_body'],
+                    'system_message_title': resp_dict['msg.system_message_title']}
+        else:
+            return {'system_message_body': None, 'system_message_title': None}

@@ -205,7 +205,7 @@ class API(object):
         try:
             response = str(self.reporting.run(name))
         except:
-            logger.debug("ERR version0 get_report name {0}".format(name))
+            logger.debug("ERR version0 get_report name {0}\ntraceback {1}".format(name, traceback.format_exc()))
             response = default_error_message
 
         return response
@@ -219,7 +219,20 @@ class API(object):
             response = self.reporting.listing()
 
         except:
-            logger.debug("ERR version0 available_reports")
+            logger.debug("ERR version0 available_reports traceback {0}".format(traceback.format_exc()))
+            response = default_error_message
+
+        return response
+
+    def get_system_status(self):
+        """
+        retrieve the system status message
+        :return: str
+        """
+        try:
+            response = self.ordering.get_system_status()
+        except:
+            logger.debug("ERR version0 get_system_status. traceback {0}".format(traceback.format_exc()))
             response = default_error_message
 
         return response

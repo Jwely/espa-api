@@ -176,3 +176,8 @@ class Reports(Resource):
             return espa.available_reports()
 
 
+class SystemStatus(Resource):
+    #decorators = [auth.login_required]
+
+    def get(self):
+        return jsonify(espa.get_system_status())
