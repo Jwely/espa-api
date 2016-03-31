@@ -1,28 +1,15 @@
 import os
+import datetime
+
 from api.util.dbconnect import db_instance
 from api.providers.configuration import ConfigurationProviderInterfaceV0
-from api.util import api_cfg
+
 
 class ConfigurationProviderException(Exception):
     pass
 
+
 class ConfigurationProvider(ConfigurationProviderInterfaceV0):
-
-    def __init__(self):
-        cfgout = {}
-        with db_instance() as db:
-            con_query = "select key, value from ordering_configuration;"
-            db.select(con_query)
-            for i in db:
-                cfgout[i['key']] = i['value']
-
-        self.settings = cfgout
-        for k, v in api_cfg().iteritems():
-            self.__setattr__(k, v)
-
-        self.db_creds = api_cfg('db')
-
-
     @property
     def mode(self):
         apimode = 'dev'
@@ -37,37 +24,91 @@ class ConfigurationProvider(ConfigurationProviderInterfaceV0):
 
     @property
     def configuration_keys(self):
-        return self.settings.keys()
+        return self._retrieve_config()
 
     def url_for(self, service_name):
         key = "url.{0}.{1}".format(self.mode, service_name)
-        return self.settings[key]
+        current = self._retrieve_config()
+
+        return current.get(key)
 
     def get(self, key):
-        val = self.settings[key]
+        current = self._retrieve_config()
+
+        val = current.get(key)
         if key is 'apiemailreceive' and 'apiemailreceive' in os.environ.keys():
             val = os.environ['apiemailreceive']
+
         return val
 
     def put(self, key, value):
-        raise NotImplementedError
+        self.dump()
 
-    def mget(self, keys):
-        raise NotImplementedError
+        query = ('insert into ordering_configuration (key, value) values (%s, %s) '
+                 'on conflict (key) '
+                 'do update set value = %s')
 
-    def mput(self, kv_dict):
-        raise NotImplementedError
+        with db_instance() as db:
+            db.execute(query, (key, value, value))
+            db.commit()
 
-    def mdelete(self, keys):
-        raise NotImplementedError
+        return {key: self.get(key)}
+
+    def delete(self, key):
+        self.dump()
+
+        if self.exists(key):
+            query = 'delete from ordering_configuration where key = %s'
+
+            with db_instance() as db:
+                db.execute(query, (key,))
+                db.commit()
+
+        return self.get(key)
 
     def exists(self, key):
-        raise NotImplementedError
+        current = self._retrieve_config()
 
-    def load(self, config):
-        raise NotImplementedError
+        if key in current:
+            return True
+        else:
+            return False
 
-    def dump(self, path):
-        raise NotImplementedError
+    def load(self, path, clear=False):
+        if clear:
+            with db_instance() as db:
+                db.execute('TRUNCATE ordering_configuration')
+                db.commit()
 
+        with open(path, 'r') as f:
+            sql = f.read()
 
+        with db_instance() as db:
+            db.execute(sql)
+            db.commit()
+
+    def dump(self, path=None):
+        ts = datetime.datetime.now().strftime('config-%m%d%y-%H%M%S')
+
+        if not path:
+            path = os.path.join(os.path.expanduser('~'), '.usgs', '.config_backup', ts)
+
+        current = self._retrieve_config()
+        line = ('INSERT INTO orderding_configuration (key, value) VALUES ({0}, {1}) '
+                'on conflict (key) '
+                'do update set value = {1};\n')
+
+        with open(path, 'w') as f:
+            for key, value in current:
+                f.write(line.format(key, value))
+
+    @staticmethod
+    def _retrieve_config():
+        config = {}
+        with db_instance() as db:
+            con_query = 'select key, value from ordering_configuration'
+            db.select(con_query)
+            for i in db:
+                config[i['key']] = i['value']
+
+        return config

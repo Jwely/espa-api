@@ -6,6 +6,8 @@ from flask import Flask
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal
 
 from api.providers.configuration.configuration_provider import ConfigurationProvider
+from api.util import api_cfg
+
 from http_user import Index, VersionInfo,\
     AvailableProducts, ValidationInfo, ListOrders, Ordering, UserInfo, ItemStatus
 from http_production import ProductionVersion, ProductionConfiguration, ProductionOperations
@@ -13,7 +15,7 @@ from http_production import ProductionVersion, ProductionConfiguration, Producti
 config = ConfigurationProvider()
 
 app = Flask(__name__)
-app.secret_key = config.key
+app.secret_key = api_cfg('config').get('key')
 
 if config.mode == 'dev' or os.environ.get('ESPA_DEBUG'):
     app.debug = True
