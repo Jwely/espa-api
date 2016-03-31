@@ -91,15 +91,19 @@ class ConfigurationProvider(ConfigurationProviderInterfaceV0):
         ts = datetime.datetime.now().strftime('config-%m%d%y-%H%M%S')
 
         if not path:
-            path = os.path.join(os.path.expanduser('~'), '.usgs', '.config_backup', ts)
+            base = os.path.join(os.path.expanduser('~'), '.usgs', '.config_backup')
+            if not os.path.exists(base):
+                os.makedirs(base)
+
+            path = os.path.join(base, ts)
 
         current = self._retrieve_config()
-        line = ('INSERT INTO orderding_configuration (key, value) VALUES ({0}, {1}) '
-                'on conflict (key) '
-                'do update set value = {1};\n')
+        line = ("INSERT INTO orderding_configuration (key, value) VALUES ('{0}', '{1}') "
+                "on conflict (key) "
+                "do update set value = '{1}';\n")
 
         with open(path, 'w') as f:
-            for key, value in current:
+            for key, value in current.items():
                 f.write(line.format(key, value))
 
     @staticmethod
