@@ -102,6 +102,26 @@ class API(object):
 
         return response
 
+
+    def fetch_user_orders_ext(self, user_id):
+        """ Return orders and product details given a user id
+
+        Args:
+            user_id (str): The email or username for the user who placed the order.
+
+        Returns:
+            list: of dictionaries with keys for orders and product details
+        """
+        try:
+            response = self.ordering.fetch_user_orders_ext(user_id)
+        except:
+            logger.debug("ERR version0 fetch_user_orders arg: {0}\nexception {1}".format(user_id, traceback.format_exc()))
+            response = default_error_message
+
+        return response
+
+
+
     def fetch_order(self, ordernum):
         """ Returns details of a submitted order
 

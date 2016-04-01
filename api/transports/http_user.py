@@ -99,10 +99,16 @@ class ListOrders(Resource):
     decorators = [auth.login_required]
 
     def get(self, email=None):
-        if email:
-            return espa.fetch_user_orders(str(email))
+        if 'ext' in request.url:
+            if email:
+                return espa.fetch_user_orders_ext(str(email))
+            else:
+                return espa.fetch_user_orders_ext(auth.username())
         else:
-            return espa.fetch_user_orders(auth.username())
+            if email:
+                return espa.fetch_user_orders(str(email))
+            else:
+                return espa.fetch_user_orders(auth.username())
 
 
 class ValidationInfo(Resource):

@@ -83,6 +83,19 @@ class OrderingProvider(ProviderInterfaceV0):
         out_dict["orders"] = order_list
         return out_dict
 
+    def fetch_user_orders_ext(self, uid):
+        orders_d = self.fetch_user_orders(uid)['orders']
+        output = []
+        for orderid in orders_d:
+            order = Order.where("orderid = '{0}'".format(orderid))[0]
+            products_ordered = len(order.scenes())
+            products_complete = len(order.scenes(["status = 'complete'"]))
+            out_d = {'orderid': orderid, 'products_ordered': products_ordered,
+                     'products_complete': products_complete,
+                     'order_status': order.status, 'order_note': order.note}
+            output.append(out_d)
+        return output
+
     def fetch_order(self, ordernum):
         sql = "select * from ordering_order where orderid = %s;"
         out_dict = {}
