@@ -236,3 +236,28 @@ class API(object):
             response = default_error_message
 
         return response
+
+    def available_stats(self):
+        """
+        returns list of available statistics
+        :return: list
+        """
+        try:
+            response = self.reporting.stat_list()
+        except:
+            logger.debug("ERR version0 available_stats traceback {0}".format(traceback.format_exc()))
+            response = default_error_message
+
+        return response
+
+    def get_stat(self, name):
+        """
+        retrieve requested statistic value
+        :return: long
+        """
+        try:
+            response = self.reporting.get_stat(name)
+        except:
+            logger.debug("ERR version0 get_stat name: {0}, traceback: {1}".format(name, traceback.format_exc()))
+            response = default_error_message
+        return response

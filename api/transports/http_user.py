@@ -25,6 +25,7 @@ def unauthorized():
 
 
 @auth.verify_password
+
 def verify_user(username, password):
     try:
         cache_key = '{}-credentials'.format(username)
@@ -167,17 +168,24 @@ class ItemStatus(Resource):
 
 
 class Reports(Resource):
-    #decorators = [auth.login_required]
+    decorators = [auth.login_required]
 
     def get(self, name=None):
-        if name:
-            return espa.get_report(name)
+        if 'report' in request.url:
+            if name:
+                return espa.get_report(name)
+            else:
+                return espa.available_reports()
         else:
-            return espa.available_reports()
+            # statistics
+            if name:
+                return espa.get_stat(name)
+            else:
+                return espa.available_stats()
 
 
 class SystemStatus(Resource):
-    #decorators = [auth.login_required]
+    decorators = [auth.login_required]
 
     def get(self):
         return jsonify(espa.get_system_status())

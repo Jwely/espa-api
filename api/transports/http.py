@@ -66,7 +66,9 @@ transport_api.add_resource(ItemStatus,
 
 transport_api.add_resource(Reports,
                            '/api/v0/reports/',
-                           '/api/v0/reports/<name>/')
+                           '/api/v0/reports/<name>/',
+                           '/api/v0/statistics/',
+                           '/api/v0/statistics/<name>')
 
 transport_api.add_resource(SystemStatus,
                            '/api/v0/system-status')

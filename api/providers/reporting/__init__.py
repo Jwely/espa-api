@@ -255,6 +255,40 @@ REPORTS = {
     }
 }
 
+STATS = {
+    'stat_open_orders': {
+        'display_name': 'Open Orders',
+        'description': 'Number of open orders in the system',
+        'query': r'''SELECT
+                     COUNT(orderid) "statistic"
+                     FROM ordering_order
+                     WHERE status = 'ordered' '''
+    },
+    'stat_waiting_users': {
+        'display_name': 'Waiting Users',
+        'description': 'Number of users with open orders in the system',
+        'query': r'''SELECT
+                     COUNT(DISTINCT user_id) "statistic"
+                     FROM ordering_order
+                     WHERE status = 'ordered'  '''
+    },
+    'stat_backlog_depth': {
+        'display_name': 'Backlog Depth',
+        'description': 'Number of products to be fulfilled',
+        'query': r'''SELECT COUNT(*) "statistic"
+                     FROM ordering_scene
+                     WHERE status
+                     NOT IN ('purged', 'complete', 'unavailable')'''
+    },
+    'stat_products_complete_24_hrs': {
+        'display_name': 'Products Complete 24hrs',
+        'description': 'Number of products completed last 24 hrs',
+        'query': r'''SELECT COUNT(*) "statistic"
+                     FROM ordering_scene s
+                     WHERE s.status = 'complete'
+                     AND completion_date > now() - interval '24 hours' '''
+    },
+}
 
 class ReportingProviderInterfaceV0(object):
     __metaclass__ = abc.ABCMeta
