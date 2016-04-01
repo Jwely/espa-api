@@ -8,8 +8,9 @@ from flask.ext.restful import Api, Resource, reqparse, fields, marshal
 from api.providers.configuration.configuration_provider import ConfigurationProvider
 from api.util import api_cfg
 
-from http_user import Index, VersionInfo,\
+from http_user import Index, VersionInfo, Reports, SystemStatus,\
     AvailableProducts, ValidationInfo, ListOrders, Ordering, UserInfo, ItemStatus
+
 from http_production import ProductionVersion, ProductionConfiguration, ProductionOperations
 
 config = ConfigurationProvider()
@@ -48,7 +49,10 @@ transport_api.add_resource(ValidationInfo,
 transport_api.add_resource(ListOrders,
                            '/api/v0/list-orders',
                            '/api/v0/list-orders/',
-                           '/api/v0/list-orders/<email>')
+                           '/api/v0/list-orders/<email>',
+                           '/api/v0/list-orders-ext',
+                           '/api/v0/list-orders-ext/',
+                           '/api/v0/list-orders-ext/<email>')
 
 transport_api.add_resource(Ordering,
                            '/api/v0/order',
@@ -63,6 +67,15 @@ transport_api.add_resource(UserInfo,
 transport_api.add_resource(ItemStatus,
                            '/api/v0/item-status/<orderid>',
                            '/api/v0/item-status/<orderid>/<itemnum>')
+
+transport_api.add_resource(Reports,
+                           '/api/v0/reports/',
+                           '/api/v0/reports/<name>/',
+                           '/api/v0/statistics/',
+                           '/api/v0/statistics/<name>')
+
+transport_api.add_resource(SystemStatus,
+                           '/api/v0/system-status')
 
 
 # PRODUCTION facing functionality

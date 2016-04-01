@@ -7,6 +7,10 @@ from api.external import lta
 from api.util.dbconnect import db_instance
 from validate_email import validate_email
 
+from api.providers.configuration.configuration_provider import ConfigurationProvider
+
+from passlib.hash import pbkdf2_sha256
+
 from api.system.logger import ilogger as logger
 
 class UserException(Exception):
@@ -72,15 +76,24 @@ class User(object):
     @classmethod
     def get(cls, username, password):
         user_tup = None
-        try:
-            lta_user = lta.get_user_info(username, password)
-            contactid = lta.login_user(username, password)
-        except:
-            exc_type, exc_val, exc_trace = sys.exc_info()
-            logger.debug("ERR retrieving user from lta, username: {0}\n exception {1}".format(username, traceback.format_exc()))
-            raise exc_type, exc_val, exc_trace
 
-        return (str(username), str(lta_user.email), str(lta_user.first_name), str(lta_user.last_name), str(contactid))
+        if username == 'espa_admin':
+            cp = ConfigurationProvider()
+            if pbkdf2_sha256.verify(password, cp.espa256):
+                user_tup = (username, cp.settings['apiemailreceive'], 'espa', 'admin', '')
+            else:
+                raise UserException("ERR validating espa_admin")
+        else:
+            try:
+                lta_user = lta.get_user_info(username, password)
+                contactid = lta.login_user(username, password)
+                user_tup = (str(username), str(lta_user.email), str(lta_user.first_name), str(lta_user.last_name), str(contactid))
+            except:
+                exc_type, exc_val, exc_trace = sys.exc_info()
+                logger.debug("ERR retrieving user from lta, username: {0}\n exception {1}".format(username, traceback.format_exc()))
+                raise exc_type, exc_val, exc_trace
+
+        return user_tup
 
     @classmethod
     def find_or_create_user(cls, username, email, first_name, last_name, contactid):

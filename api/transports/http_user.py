@@ -12,6 +12,7 @@ from api.domain import api_operations_v0
 from api.system.logger import ilogger as logger
 
 import memcache
+import json
 
 espa = API()
 auth = HTTPBasicAuth()
@@ -24,6 +25,7 @@ def unauthorized():
 
 
 @auth.verify_password
+
 def verify_user(username, password):
     try:
         cache_key = '{}-credentials'.format(username)
@@ -97,10 +99,16 @@ class ListOrders(Resource):
     decorators = [auth.login_required]
 
     def get(self, email=None):
-        if email:
-            return espa.fetch_user_orders(str(email))
+        if 'ext' in request.url:
+            if email:
+                return espa.fetch_user_orders_ext(str(email))
+            else:
+                return espa.fetch_user_orders_ext(auth.username())
         else:
-            return espa.fetch_user_orders(auth.username())
+            if email:
+                return espa.fetch_user_orders(str(email))
+            else:
+                return espa.fetch_user_orders(auth.username())
 
 
 class ValidationInfo(Resource):
@@ -163,3 +171,27 @@ class ItemStatus(Resource):
 
     def get(self, orderid, itemnum='ALL'):
         return espa.item_status(orderid, itemnum)
+
+
+class Reports(Resource):
+    decorators = [auth.login_required]
+
+    def get(self, name=None):
+        if 'report' in request.url:
+            if name:
+                return espa.get_report(name)
+            else:
+                return espa.available_reports()
+        else:
+            # statistics
+            if name:
+                return espa.get_stat(name)
+            else:
+                return espa.available_stats()
+
+
+class SystemStatus(Resource):
+    decorators = [auth.login_required]
+
+    def get(self):
+        return jsonify(espa.get_system_status())

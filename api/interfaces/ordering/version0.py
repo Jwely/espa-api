@@ -10,6 +10,8 @@ from api.system.logger import ilogger as logger
 from api.domain import default_error_message
 from api import ValidationException, InventoryException
 
+import json
+
 
 class API(object):
     def __init__(self, providers=None):
@@ -25,6 +27,7 @@ class API(object):
         self.metrics = self.providers.metrics
         self.production = self.providers.production
         self.configuration = self.providers.configuration
+        self.reporting = self.providers.reporting
 
     def api_versions(self):
         """
@@ -98,6 +101,26 @@ class API(object):
             response = default_error_message
 
         return response
+
+
+    def fetch_user_orders_ext(self, user_id):
+        """ Return orders and product details given a user id
+
+        Args:
+            user_id (str): The email or username for the user who placed the order.
+
+        Returns:
+            list: of dictionaries with keys for orders and product details
+        """
+        try:
+            response = self.ordering.fetch_user_orders_ext(user_id)
+        except:
+            logger.debug("ERR version0 fetch_user_orders arg: {0}\nexception {1}".format(user_id, traceback.format_exc()))
+            response = default_error_message
+
+        return response
+
+
 
     def fetch_order(self, ordernum):
         """ Returns details of a submitted order
@@ -193,3 +216,68 @@ class API(object):
 
         return response
 
+    def get_report(self, name):
+        """
+        retrieve a named report
+        :param name:
+        :return: OrderedDict
+        """
+        try:
+            response = str(self.reporting.run(name))
+        except:
+            logger.debug("ERR version0 get_report name {0}\ntraceback {1}".format(name, traceback.format_exc()))
+            response = default_error_message
+
+        return response
+
+    def available_reports(self):
+        """
+        returns list of available reports
+        :return: List
+        """
+        try:
+            response = self.reporting.listing()
+
+        except:
+            logger.debug("ERR version0 available_reports traceback {0}".format(traceback.format_exc()))
+            response = default_error_message
+
+        return response
+
+    def get_system_status(self):
+        """
+        retrieve the system status message
+        :return: str
+        """
+        try:
+            response = self.ordering.get_system_status()
+        except:
+            logger.debug("ERR version0 get_system_status. traceback {0}".format(traceback.format_exc()))
+            response = default_error_message
+
+        return response
+
+    def available_stats(self):
+        """
+        returns list of available statistics
+        :return: list
+        """
+        try:
+            response = self.reporting.stat_list()
+        except:
+            logger.debug("ERR version0 available_stats traceback {0}".format(traceback.format_exc()))
+            response = default_error_message
+
+        return response
+
+    def get_stat(self, name):
+        """
+        retrieve requested statistic value
+        :return: long
+        """
+        try:
+            response = self.reporting.get_stat(name)
+        except:
+            logger.debug("ERR version0 get_stat name: {0}, traceback: {1}".format(name, traceback.format_exc()))
+            response = default_error_message
+        return response
