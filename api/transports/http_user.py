@@ -10,6 +10,7 @@ from api.domain.user import User
 from api.util import lowercase_all
 from api.domain import api_operations_v0
 from api.system.logger import ilogger as logger
+import traceback
 
 import memcache
 import json
@@ -195,3 +196,12 @@ class SystemStatus(Resource):
 
     def get(self):
         return jsonify(espa.get_system_status())
+
+    def post(self):
+        data = request.get_json(force=True)
+        try:
+            espa.update_system_status(data)
+            return 'success', 200
+        except:
+            logger.debug("ERROR updating system status: {0}".format(traceback.format_exc()))
+            return 'system status could not be updated', 403

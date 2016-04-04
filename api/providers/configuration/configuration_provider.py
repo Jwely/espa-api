@@ -3,6 +3,7 @@ import datetime
 
 from api.util.dbconnect import db_instance
 from api.providers.configuration import ConfigurationProviderInterfaceV0
+from api.util import api_cfg
 
 
 class ConfigurationProviderException(Exception):
@@ -10,6 +11,12 @@ class ConfigurationProviderException(Exception):
 
 
 class ConfigurationProvider(ConfigurationProviderInterfaceV0):
+
+    def __init__(self):
+        # fetch vars set in api_cfg['config']
+        for k, v in api_cfg().iteritems():
+            self.__setattr__(k, v)
+
     @property
     def mode(self):
         apimode = 'dev'

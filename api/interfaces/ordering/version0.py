@@ -257,6 +257,19 @@ class API(object):
 
         return response
 
+    def update_system_status(self, params):
+        """
+        update system status attributes
+        """
+        try:
+            response = self.ordering.update_system_status(params)
+        except:
+            exc_type, exc_val, exc_trace = sys.exc_info()
+            logger.debug("ERR updating system status params: {0}\n exception {1}".format(params, traceback.format_exc()))
+            raise exc_type, exc_val, exc_trace
+
+        return response
+
     def available_stats(self):
         """
         returns list of available statistics

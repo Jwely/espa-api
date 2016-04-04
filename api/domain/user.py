@@ -78,11 +78,15 @@ class User(object):
         user_tup = None
 
         if username == 'espa_admin':
-            cp = ConfigurationProvider()
-            if pbkdf2_sha256.verify(password, cp.espa256):
-                user_tup = (username, cp.settings['apiemailreceive'], 'espa', 'admin', '')
-            else:
-                raise UserException("ERR validating espa_admin")
+            try:
+                cp = ConfigurationProvider()
+                if pbkdf2_sha256.verify(password, cp.espa256):
+                    user_tup = (username, cp.get('apiemailreceive'), 'espa', 'admin', '')
+                else:
+                    raise UserException("ERR validating espa_admin, invalid password ")
+            except:
+                # try/except added due to trouble sorting out issue when
+                raise UserException("ERR validating espa_admin, traceback: {0}".format(traceback.format_exc()))
         else:
             try:
                 lta_user = lta.get_user_info(username, password)
