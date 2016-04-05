@@ -195,13 +195,22 @@ class SystemStatus(Resource):
     decorators = [auth.login_required]
 
     def get(self):
-        return jsonify(espa.get_system_status())
+        if 'config' in request.url:
+            return jsonify(espa.get_system_config())
+        else:
+            return jsonify(espa.get_system_status())
 
     def post(self):
         data = request.get_json(force=True)
         try:
             espa.update_system_status(data)
-            return 'success', 200
+            message = {'status': 200, 'message': 'success'}
+            resp = jsonify(message)
+            resp.status_code = 200
+            return resp
         except:
             logger.debug("ERROR updating system status: {0}".format(traceback.format_exc()))
-            return 'system status could not be updated', 403
+            message = {'status': 500, 'message': 'internal server error'}
+            resp = jsonify(message)
+            resp.status_code = 500
+            return resp

@@ -262,13 +262,25 @@ class API(object):
         update system status attributes
         """
         try:
-            response = self.ordering.update_system_status(params)
+            self.ordering.update_system_status(params)
         except:
             exc_type, exc_val, exc_trace = sys.exc_info()
             logger.debug("ERR updating system status params: {0}\n exception {1}".format(params, traceback.format_exc()))
             raise exc_type, exc_val, exc_trace
 
-        return response
+        return True
+
+    def get_system_config(self):
+        """
+        retrieve system configuration variables
+        """
+        try:
+            return self.ordering.get_system_config()
+        except:
+            exc_type, exc_val, exc_trace = sys.exc_info()
+            logger.debug(
+                "ERR retrieving system config: exception {0}".format(traceback.format_exc()))
+            raise exc_type, exc_val, exc_trace
 
     def available_stats(self):
         """

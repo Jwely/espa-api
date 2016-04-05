@@ -76,7 +76,8 @@ transport_api.add_resource(Reports,
 
 transport_api.add_resource(SystemStatus,
                            '/api/v0/system-status',
-                           '/api/v0/system-status-update')
+                           '/api/v0/system-status-update',
+                           '/api/v0/system/config')
 
 
 # PRODUCTION facing functionality

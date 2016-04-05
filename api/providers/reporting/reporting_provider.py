@@ -45,10 +45,9 @@ class ReportingProvider(ReportingProviderInterfaceV0):
                 value.pop('query')
         return _stats
 
-    def get_stat(self, name, skip_cache=False):
-
+    def stat_query(self, name):
         if name not in STATS:
-            raise NotImplementedError
+            raise NotImplementedError("value: {0}".format(name))
 
         query = STATS[name]['query']
 
@@ -61,4 +60,16 @@ class ReportingProvider(ReportingProviderInterfaceV0):
         else:
             logger.debug("Query was empty for {0}: {1}".format(name, query))
             return None
+
+    def get_stat(self, name):
+        if name == 'all':
+            stat = {}
+            for key in STATS.keys():
+                val = self.stat_query(key)
+                stat[key] = val
+        else:
+            stat = self.stat_query(name)
+
+        return stat
+
 
