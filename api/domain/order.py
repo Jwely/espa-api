@@ -487,6 +487,9 @@ class OptionsConversion(object):
                ('pixel_size_units', 'pixel_size_units', None)]
 
     prod_map = [('include_source_data', 'l1', True),
+                ('include_sourcefile', 'include_sourcefile', True),
+                ('include_solr_index', 'include_solr_index', True),
+                ('include_sr_browse', 'sr_browse', True),
                 ('include_statistics', 'stats', True),
                 ('include_source_metadata', 'source_metadata', True),
                 ('include_sr_toa', 'toa', True),
@@ -567,6 +570,14 @@ class OptionsConversion(object):
 
     @classmethod
     def _convert_old_to_new(cls, old, scenes):
+        """
+        Have to turn a flat data structure into a nested one
+        based on certain key names
+
+        :param old: old product options format
+        :param scenes: scenes associated with the order
+        :return: nested dictionary
+        """
         ret = {}
         opts = copy.deepcopy(old)
 
@@ -576,12 +587,18 @@ class OptionsConversion(object):
         opts_keys = opts.keys()
         for key in opts_keys:
             if key in old_prods:
-                prod_ls.append(key)
+                if opts[key] is True:
+                    prod_ls.append(key)
                 opts.pop(key)  # Reduce further iterations
 
         prods = cls._translate(cls.prod_map, prod_ls).keys()
 
-        ret.update(cls._build_nested(opts, cls.keywords_map))
+        if len(prods) < 1:
+            prods.append('sr')
+
+        if opts:
+            ret.update(cls._build_nested(opts, cls.keywords_map))
+
         ret.update(cls._build_nested_sensors(prods, scenes))
 
         return ret
@@ -634,7 +651,11 @@ class OptionsConversion(object):
         old_attrs, new_attrs, conv_maps = zip(*attr_map)
 
         for key in opts:
-            if key in old_attrs:
+            # Make sure we don't accidentally dismiss 0
+            if key in old_attrs and (opts[key] is not False and
+                                     opts[key] is not None):
+                # Need to index based on the name for projections
+                # so we only include the appropriate params
                 if key == 'target_projection':
                     idx = new_attrs.index(opts[key])
                 else:
@@ -649,9 +670,6 @@ class OptionsConversion(object):
                 else:
                     ret.update(cls._translate(conv_map, {key: opts[key]}))
 
-        if not ret:
-            ret = None
-
         return ret
 
     @classmethod
@@ -663,7 +681,10 @@ class OptionsConversion(object):
                 ret.update({'plot_statistics': True})
                 continue
 
-            short = sensor.instance(scene).shortname
+            try:
+                short = sensor.instance(scene).shortname
+            except:  # Invalid scene identifier
+                continue
 
             if short in ret:
                 ret[short]['inputs'].append(scene)
@@ -690,7 +711,7 @@ class OptionsConversion(object):
             if isinstance(conv[idx], list):
                 if key in n_major_keys:
                     ret.update({to[idx]: True})
-                else:  # Catch projections
+                else:  # Catch projection names
                     ret.update({to[idx]: key})
             elif conv[idx] is not None:  # Predefined value
                 ret.update({to[idx]: conv[idx]})

@@ -1,4 +1,8 @@
-from api.util.dbconnect import DBConnect, DBConnectException
+import os
+import json
+import pprint
+
+from api.util.dbconnect import db_instance, DBConnectException, DBConnect
 from api.domain.order import OptionsConversion
 from api.util import api_cfg
 
@@ -11,7 +15,9 @@ class ConvertProductOptions(object):
     Ideally this should only need to be run once, during the
     change over
     """
-    db = DBConnect(**api_cfg())
+    # db = db_instance()
+    cfg = os.path.join(os.path.expanduser('~/.usgs'), '.cfgnfo_dupe')
+    db = DBConnect(**api_cfg(section='db', cfgfile=cfg))
 
     def convert(self):
         current_orders = self._retrieve_orders()
@@ -20,9 +26,22 @@ class ConvertProductOptions(object):
             # Already exists
             if co['product_opts']:
                 continue
+            if not co['product_options']:
+                co['product_options'] = '{"include_sr": true}'
+
+            if co['id'] != 5592:
+                continue
 
             scenes = self._retrieve_scenes(co['id'])
-            prod_opts = OptionsConversion.convert(old=co['product_options'], scenes=scenes)
+
+            if not scenes:
+                continue
+
+            try:
+                prod_opts = OptionsConversion.convert(old=json.loads(co['product_options']), scenes=scenes)
+            except:
+                raise
+
             self._update_product_opts(prod_opts, co['id'])
 
     def _retrieve_orders(self):
@@ -34,13 +53,13 @@ class ConvertProductOptions(object):
         return [r for r in self.db]
 
     def _retrieve_scenes(self, oid):
-        sql = ('select name, completion_date '
+        sql = ('select name '
                'from ordering_scene '
                'where order_id = %s')
 
         self.db.select(sql, (oid,))
 
-        return [r for r in self.db]
+        return [r['name'] for r in self.db]
 
     def _update_product_opts(self, opts, oid):
         sql = ('update ordering_order '
