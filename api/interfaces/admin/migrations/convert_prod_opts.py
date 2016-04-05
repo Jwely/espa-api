@@ -29,9 +29,6 @@ class ConvertProductOptions(object):
             if not co['product_options']:
                 co['product_options'] = '{"include_sr": true}'
 
-            if co['id'] != 5592:
-                continue
-
             scenes = self._retrieve_scenes(co['id'])
 
             if not scenes:
@@ -42,7 +39,7 @@ class ConvertProductOptions(object):
             except:
                 raise
 
-            self._update_product_opts(prod_opts, co['id'])
+            self._update_product_opts(json.dumps(prod_opts), co['id'])
 
     def _retrieve_orders(self):
         sql = ('select id, product_options, product_opts '

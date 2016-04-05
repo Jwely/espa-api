@@ -487,8 +487,11 @@ class OptionsConversion(object):
                ('pixel_size_units', 'pixel_size_units', None)]
 
     prod_map = [('include_source_data', 'l1', True),
+                ('include_customized_source_data', 'l1', True),
                 ('include_sourcefile', 'include_sourcefile', True),
                 ('include_solr_index', 'include_solr_index', True),
+                ('include_sca', 'include_sca', True),
+                ('include_swe', 'include_swe', True),
                 ('include_sr_browse', 'sr_browse', True),
                 ('include_statistics', 'stats', True),
                 ('include_source_metadata', 'source_metadata', True),
