@@ -75,6 +75,8 @@ class ConfigurationProvider(ConfigurationProviderInterfaceV0):
             return False
 
     def load(self, path, clear=False):
+        self.dump()
+
         if clear:
             with db_instance() as db:
                 db.execute('TRUNCATE ordering_configuration')
