@@ -237,7 +237,6 @@ class API(object):
         """
         try:
             response = self.reporting.listing()
-
         except:
             logger.debug("ERR version0 available_reports traceback {0}".format(traceback.format_exc()))
             response = default_error_message
@@ -262,13 +261,13 @@ class API(object):
         update system status attributes
         """
         try:
-            self.ordering.update_system_status(params)
+            response = self.ordering.update_system_status(params)
         except:
             exc_type, exc_val, exc_trace = sys.exc_info()
             logger.debug("ERR updating system status params: {0}\n exception {1}".format(params, traceback.format_exc()))
             raise exc_type, exc_val, exc_trace
 
-        return True
+        return response
 
     def get_system_config(self):
         """

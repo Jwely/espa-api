@@ -73,6 +73,8 @@ class OrderingProvider(ProviderInterfaceV0):
             # not the case for emails though
             if db:
                 user_ids = [db[ind][0] for ind, val in enumerate(db)]
+            else:
+                return {"msg": "sorry, no user matched {0}".format(uid)}
 
             if user_ids:
                 user_tup = tuple([str(idv) for idv in user_ids])
@@ -86,7 +88,10 @@ class OrderingProvider(ProviderInterfaceV0):
         return out_dict
 
     def fetch_user_orders_ext(self, uid):
-        orders_d = self.fetch_user_orders(uid)['orders']
+        orders = self.fetch_user_orders(uid)
+        if 'orders' not in orders.keys():
+            return {'msg': 'sorry, there are no orders for user {0}'.format(uid)}
+        orders_d = orders['orders']
         output = []
         for orderid in orders_d:
             order = Order.where("orderid = '{0}'".format(orderid))[0]
@@ -114,6 +119,8 @@ class OrderingProvider(ProviderInterfaceV0):
                 opts_str = opts_str.replace("\n", "")
                 opts_dict = yaml.load(opts_str)
                 out_dict['product_options'] = opts_dict
+            else:
+                out_dict['msg'] = "sorry, no order matched that orderid"
 
         for k in scrub_keys:
             if k in out_dict.keys():
@@ -129,7 +136,7 @@ class OrderingProvider(ProviderInterfaceV0):
         :param user: user information associated with the order
         :return: orderid to be used for tracking
         """
-
+        print "****** api new_order", new_order
         order_dict = {}
         order_dict['orderid'] = Order.generate_order_id(user.email)
         order_dict['user_id'] = user.id
@@ -212,6 +219,10 @@ class OrderingProvider(ProviderInterfaceV0):
             return {'system_message_body': None, 'system_message_title': None}
 
     def update_system_status(self, params):
+
+        if params.keys().sort() is not ['system_message_title', 'system_message_body', 'display_system_message'].sort():
+            return {'msg': 'Only 3 params are valid, and they must be present: system_message_title, system_message_body, display_system_message'}
+
         sql_dict = {'msg.system_message_title': params['system_message_title'],
                     'msg.system_message_body': params['system_message_body'],
                     'system.display_system_message': params['display_system_message']}

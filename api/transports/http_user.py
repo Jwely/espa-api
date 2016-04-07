@@ -4,15 +4,15 @@ import flask
 from flask import jsonify, make_response, request
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal
 from flask.ext.httpauth import HTTPBasicAuth
-
 from api.interfaces.ordering.version0 import API
 from api.domain.user import User
 from api.util import lowercase_all
-from api.domain import api_operations_v0
+from api.domain import api_operations_v0, default_error_message
 from api.system.logger import ilogger as logger
 import traceback
-
+import sys
 import memcache
+from werkzeug.exceptions import BadRequest
 import json
 
 espa = API()
@@ -141,22 +141,45 @@ class Ordering(Resource):
             return jsonify(espa.fetch_order(ordernum))
 
     def post(self):
-        order = {}
         try:
+            user = flask.g.user
             order = request.get_json(force=True)
+            print "****** made here 1 "
+            if not order:
+                message = {"status": 400, "msg": "Unable to parse json data."
+                                           "Please ensure your order follows json conventions and your http call is correct."
+                                           " If you believe this message is in error please email customer service"}
+                print "****** made here 2 "
+            else:
+                try:
+                    print "****** made here 3 "
+                    order = lowercase_all(order)
+                    orderid = espa.place_order(order, user)
+                    if isinstance(orderid, str) and "@" in orderid:
+                        print "****** made here 4 "
+                        # if order submission was successful, orderid is returned as a string
+                        # which includes the submitters email address
+                        message = {"status": 200, "orderid": orderid}
+                    else:
+                        print "****** made here 5 "
+                        # there was a problem, and orderid is a dict with the problem details
+                        logger.info("problem with user submitted order. user: {0}\n details: {1}".format(user.username, orderid))
+                        message = {"status": 400, "message": orderid}
+                except Exception as e:
+                    logger.debug("exception posting order: {0}\nuser: {1}\n msg: {2}".format(order, user.username, e.message))
+                    message = {"status": 500, "msg": "the system experienced an exception. the admins have been notified"}
+                    print "****** made here 6 "
+        except BadRequest as e:
+            # request.get_json throws a BadRequest
+            logger.debug("BadRequest, could not parse request into json {}\nuser: {}\nform data {}\n".format(e.description, user.username, request.form))
+            message = {"status": 400, "msg": "Could not parse the request into json"}
         except Exception as e:
-            # LOG ME
-            pass
+            logger.debug("ERR posting order. user: {0}\n error: {1}".format(user.username, e))
+            message = {"status": 500, "msg": "the system has experienced an exception. the admins have been notified."}
 
-        if not order:
-            response = {"errmsg": "Unable to parse json data."
-                        "Please ensure your order follows json conventions and your http call is correct."
-                        " If you believe this message is in error please email customer service"}
-
-        else:
-            order = lowercase_all(order)
-            response = espa.place_order(order, flask.g.get('user'))
-
+        print "****** made here 7 {}".format(sys.exc_info())
+        response = jsonify(message)
+        response.status_code = message['status']
         return response
 
 
@@ -203,10 +226,16 @@ class SystemStatus(Resource):
     def post(self):
         data = request.get_json(force=True)
         try:
-            espa.update_system_status(data)
-            message = {'status': 200, 'message': 'success'}
+            response = espa.update_system_status(data)
+            if response == default_error_message:
+                message = {'status': 500, 'message': 'internal server error'}
+            elif response.keys() == ['msg']:
+                message = {'status': 400, 'message': response['msg']}
+            else:
+                message = {'status': 200, 'message': 'success'}
+
             resp = jsonify(message)
-            resp.status_code = 200
+            resp.status_code = message['status']
             return resp
         except:
             logger.debug("ERROR updating system status: {0}".format(traceback.format_exc()))
