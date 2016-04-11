@@ -333,11 +333,13 @@ class BaseValidationSchema(object):
                                                 'required': True,
                                                 'enum': formats},
                                      'resize': {'type': 'object',
-                                                'properties': resize,
-                                                'dependencies': ['projection']},
+                                                'properties': resize},
                                      'resampling_method': {'type': 'string',
                                                            'enum': resampling_methods},
-                                     'plot_statistics': {'type': 'boolean'}}}
+                                     'plot_statistics': {'type': 'boolean'},
+                                     'note': {'type': 'string',
+                                              'required': False,
+                                              'blank': True}}}
 
     _sensor_reg = sn.SensorCONST.instances
     sensor_schema = {}

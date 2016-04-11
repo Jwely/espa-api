@@ -99,12 +99,19 @@ class AvailableProducts(Resource):
 class ListOrders(Resource):
     decorators = [auth.login_required]
 
+
     def get(self, email=None):
+        try:
+            filters = request.get_json(force=True)
+        except:
+            # no json this time
+            filters = {}
+
         if 'ext' in request.url:
             if email:
-                return espa.fetch_user_orders_ext(str(email))
+                return espa.fetch_user_orders_ext(str(email), filters)
             else:
-                return espa.fetch_user_orders_ext(auth.username())
+                return espa.fetch_user_orders_ext(auth.username(), filters)
         else:
             if email:
                 return espa.fetch_user_orders(str(email))
@@ -154,6 +161,7 @@ class Ordering(Resource):
                 try:
                     print "****** made here 3 "
                     order = lowercase_all(order)
+                    print "***** here's the order: ", order
                     orderid = espa.place_order(order, user)
                     if isinstance(orderid, str) and "@" in orderid:
                         print "****** made here 4 "

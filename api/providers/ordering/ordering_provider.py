@@ -59,15 +59,15 @@ class OrderingProvider(ProviderInterfaceV0):
 
         return pub_prods
 
-    def fetch_user_orders(self, uid):
+    def fetch_user_orders(self, uid, filters={}):
         id_type = 'email' if validate_email(uid) else 'username'
         order_list = []
         out_dict = {}
-        user_ids = []
 
         with db_instance() as db:
             user_sql = "select id, username, email from auth_user where "
             user_sql += "email = %s;" if id_type == 'email' else "username = %s;"
+
             db.select(user_sql, (uid))
             # username uniqueness enforced on the db
             # not the case for emails though
@@ -78,17 +78,31 @@ class OrderingProvider(ProviderInterfaceV0):
 
             if user_ids:
                 user_tup = tuple([str(idv) for idv in user_ids])
-                sql = "select orderid from ordering_order where user_id in {};".format(user_tup)
-                sql = sql.replace(",)", ")")
-                db.select(sql)
+
+                sql = "select orderid from ordering_order where user_id in %(user_tup)s"
+                params = {'user_tup': user_tup}
+
+                if filters:
+                    for key, val in filters.iteritems():
+                        if isinstance(val, list):
+                            val = tuple([v for v in val])
+                            op = " IN "
+                        else:
+                            op = " = "
+
+                        params[key] = val
+                        sql += " AND {0} {1} %({0})s ".format(key, op)
+
+                db.select(sql, params)
+
                 if db:
                     order_list = [item[0] for item in db]
 
         out_dict["orders"] = order_list
         return out_dict
 
-    def fetch_user_orders_ext(self, uid):
-        orders = self.fetch_user_orders(uid)
+    def fetch_user_orders_ext(self, uid, filters={}):
+        orders = self.fetch_user_orders(uid, filters=filters)
         if 'orders' not in orders.keys():
             return {'msg': 'sorry, there are no orders for user {0}'.format(uid)}
         orders_d = orders['orders']
@@ -137,6 +151,7 @@ class OrderingProvider(ProviderInterfaceV0):
         :return: orderid to be used for tracking
         """
         print "****** api new_order", new_order
+        note = new_order.pop('note')
         order_dict = {}
         order_dict['orderid'] = Order.generate_order_id(user.email)
         order_dict['user_id'] = user.id
@@ -147,7 +162,7 @@ class OrderingProvider(ProviderInterfaceV0):
         order_dict['order_source'] = 'espa'
         order_dict['order_date'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
         order_dict['priority'] = 'normal'
-        order_dict['note'] = ''
+        order_dict['note'] = note
         order_dict['email'] = user.email
         order_dict['product_options'] = ''
 

@@ -85,7 +85,7 @@ class API(object):
 
         return response
 
-    def fetch_user_orders(self, user_id):
+    def fetch_user_orders(self, user_id, filters={}):
         """ Return orders given a user id
 
         Args:
@@ -95,7 +95,7 @@ class API(object):
             dict: of orders with list of order ids
         """
         try:
-            response = self.ordering.fetch_user_orders(user_id)
+            response = self.ordering.fetch_user_orders(user_id, filters=filters)
         except:
             logger.debug("ERR version0 fetch_user_orders arg: {0}\nexception {1}".format(user_id, traceback.format_exc()))
             response = default_error_message
@@ -103,7 +103,7 @@ class API(object):
         return response
 
 
-    def fetch_user_orders_ext(self, user_id):
+    def fetch_user_orders_ext(self, user_id, filters={}):
         """ Return orders and product details given a user id
 
         Args:
@@ -113,7 +113,7 @@ class API(object):
             list: of dictionaries with keys for orders and product details
         """
         try:
-            response = self.ordering.fetch_user_orders_ext(user_id)
+            response = self.ordering.fetch_user_orders_ext(user_id, filters=filters)
         except:
             logger.debug("ERR version0 fetch_user_orders arg: {0}\nexception {1}".format(user_id, traceback.format_exc()))
             response = default_error_message
