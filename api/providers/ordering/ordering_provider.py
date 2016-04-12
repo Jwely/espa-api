@@ -184,7 +184,8 @@ class OrderingProvider(ProviderInterfaceV0):
 
     def item_status(self, orderid, itemid='ALL'):
         response = {}
-        sql = "select oo.orderid, os.name, os.status, os.completion_date, os.note " \
+        sql = "select oo.orderid, os.name, os.status, os.completion_date, os.note, " \
+              "os.product_dload_url, os.cksum_download_url " \
               "from ordering_order oo left join ordering_scene os on oo.id = " \
               "os.order_id where oo.orderid = %s"
         if itemid is not "ALL":
@@ -212,7 +213,9 @@ class OrderingProvider(ProviderInterfaceV0):
                 i = {'name': item['name'],
                      'status': item['status'],
                      'completion_date': ts,
-                     'note': item['note']}
+                     'note': item['note'],
+                     'product_dload_url': item['product_dload_url'],
+                     'cksum_download_url': item['cksum_download_url']}
                 response['orderid'][id].append(i)
         else:
             response['msg'] = 'sorry, no items matched orderid %s , itemid %s' % (orderid, itemid)
