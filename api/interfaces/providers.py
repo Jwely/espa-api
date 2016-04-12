@@ -9,6 +9,7 @@ from api.providers.reporting.reporting_provider import ReportingProvider
 from api.providers.validation import MockValidationProvider
 from api.providers.validation.validictory import ValidationProvider
 from api.providers.configuration.configuration_provider import ConfigurationProvider
+from api.providers.administration.administration_provider import AdministrationProvider
 
 
 class DefaultProviders(object):
@@ -31,6 +32,8 @@ class DefaultProviders(object):
     configuration = ConfigurationProvider()
 
     reporting = ReportingProvider()
+
+    administration = AdministrationProvider()
 
 class MockProviders(object):
     ordering = MockOrderingProvider()

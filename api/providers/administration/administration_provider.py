@@ -1,12 +1,14 @@
 import copy
 
 from api.util.dbconnect import db_instance
+from api.util.sshcmd import RemoteHost
 from api.providers.administration import AdminProviderInterfaceV0, AdministrationProviderException
-from api.providers.configuration.configuration_provider import ConfigurationProvider as cp
+from api.providers.configuration.configuration_provider import ConfigurationProvider
+from api.external.onlinecache import OnlineCache
 
 
 class AdministrationProvider(AdminProviderInterfaceV0):
-    config = cp()
+    config = ConfigurationProvider()
     db = db_instance()
 
     def orders(self, query=None, cancel=False):
@@ -25,11 +27,32 @@ class AdministrationProvider(AdminProviderInterfaceV0):
             return self.config.get(key)
         elif value and not delete:
             return self.config.put(key, value)
-        elif value and delete:
+        elif delete:
             return self.config.delete(key)
 
     def onlinecache(self, list_orders=False, orderid=None, filename=None, delete=False):
-        pass
+        if delete and orderid and filename:
+            return OnlineCache().delete(orderid, filename)
+        elif delete and orderid:
+            return OnlineCache().delete(orderid)
+        elif list_orders:
+            return OnlineCache().list()
+        elif orderid:
+            return OnlineCache().list(orderid)
+        else:
+            return OnlineCache().capacity()
 
     def jobs(self, jobid=None, stop=False):
-        pass
+        params = ('hadoop.master',
+                  'landsatds.username',
+                  'landsatds.password')
+
+        vals = self.config.get(params)
+
+        remote = RemoteHost(host=vals[0], user=vals[1], pw=vals[2])
+
+        command = 'some bash script command'
+
+        resp = remote.execute(command)
+
+        return resp

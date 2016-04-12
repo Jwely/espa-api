@@ -35,11 +35,22 @@ class ConfigurationProvider(ConfigurationProviderInterfaceV0):
     def get(self, key):
         current = self._retrieve_config()
 
-        val = current.get(key)
-        if key is 'apiemailreceive' and 'apiemailreceive' in os.environ.keys():
-            val = os.environ['apiemailreceive']
+        if isinstance(key, (list, tuple)):
+            ret = [current.get(k) for k in key]
+        else:
+            ret = current.get(key)
 
-        return val
+        if 'apiemailreceive' in key and os.environ.get('apiemailreceive'):
+            if isinstance(ret, list):
+                idx = key.index('apiemailreceive')
+                ret[idx] = os.environ['apiemailreceive']
+            else:
+                ret = os.environ['apiemailreceive']
+
+        if isinstance(ret, list):
+            return tuple(ret)
+        else:
+            return ret
 
     def put(self, key, value):
         self.dump()

@@ -6,18 +6,19 @@ Original Author: David V. Hill
 import paramiko
 from api.system.logger import ilogger as logger
 
+
 class RemoteHost(object):
     client = None
 
     def __init__(self, host, user, pw=None, debug=False):
-        ''' '''
+        """ """
         self.host = host
         self.user = user
         self.pw = pw
         self.debug = debug
 
     def execute(self, command):
-        ''' '''
+        """ """
         try:
             if self.debug is True:
                 logger.debug("Attempting to run [%s] on %s as %s" % (command,
@@ -38,6 +39,15 @@ class RemoteHost(object):
             stdin.close()
 
             return {'stdout': stdout.readlines(), 'stderr': stderr.readlines()}
+
+        except paramiko.SSHException as e:
+            logger.debug('Failed running [{}]'
+                         ' on {} as {} exception: {}'.format(command,
+                                                             self.host,
+                                                             self.user,
+                                                             e))
+
+            return e
 
         finally:
             if self.client is not None:
