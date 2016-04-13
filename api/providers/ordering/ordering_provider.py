@@ -2,7 +2,7 @@ import datetime
 
 from api.domain import sensor
 from api.domain.order import Order
-from api.util.dbconnect import db_instance
+from api.util.dbconnect import db_instance, DBConnectException
 from validate_email import validate_email
 from api.providers.ordering import ProviderInterfaceV0
 from api.providers.configuration.configuration_provider import ConfigurationProvider
@@ -248,9 +248,13 @@ class OrderingProvider(ProviderInterfaceV0):
         for k, v in sql_dict.iteritems():
             sql += "update ordering_configuration set value = '{0}' where key = '{1}';".format(v, k)
 
-        with db_instance() as db:
-            db.execute(sql)
-            db.commit()
+        try:
+            with db_instance() as db:
+                db.execute(sql)
+                db.commit()
+        except DBConnectException as e:
+            logger.debug("error updating system status: {}".format(e))
+            return {'msg': "error updating database: {}".format(e.message)}
 
         return True
 

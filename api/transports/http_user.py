@@ -229,7 +229,7 @@ class SystemStatus(Resource):
             response = espa.update_system_status(data)
             if response == default_error_message:
                 message = {'status': 500, 'message': 'internal server error'}
-            elif response.keys() == ['msg']:
+            elif isinstance(response, dict) and response.keys() == ['msg']:
                 message = {'status': 400, 'message': response['msg']}
             else:
                 message = {'status': 200, 'message': 'success'}
