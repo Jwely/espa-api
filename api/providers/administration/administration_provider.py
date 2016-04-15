@@ -20,7 +20,7 @@ class AdministrationProvider(AdminProviderInterfaceV0):
     def products(self, query=None, resubmit=None):
         pass
 
-    def configuration(self, key=None, value=None, delete=False):
+    def update_configuration(self, key=None, value=None, delete=False):
         if not key:
             return self.config.configuration_keys
         elif not delete and not value:
@@ -29,6 +29,12 @@ class AdministrationProvider(AdminProviderInterfaceV0):
             return self.config.put(key, value)
         elif delete:
             return self.config.delete(key)
+
+    def restore_configuration(self, filepath, clear=False):
+        self.config.load(filepath, clear=clear)
+
+    def backup_configuration(self, path=None):
+        return self.config.dump(path)
 
     def onlinecache(self, list_orders=False, orderid=None, filename=None, delete=False):
         if delete and orderid and filename:

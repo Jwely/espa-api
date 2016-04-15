@@ -119,6 +119,8 @@ class ConfigurationProvider(ConfigurationProviderInterfaceV0):
             for key, value in current.items():
                 f.write(line.format(key, value))
 
+        return os.path.exists(path)
+
     @staticmethod
     def _retrieve_config():
         config = {}
