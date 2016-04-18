@@ -85,13 +85,15 @@ class ConfigurationProvider(ConfigurationProviderInterfaceV0):
         else:
             return False
 
-    def load(self, path, clear=False):
+    # def load(self, path, clear=False):
+    def load(self, path):
         self.dump()
 
-        if clear:
-            with db_instance() as db:
-                db.execute('TRUNCATE ordering_configuration')
-                db.commit()
+        # Debating the merits of such an operation
+        # if clear:
+        #     with db_instance() as db:
+        #         db.execute('DELETE FROM ordering_configuration')
+        #         db.commit()
 
         with open(path, 'r') as f:
             sql = f.read()
@@ -111,15 +113,15 @@ class ConfigurationProvider(ConfigurationProviderInterfaceV0):
             path = os.path.join(base, ts)
 
         current = self._retrieve_config()
-        line = ("INSERT INTO orderding_configuration (key, value) VALUES ('{0}', '{1}') "
-                "on conflict (key) "
-                "do update set value = '{1}';\n")
+        line = ("INSERT INTO ordering_configuration (key, value) VALUES ('{0}', '{1}') "
+                "ON CONFLICT (key) "
+                "DO UPDATE SET value = '{1}';\n")
 
         with open(path, 'w') as f:
             for key, value in current.items():
                 f.write(line.format(key, value))
 
-        return os.path.exists(path)
+        return path
 
     @staticmethod
     def _retrieve_config():

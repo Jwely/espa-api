@@ -28,7 +28,7 @@ class API(object):
         """
         return self.providers.api_versions
 
-    def update_configuration(self, key=None, value=None, delete=False):
+    def access_configuration(self, key=None, value=None, delete=False):
         """
         Provide access to the configuration keys
 
@@ -38,7 +38,7 @@ class API(object):
         :return: configuration after operation
         """
         try:
-            response = self.admin.update_configuration(key=key, value=value, delete=delete)
+            response = self.admin.access_configuration(key=key, value=value, delete=delete)
         except:
             logger.debug('ERR version0 configuration_management:'
                          ' {}\ntrace: {}\n'.format(','.join([key, value, delete]),
@@ -47,8 +47,10 @@ class API(object):
 
         return response
 
+    # def load_configuration(self, filepath, clear=False):
     def load_configuration(self, filepath):
         try:
+            # response = self.admin.restore_configuration(filepath, clear=clear)
             response = self.admin.restore_configuration(filepath)
         except:
             logger.debug('ERR version0 load_configuration: '
@@ -63,6 +65,9 @@ class API(object):
         except:
             logger.debug('ERR version0 backup_configuration: '
                          '{}\ntrace: {}\n'.format(filepath, traceback.format_exc()))
+            response = default_error_message
+
+        return response
 
     def order_management(self):
         pass

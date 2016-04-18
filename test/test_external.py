@@ -31,14 +31,14 @@ class TestNLAPS(unittest.TestCase):
             self.assertTrue(prod not in self.non_nlaps)
 
 
-class TestOnlineCache(unittest.TestCase):
-    """
-    Tests for dealing with the distribution cache
-    """
-    def setUp(self):
-        self.cache = onlinecache.OnlineCache()
-
-    def test_onlinecache(self):
-        results = self.cache.list()
-
-        self.assertTrue(results)
+# class TestOnlineCache(unittest.TestCase):
+#     """
+#     Tests for dealing with the distribution cache
+#     """
+#     def setUp(self):
+#         self.cache = onlinecache.OnlineCache()
+#
+#     def test_onlinecache(self):
+#         results = self.cache.list()
+#
+#         self.assertTrue(results)

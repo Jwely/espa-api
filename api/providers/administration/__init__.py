@@ -9,7 +9,7 @@ class AdminProviderInterfaceV0(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def update_configuration(self, key=None, value=None, delete=False):
+    def access_configuration(self, key=None, value=None, delete=False):
         """
         View or update a configuration key
         Defaults to listing all configuration keys & values
@@ -20,7 +20,8 @@ class AdminProviderInterfaceV0(object):
         """
 
     @abc.abstractmethod
-    def restore_configuration(self, filepath, clear=False):
+    # def restore_configuration(self, filepath, clear=False):
+    def restore_configuration(self, filepath):
         """
         Update the configuration table from a file
 

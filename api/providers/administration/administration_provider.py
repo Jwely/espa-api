@@ -20,18 +20,20 @@ class AdministrationProvider(AdminProviderInterfaceV0):
     def products(self, query=None, resubmit=None):
         pass
 
-    def update_configuration(self, key=None, value=None, delete=False):
+    def access_configuration(self, key=None, value=None, delete=False):
         if not key:
             return self.config.configuration_keys
         elif not delete and not value:
             return self.config.get(key)
         elif value and not delete:
             return self.config.put(key, value)
-        elif delete:
+        elif delete and key:
             return self.config.delete(key)
 
-    def restore_configuration(self, filepath, clear=False):
-        self.config.load(filepath, clear=clear)
+    # def restore_configuration(self, filepath, clear=False):
+    def restore_configuration(self, filepath):
+        # self.config.load(filepath, clear=clear)
+        self.config.load(filepath)
 
     def backup_configuration(self, path=None):
         return self.config.dump(path)
