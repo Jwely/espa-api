@@ -1,6 +1,7 @@
 import unittest
 
 from api.external.nlaps import products_are_nlaps
+from api.external import onlinecache
 
 
 class TestNLAPS(unittest.TestCase):
@@ -28,3 +29,16 @@ class TestNLAPS(unittest.TestCase):
         for prod in nlaps_prods:
             self.assertTrue(prod in self.nlaps)
             self.assertTrue(prod not in self.non_nlaps)
+
+
+class TestOnlineCache(unittest.TestCase):
+    """
+    Tests for dealing with the distribution cache
+    """
+    def setUp(self):
+        self.cache = onlinecache.OnlineCache()
+
+    def test_onlinecache(self):
+        results = self.cache.list()
+
+        self.assertTrue(results)
