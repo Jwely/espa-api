@@ -150,8 +150,7 @@ class OrderingProvider(ProviderInterfaceV0):
         :param user: user information associated with the order
         :return: orderid to be used for tracking
         """
-        print "****** api new_order", new_order
-        note = new_order.pop('note')
+        note = new_order.pop('note') if 'note' in new_order.keys() else None
         order_dict = {}
         order_dict['orderid'] = Order.generate_order_id(user.email)
         order_dict['user_id'] = user.id
