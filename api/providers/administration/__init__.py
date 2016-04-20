@@ -9,7 +9,7 @@ class AdminProviderInterfaceV0(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def configuration(self, key=None, value=None, delete=False):
+    def access_configuration(self, key=None, value=None, delete=False):
         """
         View or update a configuration key
         Defaults to listing all configuration keys & values
@@ -17,6 +17,25 @@ class AdminProviderInterfaceV0(object):
         :param key: configuration key to look for
         :param value: new value for the key
         :param delete: remove key from configuration
+        """
+
+    @abc.abstractmethod
+    # def restore_configuration(self, filepath, clear=False):
+    def restore_configuration(self, filepath):
+        """
+        Update the configuration table from a file
+
+        :param filepath: path to sql file
+        :param clear: truncate the configuration table first
+        """
+
+    @abc.abstractmethod
+    def backup_configuration(self, path=None):
+        """
+        Create a backup of the current configuration table
+
+        :param path: path of the sql file to create
+        :return: Bool
         """
 
     @abc.abstractmethod

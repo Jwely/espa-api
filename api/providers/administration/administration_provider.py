@@ -1,12 +1,14 @@
 import copy
 
 from api.util.dbconnect import db_instance
+from api.util.sshcmd import RemoteHost
 from api.providers.administration import AdminProviderInterfaceV0, AdministrationProviderException
-from api.providers.configuration.configuration_provider import ConfigurationProvider as cp
+from api.providers.configuration.configuration_provider import ConfigurationProvider
+from api.external.onlinecache import OnlineCache
 
 
 class AdministrationProvider(AdminProviderInterfaceV0):
-    config = cp()
+    config = ConfigurationProvider()
     db = db_instance()
 
     def orders(self, query=None, cancel=False):
@@ -18,18 +20,47 @@ class AdministrationProvider(AdminProviderInterfaceV0):
     def products(self, query=None, resubmit=None):
         pass
 
-    def configuration(self, key=None, value=None, delete=False):
+    def access_configuration(self, key=None, value=None, delete=False):
         if not key:
             return self.config.configuration_keys
         elif not delete and not value:
             return self.config.get(key)
         elif value and not delete:
             return self.config.put(key, value)
-        elif value and delete:
+        elif delete and key:
             return self.config.delete(key)
 
+    # def restore_configuration(self, filepath, clear=False):
+    def restore_configuration(self, filepath):
+        # self.config.load(filepath, clear=clear)
+        self.config.load(filepath)
+
+    def backup_configuration(self, path=None):
+        return self.config.dump(path)
+
     def onlinecache(self, list_orders=False, orderid=None, filename=None, delete=False):
-        pass
+        if delete and orderid and filename:
+            return OnlineCache().delete(orderid, filename)
+        elif delete and orderid:
+            return OnlineCache().delete(orderid)
+        elif list_orders:
+            return OnlineCache().list()
+        elif orderid:
+            return OnlineCache().list(orderid)
+        else:
+            return OnlineCache().capacity()
 
     def jobs(self, jobid=None, stop=False):
-        pass
+        params = ('hadoop.master',
+                  'landsatds.username',
+                  'landsatds.password')
+
+        vals = self.config.get(params)
+
+        remote = RemoteHost(host=vals[0], user=vals[1], pw=vals[2])
+
+        command = 'some bash script command'
+
+        resp = remote.execute(command)
+
+        return resp
