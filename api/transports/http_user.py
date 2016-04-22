@@ -112,6 +112,8 @@ class ListOrders(Resource):
                 return espa.fetch_user_orders_ext(str(email), filters)
             else:
                 return espa.fetch_user_orders_ext(auth.username(), filters)
+        elif 'feed' in request.url:
+            return espa.fetch_user_orders_feed(email)
         else:
             if email:
                 return espa.fetch_user_orders(str(email))

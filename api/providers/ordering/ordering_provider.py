@@ -60,6 +60,9 @@ class OrderingProvider(ProviderInterfaceV0):
         return pub_prods
 
     def fetch_user_orders(self, uid, filters={}):
+        # deal with unicode uid
+        if isinstance(uid, basestring):
+            uid = str(uid)
         id_type = 'email' if validate_email(uid) else 'username'
         order_list = []
         out_dict = {}
@@ -104,7 +107,7 @@ class OrderingProvider(ProviderInterfaceV0):
     def fetch_user_orders_ext(self, uid, filters={}):
         orders = self.fetch_user_orders(uid, filters=filters)
         if 'orders' not in orders.keys():
-            return {'msg': 'sorry, there are no orders for user {0}'.format(uid)}
+            return orders
         orders_d = orders['orders']
         output = []
         for orderid in orders_d:
@@ -116,6 +119,27 @@ class OrderingProvider(ProviderInterfaceV0):
                      'order_status': order.status, 'order_note': order.note}
             output.append(out_d)
         return output
+
+    def fetch_user_orders_feed(self, email):
+        orders = self.fetch_user_orders(email)
+        if 'orders' not in orders.keys():
+            return orders
+
+        outd = {}
+        for orderid in orders['orders']:
+            order = Order.where("orderid = '{0}'".format(orderid))[0]
+            scenes = order.scenes(["status = 'complete'"])
+            if scenes:
+                outd[order.orderid] = {'orderdate': str(order.order_date)}
+                scene_list = []
+                for scene in scenes:
+                    scene_list.append({'name': scene.name,
+                                       'url': scene.product_dload_url,
+                                       'status': scene.status})
+                outd[order.orderid]['scenes'] = scene_list
+
+        return outd
+
 
     def fetch_order(self, ordernum):
         sql = "select * from ordering_order where orderid = %s;"

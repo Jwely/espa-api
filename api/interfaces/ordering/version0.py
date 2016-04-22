@@ -120,7 +120,20 @@ class API(object):
 
         return response
 
+    def fetch_user_orders_feed(self, email):
+        """
+        returns order and scene details for a user formatted
+        for an rss feed
+        :param email:
+        :return: dict
+        """
+        try:
+            response = self.ordering.fetch_user_orders_feed(email)
+        except:
+            logger.debug("ERR version0 fetch_user_orders_feed email: {0}\nexception: {1}".format(email, traceback.format_exc()))
+            response = default_error_message
 
+        return response
 
     def fetch_order(self, ordernum):
         """ Returns details of a submitted order

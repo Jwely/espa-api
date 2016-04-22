@@ -52,7 +52,8 @@ transport_api.add_resource(ListOrders,
                            '/api/v0/list-orders/<email>',
                            '/api/v0/list-orders-ext',
                            '/api/v0/list-orders-ext/',
-                           '/api/v0/list-orders-ext/<email>')
+                           '/api/v0/list-orders-ext/<email>',
+                           '/api/v0/list-orders-feed/<email>')
 
 transport_api.add_resource(Ordering,
                            '/api/v0/order',
