@@ -2,7 +2,7 @@ import abc
 
 import memcache
 
-class CachingInterfaceV0(object):
+class CachingProviderInterfaceV0(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
@@ -24,8 +24,3 @@ class CachingInterfaceV0(object):
         :param expirey: time in seconds an object will live in the cache
         :return: True if successful, else False
         """
-
-
-class CachingProvider(CachingInterfaceV0, memcache.Client):
-    def __init__(self, server, *args, **kwargs):
-        super(CachingProvider, self).__init__(server, *args, **kwargs)

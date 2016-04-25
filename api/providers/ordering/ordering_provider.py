@@ -6,12 +6,12 @@ from api.util.dbconnect import db_instance, DBConnectException
 from validate_email import validate_email
 from api.providers.ordering import ProviderInterfaceV0
 from api.providers.configuration.configuration_provider import ConfigurationProvider
+from api.providers.caching.caching_provider import CachingProvider
 
 import yaml
 import copy
-import memcache
 
-cache = memcache.Client(['127.0.0.1:11211'], debug=0)
+cache = CachingProvider()
 
 
 class OrderingProviderException(Exception):
@@ -125,18 +125,22 @@ class OrderingProvider(ProviderInterfaceV0):
         if 'orders' not in orders.keys():
             return orders
 
-        outd = {}
-        for orderid in orders['orders']:
-            order = Order.where("orderid = '{0}'".format(orderid))[0]
-            scenes = order.scenes(["status = 'complete'"])
-            if scenes:
-                outd[order.orderid] = {'orderdate': str(order.order_date)}
-                scene_list = []
-                for scene in scenes:
-                    scene_list.append({'name': scene.name,
-                                       'url': scene.product_dload_url,
-                                       'status': scene.status})
-                outd[order.orderid]['scenes'] = scene_list
+        cache_key = "{0}_feed".format(email)
+        outd = cache.get(cache_key) or {}
+
+        if not outd:
+            for orderid in orders['orders']:
+                order = Order.where("orderid = '{0}'".format(orderid))[0]
+                scenes = order.scenes(["status = 'complete'"])
+                if scenes:
+                    outd[order.orderid] = {'orderdate': str(order.order_date)}
+                    scene_list = []
+                    for scene in scenes:
+                        scene_list.append({'name': scene.name,
+                                           'url': scene.product_dload_url,
+                                           'status': scene.status})
+                    outd[order.orderid]['scenes'] = scene_list
+            cache.set(cache_key, outd)
 
         return outd
 

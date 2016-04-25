@@ -4,13 +4,13 @@ from api.domain.order import Order, OptionsConversion
 from api.providers.configuration.configuration_provider import ConfigurationProvider
 from api.util.dbconnect import DBConnectException, db_instance
 from api.providers.production import ProductionProviderInterfaceV0
+from api.providers.caching.caching_provider import CachingProvider
 from api.external import lpdaac, lta, onlinecache, nlaps
 from api.system import errors
 from api.notification import emails
 from api.domain.user import User
 
 import copy
-import memcache
 import datetime
 import urllib
 
@@ -19,7 +19,7 @@ from cStringIO import StringIO
 from api.system.logger import ilogger as logger
 
 config = ConfigurationProvider()
-cache = memcache.Client(['127.0.0.1:11211'], debug=0)
+cache = CachingProvider()
 
 class ProductionProviderException(Exception):
     pass
