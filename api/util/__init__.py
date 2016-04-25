@@ -13,7 +13,8 @@ def get_cfg(cfgfile=".cfgnfo"):
     :return: dict
     """
     if cfgfile == ".cfgnfo":
-        cfg_path = os.path.join(os.path.expanduser('~/.usgs'), cfgfile)
+        cfg_path = os.path.join(os.environ['ESPA_CONFIG_PATH'], '.usgs', cfgfile)
+        # cfg_path = os.path.join(os.path.expanduser('~/.usgs'), cfgfile)
     else:
         cfg_path = cfgfile
 
