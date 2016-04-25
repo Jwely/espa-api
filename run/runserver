@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source venv_api/bin/activate
+source bin/activate
 
 uwsgi --ini api-dev-uwsgi.ini --catch-exceptions
 
