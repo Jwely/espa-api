@@ -4,60 +4,73 @@ cache '''
 import re
 import os
 
-from api.util import sshcmd
 from api.providers.configuration.configuration_provider import ConfigurationProvider
+from api.util import sshcmd
 from api.system.logger import ilogger as logger
 
-config = ConfigurationProvider()
 
 class OnlineCacheException(Exception):
     """ General exception raised from the OnlineCache """
     pass
 
+
 class OnlineCache(object):
     """ Client code to interact with the LSRD online cache """
 
-    __default_order_path = '/data2/science_lsrd/LSRD/orders'
+    config = ConfigurationProvider()
+
     __order_path_key = 'online_cache_orders_dir'
+    __host_key = 'landsatds.host'
+    __user_key = 'landsatds.username'
+    __pw_key = 'landsatds.password'
 
-    def __init__(self, host=None, user=None, pw=None):
+    def __init__(self):
+        self.orderpath = self.config.get(self.__order_path_key)
 
-        if host is None:
-            host = config.get('landsatds.host')
-        if user is None:
-            user = config.get('landsatds.username')
-        if pw is None:
-            pw = config.get('landsatds.password')
+        if not self.orderpath:
+            msg = '{} not defined in configurations'.format(self.__order_path_key)
+            logger.debug(msg)
+            raise OnlineCacheException(msg)
 
-        self.client = sshcmd.RemoteHost(host, user, pw, debug=False)
+        host, user, pw = self.config.get([self.__host_key,
+                                          self.__user_key,
+                                          self.__pw_key])
+
+        self.client = sshcmd.RemoteHost(host, user, pw)
 
         try:
-            self.orderpath = config.get(self.__order_path_key)
-        except:
-            logger.info('{0} not defined in configurations, setting objects orderpath to {1}'
-                .format(self.__order_path_key, self.__default_order_path))
-
-            self.orderpath = self.__default_order_path
+            self.client.execute('ls')
+        except Exception as e:
+            logger.debug('No connection to OnlineCache host: {}'.format(e))
+            raise OnlineCacheException(e)
 
     def delete(self, orderid, filename=None):
-        """ Removes an order from physical online cache disk """
+        """
+        Removes an order from physical online cache disk
 
-        self.check_orderid(orderid)
-
+        :param filename: file to delete inside of an order
+        :param orderid: associated order to delete
+        """
         if filename:
             path = os.path.join(self.orderpath, orderid, filename)
         else:
             path = os.path.join(self.orderpath, orderid)
 
         # this should be the dir where the order is held
-        logger.info('Deleting {0} from online cache'.format(path))
+        logger.info('Deleting {} from online cache'.format(path))
 
         self.execute_command('sudo chattr -fR -i {0};rm -rf {0}'.format(path))
 
-    def list(self, orderid=None):
-        if orderid:
-            self.check_orderid(orderid)
+        return True
 
+    def list(self, orderid=None):
+        """
+        List the orders currently stored on cache, or files listed
+        insed of a specific order
+
+        :param orderid: order name to look inside of
+        :return: list of folders/files
+        """
         if orderid:
             path = os.path.join(self.orderpath, orderid)
         else:
@@ -71,16 +84,28 @@ class OnlineCache(object):
         return ret
 
     def check_orderid(self, orderid):
+        """
+        Verify the format of the order id given
+
+        :param orderid: name to check
+        :return: True if the id passes, otherwise raise an exception
+        """
         espa_order = r'[A-Za-z0-9._%+-\\\']+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}-[0-9]{6,8}-[0-9]{3,6}'
         ee_order = r'[A-Za-z0-9._%+-\\\']+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}-[0-9]{13}'
 
         if not (re.match(espa_order, orderid) or re.match(ee_order, orderid)):
-            raise OnlineCacheException('invalid orderid parameter specified:{0}'.format(orderid))
+            raise OnlineCacheException('Invalid Order ID specified')
+
+        return True
 
     def capacity(self):
-        """ Returns the capacity of the online cache """
+        """
+        Returns the capacity of the online cache
 
-        cmd = 'df -mhP {0}'.format(self.orderpath)
+        :return: dict
+        """
+
+        cmd = 'df -mhP {}'.format(self.orderpath)
 
         result = self.execute_command(cmd)
 
@@ -96,22 +121,29 @@ class OnlineCache(object):
         return results
 
     def execute_command(self, cmd):
+        """
+        Execute the given command on the cache
+
+        :param cmd: cmd string to execute
+        :return: results of the command
+        """
         try:
             result = self.client.execute(cmd)
         except Exception, exception:
+            logger.debug('Error executing command: {} '
+                         'Raised exception: {}'.format(cmd, exception))
             raise OnlineCacheException(exception)
 
-        if result['stderr'] is not None and len(result['stderr']) > 0:
-            raise OnlineCacheException('Error executing command: {}'
-                                       'stderr returned: {}'
-                                       .format(cmd, result['stderr']))
+        if result['stderr']:
+            logger.debug('Error executing command: {} '
+                         'stderror returned: {}'.format(cmd, result['stderr']))
 
-        logger.debug('call to {0} returned {1}'.format(cmd, result['stdout']))
+            raise OnlineCacheException(result['stderror'])
 
+        logger.info('call to {} returned {}'.format(cmd, result))
 
         return result
 
-# Below here should be considered to be the public interface for this module
 
 def delete(orderid):
     return OnlineCache().delete(orderid)

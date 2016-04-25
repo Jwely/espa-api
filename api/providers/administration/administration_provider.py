@@ -5,6 +5,7 @@ from api.util.sshcmd import RemoteHost
 from api.providers.administration import AdminProviderInterfaceV0, AdministrationProviderException
 from api.providers.configuration.configuration_provider import ConfigurationProvider
 from api.external.onlinecache import OnlineCache
+from api.external.hadoop import HadoopHandler
 
 
 class AdministrationProvider(AdminProviderInterfaceV0):
@@ -51,16 +52,9 @@ class AdministrationProvider(AdminProviderInterfaceV0):
             return OnlineCache().capacity()
 
     def jobs(self, jobid=None, stop=False):
-        params = ('hadoop.master',
-                  'landsatds.username',
-                  'landsatds.password')
-
-        vals = self.config.get(params)
-
-        remote = RemoteHost(host=vals[0], user=vals[1], pw=vals[2])
-
-        command = 'some bash script command'
-
-        resp = remote.execute(command)
+        if not jobid:
+            resp = HadoopHandler().list_jobs()
+        else:
+            resp = HadoopHandler().kill_job(jobid)
 
         return resp

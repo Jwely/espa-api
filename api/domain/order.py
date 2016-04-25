@@ -687,7 +687,7 @@ class OptionsConversion(object):
             try:
                 short = sensor.instance(scene).shortname
             except:  # Invalid scene identifier
-                continue
+                short = 'invalid'
 
             if short in ret:
                 ret[short]['inputs'].append(scene)

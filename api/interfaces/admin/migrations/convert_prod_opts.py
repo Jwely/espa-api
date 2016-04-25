@@ -15,17 +15,15 @@ class ConvertProductOptions(object):
     Ideally this should only need to be run once, during the
     change over
     """
-    # db = db_instance()
-    cfg = os.path.join(os.path.expanduser('~/.usgs'), '.cfgnfo_dupe')
-    db = DBConnect(**api_cfg(section='db', cfgfile=cfg))
+    # cfg = os.path.join(os.path.expanduser('~/.usgs'), '.cfgnfo_dupe')
+    # print api_cfg(section='db', cfgfile=cfg)
+    # db = DBConnect(**api_cfg(section='db', cfgfile=cfg))
+    db = db_instance()
 
     def convert(self):
         current_orders = self._retrieve_orders()
 
         for co in current_orders:
-            # Already exists
-            if co['product_opts']:
-                continue
             if not co['product_options']:
                 co['product_options'] = '{"include_sr": true}'
 
