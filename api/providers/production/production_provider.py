@@ -348,10 +348,11 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             ptypes = copy.deepcopy(product_types)
 
             # product_types comes in as a list from the transport layer
-            if isinstance(ptypes, str):
-                ptypes = ptypes.split(",")
+            if isinstance(ptypes, basestring):
+                # ptypes is unicode values of either: u"['plot']" or u"['landsat', 'modis']"
+                ptypes = eval(ptypes)
 
-            type_str = ','.join('\'{0}\''.format(x) for x in product_types)
+            type_str = ','.join('\'{0}\''.format(x) for x in ptypes)
             buff.write('AND s.sensor_type IN ({0}) '.format(type_str))
 
         if for_user is not None:
