@@ -533,14 +533,20 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                 order_dict['order_type'] = 'level2_ondemand'
                 order_dict['status'] = 'ordered'
                 order_dict['note'] = 'EarthExplorer order id: %s' % eeorder
-                order_dict['product_opts'] = Order.get_default_ee_options(
-                    orders[eeorder, email_addr, contactid])
-                order_dict['product_options'] = ''
                 order_dict['ee_order_id'] = eeorder
                 order_dict['order_source'] = 'ee'
                 order_dict['order_date'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
                 order_dict['priority'] = 'normal'
                 order_dict['email'] = user.email
+
+                # This is a hack and needs to be handled better
+                scenes = []
+                for s in orders[eeorder, email_addr, contactid]:
+                    scenes.append(s['sceneid'])
+                prod_opts = OptionsConversion.convert(old={'include_sr': True}, scenes=scenes)
+
+                order_dict['prod_opts'] = prod_opts
+
                 order = Order.create(order_dict)
 
             for s in orders[eeorder, email_addr, contactid]:
