@@ -14,7 +14,6 @@ def get_cfg(cfgfile=".cfgnfo"):
     """
     if cfgfile == ".cfgnfo":
         cfg_path = os.path.join(os.environ['ESPA_CONFIG_PATH'], '.usgs', cfgfile)
-        # cfg_path = os.path.join(os.path.expanduser('~/.usgs'), cfgfile)
     else:
         cfg_path = cfgfile
 
@@ -65,7 +64,7 @@ def backup_cron():
     Make a backup of the current user's crontab
     to /home/~/backups/
     """
-    bk_path = os.path.join(os.path.expanduser('~'), 'backups')
+    bk_path = os.path.join(os.environ['ESPA_CONFIG_PATH'], backups)
     if not os.path.exists(bk_path):
         os.makedirs(bk_path)
 
