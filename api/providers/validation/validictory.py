@@ -296,7 +296,11 @@ class BaseValidationSchema(object):
                                                                'maximum': 180},
                                          'latitude_true_scale': {'type': 'number',
                                                                  'required': True,
-                                                                 'abs_rng': (60, 90)}}}}
+                                                                 'abs_rng': (60, 90)},
+                                         'false_easting': {'type': 'number',
+                                                             'required': True},
+                                         'false_northing': {'type': 'number',
+                                                            'required': True}}}}
 
     extents = {'north': {'type': 'number',
                          'required': True},
