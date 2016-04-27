@@ -96,7 +96,7 @@ class OrderingProvider(ProviderInterfaceV0):
                         params[key] = val
                         sql += " AND {0} {1} %({0})s ".format(key, op)
 
-                db.select(sql, params)
+                db.select(sql + ' order by order_date desc', params)
 
                 if db:
                     order_list = [item[0] for item in db]
