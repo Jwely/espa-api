@@ -460,7 +460,9 @@ class OptionsConversion(object):
                ('datum', 'datum', None)]
 
     ps_map = [('longitude_pole', 'longitudinal_pole', None),
-              ('latitude_true_scale', 'latitude_true_scale', None)]
+              ('latitude_true_scale', 'latitude_true_scale', None),
+              ('false_easting', 'false_easting', None),
+              ('false_northing', 'false_northing', None)]
 
     utm_map = [('utm_zone', 'zone', None),
                ('utm_north_south', 'zone_ns', None)]
