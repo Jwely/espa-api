@@ -147,7 +147,7 @@ class OrderValidatorV0(validictory.SchemaValidator):
         value = x.get(fieldname)
 
         if isinstance(value, (int, long, float, Decimal)):
-            if not val_range[0] < abs(value) < val_range[1]:
+            if not val_range[0] <= abs(value) <= val_range[1]:
                 self._error('Absolute value must fall between {} and {}'.format(val_range[0], val_range[1]),
                             value, fieldname, path=path)
 
