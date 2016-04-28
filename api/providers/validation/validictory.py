@@ -147,7 +147,7 @@ class OrderValidatorV0(validictory.SchemaValidator):
         value = x.get(fieldname)
 
         if isinstance(value, (int, long, float, Decimal)):
-            if not val_range[0] < abs(value) < val_range[1]:
+            if not val_range[0] <= abs(value) <= val_range[1]:
                 self._error('Absolute value must fall between {} and {}'.format(val_range[0], val_range[1]),
                             value, fieldname, path=path)
 
@@ -296,7 +296,11 @@ class BaseValidationSchema(object):
                                                                'maximum': 180},
                                          'latitude_true_scale': {'type': 'number',
                                                                  'required': True,
-                                                                 'abs_rng': (60, 90)}}}}
+                                                                 'abs_rng': (60, 90)},
+                                         'false_easting': {'type': 'number',
+                                                             'required': True},
+                                         'false_northing': {'type': 'number',
+                                                            'required': True}}}}
 
     extents = {'north': {'type': 'number',
                          'required': True},
@@ -349,12 +353,14 @@ class BaseValidationSchema(object):
                                                         'required': True,
                                                         'ItemCount': 'inputs',
                                                         'uniqueItems': True,
+                                                        'minItems': 1,
                                                         'items': {'type': 'string',
                                                                   'pattern': _sensor_reg[key][0]}},
                                              'products': {'type': 'array',
                                                           'uniqueItems': True,
                                                           'required': True,
                                                           'role_restricted': True,
+                                                          'minItems': 1,
                                                           'items': {'type': 'string',
                                                                     'enum': sn.instance(
                                                                             _sensor_reg[key][2]).products}}}}
@@ -421,11 +427,11 @@ class ValidationProvider(ValidationInterfaceV0):
                 if isinstance(prod, sn.Landsat):
                     order[key]['inputs'] = [s.upper() for s in order[key]['inputs']]
                 elif isinstance(prod, sn.Modis):
-                    order[key]['inputs'] = ('.'.join([p[0].upper(),
+                    order[key]['inputs'] = ['.'.join([p[0].upper(),
                                                       p[1].upper(),
                                                       p[2].lower(),
                                                       p[3],
-                                                      p[4]]) for p in [s.split('.') for s in order[key]['inputs']])
+                                                      p[4]]) for p in [s.split('.') for s in order[key]['inputs']]]
 
                 if stats:
                     if 'stats' not in order[key]['products']:
