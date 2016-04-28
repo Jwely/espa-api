@@ -5,6 +5,6 @@ Centos: postgresql-devel
 Ubuntu: libpq-dev
 
 # UWSGI
-Centos: uwsgi, uwsgi-plugin-python
+Centos: uwsgi, uwsgi-plugin-python, python-devel, libffi, libffi-devel
 
 

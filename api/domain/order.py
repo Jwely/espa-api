@@ -73,6 +73,11 @@ class Order(object):
         opts = params['product_opts']
         params['product_opts'] = json.dumps(params['product_opts'])
 
+	# needed for orders coming in from EE. Need to drop use
+	# of 'product_options' entirely
+	if 'product_options' not in params.keys():
+		params['product_options'] = ''
+
         sql = ("INSERT INTO ordering_order (orderid, user_id, order_type, status,"
                "note, product_opts, ee_order_id, order_source, order_date, "
                "priority, email, product_options)"
@@ -460,7 +465,9 @@ class OptionsConversion(object):
                ('datum', 'datum', None)]
 
     ps_map = [('longitude_pole', 'longitudinal_pole', None),
-              ('latitude_true_scale', 'latitude_true_scale', None)]
+              ('latitude_true_scale', 'latitude_true_scale', None),
+              ('false_easting', 'false_easting', None),
+              ('false_northing', 'false_northing', None)]
 
     utm_map = [('utm_zone', 'zone', None),
                ('utm_north_south', 'zone_ns', None)]
