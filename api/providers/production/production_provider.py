@@ -708,12 +708,15 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         logger.info("Retrieving contact ids for submitted landsat products")
 
         scenes = Scene.where("status = 'submitted' AND sensor_type = 'landsat'")
-        user_ids = [s.order_attr('user_id') for s in scenes]
-        users = User.where("id in {0}".format(tuple(user_ids)))
-        contact_ids = set([user.contactid for user in users])
-
-        logger.info("Found contact ids:{0}".format(contact_ids))
-        return contact_ids
+        if scenes:
+	        user_ids = [s.order_attr('user_id') for s in scenes]
+	        users = User.where("id in {0}".format(tuple(user_ids)))
+	        contact_ids = set([user.contactid for user in users])
+	
+	        logger.info("Found contact ids:{0}".format(contact_ids))
+	        return contact_ids
+        else:
+            return []
 
     def update_landsat_product_status(self, contact_id):
         ''' updates the product status for all landsat products for the
@@ -723,10 +726,12 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         user = User.where("contactid = '{0}'".format(contact_id))[0]
         product_list = Order.get_user_scenes(user.id, ["sensor_type = 'landsat' AND status = 'submitted'"])
 
+        prod_name_list = [p.name for p in product_list]
+
         logger.info("Ordering {0} scenes for contact:{1}"
                      .format(len(product_list), contact_id))
 
-        results = lta.order_scenes(product_list, contact_id)
+        results = lta.order_scenes(prod_name_list, contact_id)
 
         logger.info("Checking ordering results for contact:{0}"
                      .format(contact_id))

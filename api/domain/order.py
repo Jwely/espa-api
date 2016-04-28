@@ -167,7 +167,7 @@ class Order(object):
         return returnlist
 
     @classmethod
-    def get_user_scenes(cls, user_id, params=[]):
+    def get_user_scenes(cls, user_id, params=None):
         scene_list = []
         user_orders = Order.where("user_id = {0}".format(user_id))
         for order in user_orders:
@@ -438,9 +438,12 @@ class Order(object):
         return True
 
     def scenes(self, conditions=None):
-        conditions = conditions or []
-        conditions.append("order_id = {0}".format(self.id))
-        sql = " AND ".join(conditions)
+        _conds = ["order_id = {0}".format(self.id)]
+        if conditions:
+          for i in conditions:
+                _conds.append(i)
+
+        sql = " AND ".join(_conds)
         slist = Scene.where(sql)
         return slist
 
