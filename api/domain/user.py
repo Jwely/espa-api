@@ -102,6 +102,8 @@ class User(object):
     @classmethod
     def find_or_create_user(cls, username, email, first_name, last_name, contactid):
         user_id = None
+        # username comes in not as a str from EE, which DBConnect takes issue with
+        username = str(username)
         nownow = time.strftime('%Y-%m-%d %H:%M:%S')
         insert_stmt = "insert into auth_user (username, " \
                       "email, first_name, last_name, password, " \

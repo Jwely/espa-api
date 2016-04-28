@@ -517,7 +517,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                     local_cache[contactid] = username
 
                 # Find or create the user
-                db_id = User.find_or_create_user(username, email_addr, '', '', contactid)
+                db_id = User.find_or_create_user(username, email_addr, 'from', 'earthexplorer', contactid)
                 user = User.where('id = {}'.format(db_id))[0]
 
                 # the contactid attr has been moved to the auth_user table
@@ -546,8 +546,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                     scenes.append(s['sceneid'])
                 prod_opts = OptionsConversion.convert(old={'include_sr': True}, scenes=scenes)
 
-                order_dict['prod_opts'] = prod_opts
-
+                order_dict['product_opts'] = prod_opts
                 order = Order.create(order_dict)
 
             for s in orders[eeorder, email_addr, contactid]:
@@ -555,6 +554,10 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                 #duplicate key update collisions
 
                 scene = None
+
+		if isinstance(order, list):
+			order = order[0]
+
                 try:
                     scene_params = "order_id = {0} AND ee_unit_id = {1}".format(order.id, s['unit_num'])
                     scene = Scene.where(scene_params)[0]

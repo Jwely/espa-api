@@ -20,6 +20,9 @@ class ProductionOperations(Resource):
             # request.args is an ImmutableMultiDict
             params = request.args.to_dict(flat=True)
             return espa.fetch_production_products(params)
+        elif 'handle-orders' in request.url:
+            return espa.handle_orders()
+
 
     # Probably best to split these up into their own classes
     def post(self, action=None):
@@ -27,9 +30,7 @@ class ProductionOperations(Resource):
         # app.post(url, data=json.dumps(data_dict), headers=self.headers)
         #params = request.form.to_dict(flat=True)
         params = request.get_json(force=True)
-        if 'handle-orders' in request.url:
-            return espa.handle_orders()
-        elif 'queue-products' in request.url:
+        if 'queue-products' in request.url:
             return espa.queue_products(**params)
         elif action:
             return espa.update_product_details(action, params)

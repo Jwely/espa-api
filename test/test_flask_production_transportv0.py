@@ -152,8 +152,9 @@ class ProductionTransportTestCase(unittest.TestCase):
             production_provider.respond_true)
     def test_post_production_api_handle_orders(self):
         url = "/production-api/v0/handle-orders"
-        response = self.app.post(url, data=json.dumps({}), headers=self.headers)
+        response = self.app.get(url, data=json.dumps({}), headers=self.headers)
         response_data = json.loads(response.get_data())
+        print "**** response_data: ", response_data
         assert response_data is True
 
     @patch('api.providers.production.production_provider.ProductionProvider.queue_products',

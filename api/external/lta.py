@@ -360,7 +360,7 @@ class OrderWrapperServiceClient(LTAService):
         </orderStatus>
         '''
 
-        logger.debug('Ordering scenes SOAP response:{0}'.format(response))
+        logger.warn('Ordering scenes SOAP response:{0}'.format(response))
 
         # since the xml is namespaced there is a namespace prefix for every
         # element we are looking for.  Build those values to make the code
