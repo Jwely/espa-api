@@ -107,7 +107,9 @@ class API(object):
         try:
             response = self.production.queue_products(order_name_tuple_list, processing_location, job_name)
         except:
-            logger.debug("ERR version0 queue_products params: {0}\ntrace: {1}".format(params, traceback.format_exc()))
+            logger.debug("ERR version0 queue_products"
+                         " params: {0}\ntrace: {1}".format((order_name_tuple_list, processing_location, job_name),
+                                                           traceback.format_exc()))
             response = default_error_message
 
         return response
