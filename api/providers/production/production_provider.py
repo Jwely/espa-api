@@ -21,8 +21,10 @@ from api.system.logger import ilogger as logger
 config = ConfigurationProvider()
 cache = CachingProvider()
 
+
 class ProductionProviderException(Exception):
     pass
+
 
 class ProductionProvider(ProductionProviderInterfaceV0):
 
@@ -47,7 +49,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         # now use the orders dict we built to update the db
         for order in orders:
             products = orders[order]
-
+            products = [str(p) for p in products]
             product_tup = tuple(products)
             order = Order.where("orderid = '{0}'".format(order))[0]
             scene_filters = ["name in {0}".format(product_tup)]
@@ -554,9 +556,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                 #duplicate key update collisions
 
                 scene = None
-
-		if isinstance(order, list):
-			order = order[0]
+                order = order[0] if isinstance(order, list) else order
 
                 try:
                     scene_params = "order_id = {0} AND ee_unit_id = {1}".format(order.id, s['unit_num'])
@@ -643,7 +643,6 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                                                                 msg, status)
                     logger.error(log_msg)
 
-
     def handle_retry_products(self):
         ''' handles all products in retry status '''
         now = datetime.datetime.now()
@@ -709,12 +708,11 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         scenes = Scene.where("status = 'submitted' AND sensor_type = 'landsat'")
         if scenes:
-	        user_ids = [s.order_attr('user_id') for s in scenes]
-	        users = User.where("id in {0}".format(tuple(user_ids)))
-	        contact_ids = set([user.contactid for user in users])
-	
-	        logger.info("Found contact ids:{0}".format(contact_ids))
-	        return contact_ids
+            user_ids = [s.order_attr('user_id') for s in scenes]
+            users = User.where("id in {0}".format(tuple(user_ids)))
+            contact_ids = set([user.contactid for user in users])
+            logger.info("Found contact ids:{0}".format(contact_ids))
+            return contact_ids
         else:
             return []
 
@@ -757,7 +755,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
     def mark_nlaps_unavailable(self):
         ''' inner function to support marking nlaps products unavailable '''
         logger.info("Looking for submitted landsat products, In mark_nlaps_unavailable")
-        #First things first... filter out all the nlaps scenes
+        # First things first... filter out all the nlaps scenes
         filter = "status = 'submitted' AND sensor_type = 'landsat'"
         landsat_products = Scene.where(filter)
         landsat_submitted = [l.name for l in landsat_products]
