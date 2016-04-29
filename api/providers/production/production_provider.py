@@ -48,19 +48,16 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         # now use the orders dict we built to update the db
         for order in orders:
-            products = orders[order]
-            products = [str(p) for p in products]
-            product_tup = tuple(products)
+            product_tup = tuple(str(p) for p in orders[order])
             order = Order.where("orderid = '{0}'".format(order))[0]
-            scene_filters = ["name in {0}".format(product_tup)]
-            scene_filters.append("order_id = {0}".format(order.id))
-            scenes = Scene.where(scene_filters)
+            name_filter = "name in {0}".format(product_tup).replace(",)", ")")
+            scenes = Scene.where([name_filter, "order_id = {0}".format(order.id)])
 
             updates = {"status": "queued",
-                        "processing_location": processing_location,
-                        "log_file_contents": "''",
-                        "note": "''",
-                        "job_name": job_name}
+                       "processing_location": processing_location,
+                       "log_file_contents": "''",
+                       "note": "''",
+                       "job_name": job_name}
 
             Scene.bulk_update([s.id for s in scenes], updates)
 
