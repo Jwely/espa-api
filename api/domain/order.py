@@ -69,14 +69,13 @@ class Order(object):
                       'product_options': legacy, transitioning from json to jsonb}
         :return: order object
         """
-
         opts = params['product_opts']
         params['product_opts'] = json.dumps(params['product_opts'])
 
-	# needed for orders coming in from EE. Need to drop use
-	# of 'product_options' entirely
-	if 'product_options' not in params.keys():
-		params['product_options'] = ''
+        # needed for orders coming in from EE. Need to drop use
+        #  of 'product_options' entirely
+        if 'product_options' not in params.keys():
+            params['product_options'] = ''
 
         sql = ("INSERT INTO ordering_order (orderid, user_id, order_type, status,"
                "note, product_opts, ee_order_id, order_source, order_date, "
