@@ -161,7 +161,7 @@ class Emails(object):
             msg = 'order must be str, int or instance of Order'
             raise TypeError(msg)
 
-        email = order.user.email
+        email = order.user_email()
         url = self.__order_status_url(email)
 
         m = list()
