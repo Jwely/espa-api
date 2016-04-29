@@ -118,7 +118,7 @@ class Order(object):
                     scene_dict = {'name': s,
                                   'sensor_type': sensor_type,
                                   'order_id': order.id,
-                                  'status': 'ordered',
+                                  'status': 'submitted',
                                   'ee_unit_id': None}
 
                     bulk_ls.append(scene_dict)
