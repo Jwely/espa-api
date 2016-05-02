@@ -171,32 +171,18 @@ class Scene(object):
                     'product_dload_url', 'tram_order_id', 'completion_date', 'ee_unit_id',
                     'retry_limit', 'cksum_distro_location', 'product_distro_location')
         date_fields = ('retry_after', 'completion_date')
+        arg_list = []
         for idx, attr in enumerate(attr_tup):
-            # dont wrap integer types in quotes
-            # tram_order_id is varchar
-            if ("_id" in attr or "_limit" in attr or "_count" in attr) and "tram" not in attr:
-                sql_snip = "{0} = {1}, "
-                quote = False
-            else:
-                sql_snip = "{0} = '{1}', "
-                quote = True
-
-            # lets not insert 'None' into the db
+            sql_snip = "{0} = %s, "
             val = self.__getattribute__(attr)
-            if val is None:
-                # timestamp fields won't accept empty string
-                if attr in date_fields:
-                    sql_snip = "{0} = {1}, "
-                    val = 'null'
-                else:
-                    val = "" if quote else 'null'
 
             # strip the trailing comma 
             if idx == len(attr_tup) - 1:
                 sql_snip = sql_snip.replace(",","")
 
-            sql_snip = sql_snip.format(attr, val)
+            sql_snip = sql_snip.format(attr)
             sql_list.append(sql_snip)
+            arg_list.append(val)
 
         sql_list.append("WHERE id = {0};".format(self.id))
 
@@ -204,7 +190,7 @@ class Scene(object):
         logger.info("saving updates to scene {0}\n sql: {1}\n\n".format(self.name, sql))
         try:
             with db_instance() as db:
-                db.execute(sql)
+                db.execute(sql, arg_list)
                 db.commit()
                 return True
         except DBConnectException, e:
