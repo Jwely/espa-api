@@ -57,7 +57,7 @@ def verify_user(username, password):
 
 
 class Index(Resource):
-    decorators = [auth.login_required]
+    #decorators = [auth.login_required]
 
     def get(self):
         return 'Welcome to the ESPA API, please direct requests to /api'
