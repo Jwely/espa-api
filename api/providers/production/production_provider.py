@@ -478,167 +478,132 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                                 .format(item['orderid'], item['name']))
         return results
 
-    @staticmethod
-    def load_ee_orders():
-        ''' Loads all the available orders from lta into
+    def load_ee_orders(self):
+        """
+        Loads all the available orders from lta into
         our database and updates their status
-        '''
-
-        #check to make sure this operation is enabled.  Bail if not
-        enabled = config.get("system.load_ee_orders_enabled")
-        if enabled.lower() != 'true':
+        """
+        # Check to make sure this operation is enabled.  Bail if not
+        enabled = config.get('system.load_ee_orders_enabled')
+        if enabled.lower() == 'false':
             logger.info('system.load_ee_orders_enabled is disabled,'
                         'skipping load_ee_orders()')
             return
 
-        # This returns a dict that contains a list of dicts{}
-        # key:(order_num, email, contactid) = list({sceneid:, unit_num:})
         orders = lta.get_available_orders()
-        # print orders
 
-        # use this to cache calls to EE Registration Service username lookups
-        local_cache = {}
-
-        # Capture in our db
+        # {(order_num, email, contactid): [{sceneid: ,
+        #                                   unit_num:}]}
         for eeorder, email_addr, contactid in orders:
             # create the orderid based on the info from the eeorder
             order_id = Order.generate_ee_order_id(email_addr, eeorder)
+
             order = Order.where("orderid = '{0}'".format(order_id))
+            scene_info = orders[eeorder, email_addr, contactid]
+            if order:
+                # EE order already exists in the system
+                # update the associated scenes
+                self.update_ee_orders(scene_info, eeorder, order_id)
+                continue
 
-            if not order:  # order is an empty list
-                order = None
-                # retrieve the username from the EE registration service
-                # cache this call
-                if contactid in local_cache:
-                    username = local_cache[contactid]
-                else:
-                    username = lta.get_user_name(contactid)
-                    local_cache[contactid] = username
+            cache_key = '-'.join(['load_ee_orders', str(contactid)])
+            user = cache.get(cache_key)
 
+            if user is None:
+                username = lta.get_user_name(contactid)
                 # Find or create the user
-                db_id = User.find_or_create_user(username, email_addr, 'from', 'earthexplorer', contactid)
+                db_id = User.find_or_create_user(username, email_addr,
+                                                 'from', 'earthexplorer',
+                                                 contactid)
                 user = User.where('id = {}'.format(db_id))[0]
 
-                # the contactid attr has been moved to the auth_user table
                 if not user.contactid:
                     user.update('contactid', contactid)
 
-                # We have a user now.  Now build the new Order since it
-                # wasn't found.
-                # TODO: This code should be housed in the models module.
-                # TODO: This logic should not be visible at this level.
-                order_dict = {}
-                order_dict['orderid'] = order_id
-                order_dict['user_id'] = user.id
-                order_dict['order_type'] = 'level2_ondemand'
-                order_dict['status'] = 'ordered'
-                order_dict['note'] = 'EarthExplorer order id: %s' % eeorder
-                order_dict['ee_order_id'] = eeorder
-                order_dict['order_source'] = 'ee'
-                order_dict['order_date'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-                order_dict['priority'] = 'normal'
-                order_dict['email'] = user.email
+                cache.set(cache_key, user, 60)
 
-                # This is a hack and needs to be handled better
-                scenes = []
-                for s in orders[eeorder, email_addr, contactid]:
-                    scenes.append(s['sceneid'])
-                prod_opts = OptionsConversion.convert(old={'include_sr': True}, scenes=scenes)
+            # We have a user now.  Now build the new Order since it
+            # wasn't found
+            ts = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+            order_dict = {'orderid': order_id,
+                          'user_id': user.id,
+                          'order_type': 'level2_ondemand',
+                          'status': 'ordered',
+                          'note': 'EarthExplorer order id: {}'.format(eeorder),
+                          'ee_order_id': eeorder,
+                          'order_source': 'ee',
+                          'order_date': ts,
+                          'priority': 'normal',
+                          'email': user.email,
+                          'product_options': 'inlcude_sr: true',
+                          'product_opts': Order.get_default_ee_options(scene_info)}
 
-                order_dict['product_opts'] = prod_opts
-                order = Order.create(order_dict)
+            order = Order.create(order_dict)
+            self.load_ee_scenes(scene_info, order.id)
+            self.update_ee_orders(scene_info, eeorder, order.id)
 
-            for s in orders[eeorder, email_addr, contactid]:
-                #go look for the scene by ee_unit_id.  This will stop
-                #duplicate key update collisions
+            return order
 
-                scene = None
-                order = order[0] if isinstance(order, list) else order
+    @staticmethod
+    def load_ee_scenes(ee_scenes, order_id):
+        bulk_ls = []
+        for s in ee_scenes:
+            try:
+                product = sensor.instance(s['sceneid'])
 
-                try:
-                    scene_params = "order_id = {0} AND ee_unit_id = {1}".format(order.id, s['unit_num'])
-                    scene = Scene.where(scene_params)[0]
+                sensor_type = ''
+                if isinstance(product, sensor.Landsat):
+                    sensor_type = 'landsat'
+                elif isinstance(product, sensor.Modis):
+                    sensor_type = 'modis'
 
-                    if scene.status == 'complete':
+            except Exception:
+                log_msg = ('Received product via EE that '
+                           'is not implemented: {}'.format(s['sceneid']))
+                logger.debug(log_msg)
+                continue
 
-                        success, msg, status =\
-                            lta.update_order_status(eeorder, s['unit_num'], "C")
+            scene_dict = {'name': product.product_id,
+                          'sensor_type': sensor_type,
+                          'order_id': order_id,
+                          'status': 'ordered',
+                          'ee_unit_id': s['unit_num']}
 
-                        if not success:
-                            log_msg = ("Error updating lta for "
-                                       "[eeorder:%s ee_unit_num:%s "
-                                       "scene name:%s order:%s to 'C' status")
-                            log_msg = log_msg % (eeorder, s['unit_num'],
-                                                 scene.name, order.orderid)
+            bulk_ls.append(scene_dict)
 
-                            logger.error(log_msg)
+        Scene.create(tuple(bulk_ls))
 
-                            log_msg = ("Error detail: lta return message:%s "
-                                       "lta return status code:%s")
-                            log_msg = log_msg % (msg, status)
+    def update_ee_orders(self, ee_scenes, eeorder, order_id):
+        for s in ee_scenes:
+            scene_params = ('order_id = {0} AND ee_unit_id = {1}'
+                            .format(order_id, s['unit_num']))
+            scene = Scene.where(scene_params)[0]
 
-                            logger.error(log_msg)
+            if scene.status == 'complete':
+                status = 'C'
+            elif scene.status == 'unavailable':
+                status = 'R'
+            else:
+                status = 'I'
 
-                    elif scene.status == 'unavailable':
-                        success, msg, status =\
-                            lta.update_order_status(eeorder, s['unit_num'], "R")
+            self.update_lta_status(eeorder, s['unit_num'], status,
+                                   s['sceneid'], order_id)
 
-                        if not success:
-                            log_msg = ("Error updating lta for "
-                                       "[eeorder:%s ee_unit_num:%s "
-                                       "scene name:%s order:%s to 'R' status")
-                            log_msg = log_msg % (eeorder, s['unit_num'],
-                                                 scene.name, order.orderid)
+    @staticmethod
+    def update_lta_status(eeorder, unit_num, upd_status, sceneid, order_id):
+        success, msg, status = lta.update_order_status(eeorder,
+                                                       unit_num,
+                                                       upd_status)
 
-                            logger.error(log_msg)
+        if not success:
+            log_msg = ('Error updating lta for '
+                       '[eeorder:{} ee_unit_num:{} scene '
+                       'name:{} order:{} to {} status '
+                       'lta return message: {}'
+                       'lta return status code: {}')
 
-                            log_msg = ("Error detail: "
-                                       "lta return message:%s  lta return "
-                                       "status code:%s") % (msg, status)
-
-                            logger.error(log_msg)
-                except IndexError:  # Scene does not exist
-                    product = None
-                    try:
-                        product = sensor.instance(s['sceneid'])
-                    except Exception:
-                        log_msg = ("Received product via EE that "
-                                   "is not implemented: %s" % s['sceneid'])
-                        logger.debug(log_msg)
-                        continue
-                        # raise ProductionProviderException("Cant find sensor instance. {0}".format(log_msg))
-
-                    sensor_type = ""
-
-                    if isinstance(product, sensor.Landsat):
-                        sensor_type = 'landsat'
-                    elif isinstance(product, sensor.Modis):
-                        sensor_type = 'modis'
-
-                    scene_dict = {}
-                    scene_dict['name'] = product.product_id
-                    scene_dict['order_id'] = order.id
-                    scene_dict['status'] = 'submitted'
-                    scene_dict['sensor_type'] = sensor_type
-                    scene_dict['ee_unit_id'] = s['unit_num']
-                    # order_date isn't an column on the ordering_scene table
-                    # will leave commented out
-                    #scene_dict['order_date']= datetime.datetime.now()
-
-                    Scene.create(scene_dict)
-
-                # Update LTA
-                success, msg, status = lta.update_order_status(eeorder, s['unit_num'], "I")
-
-                if not success:
-                    log_msg = ("Error updating lta for "
-                               "[eeorder:%s ee_unit_num:%s scene "
-                               "name:%s order:%s to 'I' status "
-                               "lta return message: %s"
-                               "lta return status code: %s") % (eeorder, s['unit_num'],
-                                                                s['sceneid'], order.orderid,
-                                                                msg, status)
-                    logger.error(log_msg)
+            logger.error(log_msg.format(eeorder, unit_num, sceneid,
+                                        order_id, upd_status, msg, status))
 
     def handle_retry_products(self):
         ''' handles all products in retry status '''

@@ -70,7 +70,7 @@ class ProductionProviderInterfaceV0(object):
         return
 
     @abc.abstractmethod
-    def load_ee_orders():
+    def load_ee_orders(self):
         ''' Loads all the available orders from lta into
         our database and updates their status
         '''

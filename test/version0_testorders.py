@@ -19,7 +19,9 @@ good_test_projections = {'aea': {'standard_parallel_1': 29.5,
                                   'false_easting': 0,
                                   'false_northing': 0},
                          'ps': {'longitudinal_pole': 0,
-                                'latitude_true_scale': 75}}
+                                'latitude_true_scale': 75,
+                                'false_easting': 0,
+                                'false_northing': 0}}
 
 
 def build_base_order():
