@@ -492,8 +492,8 @@ class OptionsConversion(object):
                ('maxx', 'east', None),
                ('maxy', 'north', None)]
 
-    res_map = [('pixel_size', 'pixel_size', None),
-               ('pixel_size_units', 'pixel_size_units', None)]
+    resize_map = [('pixel_size', 'pixel_size', None),
+                  ('pixel_size_units', 'pixel_size_units', None)]
 
     prod_map = [('include_source_data', 'l1', True),
                 ('include_customized_source_data', 'l1', True),
@@ -518,8 +518,12 @@ class OptionsConversion(object):
                 ('include_lst', 'lst', True),
                 ('include_cfmask', 'cloud', True)]
 
-    keywords_map = [('resize', 'resize', res_map),
-                    ('resample_method', 'resampling_method', None),
+    resample_map = [('cc', 'cubic', None),
+                    ('nn', 'near', None),
+                    ('bil', 'bilinear', None)]
+
+    keywords_map = [('resize', 'resize', resize_map),
+                    ('resample_method', 'resampling_method', resample_map),
                     ('output_format', 'format', None),
                     ('image_extents', 'image_extents', ext_map),
                     ('reproject', 'projection', proj_names_map)]
