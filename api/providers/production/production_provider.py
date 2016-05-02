@@ -498,7 +498,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             # create the orderid based on the info from the eeorder
             order_id = Order.generate_ee_order_id(email_addr, eeorder)
 
-            order = Order.where("orderid = '{0}'".format(order_id))
+            order = Order.where("orderid = '{0}'".format(order_id))[0]
             scene_info = orders[eeorder, email_addr, contactid]
             if order:
                 # EE order already exists in the system
