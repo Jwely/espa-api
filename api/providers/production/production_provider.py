@@ -503,7 +503,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             if order:
                 # EE order already exists in the system
                 # update the associated scenes
-                self.update_ee_orders(scene_info, eeorder, order_id)
+                self.update_ee_orders(scene_info, eeorder, order.id)
                 continue
 
             cache_key = '-'.join(['load_ee_orders', str(contactid)])
