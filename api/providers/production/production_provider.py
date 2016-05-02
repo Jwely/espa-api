@@ -498,12 +498,13 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             # create the orderid based on the info from the eeorder
             order_id = Order.generate_ee_order_id(email_addr, eeorder)
 
-            order = Order.where("orderid = '{0}'".format(order_id))[0]
+            order = Order.where("orderid = '{0}'".format(order_id))
             scene_info = orders[eeorder, email_addr, contactid]
-            if order:
+
+            if order and order[0]:
                 # EE order already exists in the system
                 # update the associated scenes
-                self.update_ee_orders(scene_info, eeorder, order.id)
+                self.update_ee_orders(scene_info, eeorder, order[0].id)
                 continue
 
             cache_key = '-'.join(['load_ee_orders', str(contactid)])
