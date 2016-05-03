@@ -544,13 +544,13 @@ class OptionsConversion(object):
         :param scenes: List of scene id's associated with the order
         :return: converted format
         """
-        exc_msg = ''
+        exc_msg = None
         if not new and not old:
             exc_msg = 'You must provide either new or old order options to convert'
         elif new and old:
             exc_msg = 'You must only provide either new or old options to convert, not both'
-        elif old and not scenes:
-            exc_msg = 'Scene list is required to properly convert to the new standard'
+        elif not scenes:
+            exc_msg = 'Scenes are required to properly convert between the standards'
 
         if exc_msg:
             raise ValueError(exc_msg)
@@ -559,23 +559,21 @@ class OptionsConversion(object):
             new = {}
         if not old:
             old = {}
-        if not scenes:
-            scenes = []
 
         if not isinstance(new, dict):
             raise TypeError('Submitted options must be a dict')
         if not isinstance(old, dict):
             raise TypeError('Submitted options must be a dict')
         if not isinstance(scenes, (list, tuple)):
-            raise TypeError('Submitted scenes must be list or tuple')
+            raise TypeError('Submitted scene(s) must be list or tuple')
 
         if new:
-            return cls._convert_new_to_old(new)
+            return cls._convert_new_to_old(new, scenes[0])
         elif old:
             return cls._convert_old_to_new(old, scenes)
 
     @classmethod
-    def _convert_new_to_old(cls, opts):
+    def _convert_new_to_old(cls, opts, scene):
         """
         Basically need to make a flat data structure
         and change the names used
@@ -584,6 +582,14 @@ class OptionsConversion(object):
         :return: order options in the old format
         """
         ret = Order.get_default_options()
+        opts = copy.deepcopy(opts)
+
+        short = sensor.instance(scene).shortname
+        sen_keys = sensor.SensorCONST.instances.keys()
+
+        for sen in sen_keys:
+            if sen in opts and sen != short:
+                opts.pop(sen)
 
         ret.update(cls._flatten(opts, cls.keywords_map))
 

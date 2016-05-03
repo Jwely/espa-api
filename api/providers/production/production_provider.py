@@ -451,7 +451,8 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                             dload_url = urllib.quote(dload_url, '')
 
                 if config.get('convertprodopts') == 'True':
-                    options = OptionsConversion.convert(new=item['product_opts'])
+                    options = OptionsConversion.convert(new=item['product_opts'],
+                                                        scenes=[item['name']])
                 else:
                     # Need to strip out everything not directly related to the scene
                     options = self.strip_unrelated(item['name'], item['product_opts'])
