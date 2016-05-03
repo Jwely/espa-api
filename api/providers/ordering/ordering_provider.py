@@ -178,20 +178,20 @@ class OrderingProvider(ProviderInterfaceV0):
         :param user: user information associated with the order
         :return: orderid to be used for tracking
         """
-        note = new_order.pop('note') if 'note' in new_order.keys() else None
-        order_dict = {}
-        order_dict['orderid'] = Order.generate_order_id(user.email)
-        order_dict['user_id'] = user.id
-        order_dict['order_type'] = 'level2_ondemand'
-        order_dict['status'] = 'ordered'
-        order_dict['product_opts'] = new_order
-        order_dict['ee_order_id'] = ''
-        order_dict['order_source'] = 'espa'
-        order_dict['order_date'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-        order_dict['priority'] = 'normal'
-        order_dict['note'] = note
-        order_dict['email'] = user.email
-        order_dict['product_options'] = ''
+        ts = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+
+        order_dict = {'orderid': Order.generate_order_id(user.email),
+                      'user_id': user.id,
+                      'order_type': 'level2_ondemand',
+                      'status': 'submitted',
+                      'product_opts': new_order,
+                      'ee_order_id': '',
+                      'order_source': 'espa',
+                      'order_date': ts,
+                      'priority': 'normal',
+                      'note': new_order.get('note', None),
+                      'email': user.email,
+                      'product_options': ''}
 
         result = Order.create(order_dict)
         return result.orderid

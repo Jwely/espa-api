@@ -61,38 +61,38 @@ class Order(object):
                       'order_type': typically 'level2_ondemand'
                       'status': 'ordered'
                       'note': user notes
-                      'ee_order_id': earth explorer order id, or '' not through EE
+                      'ee_order_id': earth explorer order id, or ''
                       'order_source': 'espa' or 'ee'
                       'order_date': date time string
                       'priority': legacy item, should be 'normal'
                       'email': user's contact email
-                      'product_options': legacy, transitioning from json to jsonb}
+                      'product_options': legacy column}
         :return: order object
         """
         opts = params['product_opts']
+
         params['product_opts'] = json.dumps(params['product_opts'])
 
-        # needed for orders coming in from EE. Need to drop use
-        #  of 'product_options' entirely
-        if 'product_options' not in params.keys():
-            params['product_options'] = ''
-
-        sql = ("INSERT INTO ordering_order (orderid, user_id, order_type, status,"
-               "note, product_opts, ee_order_id, order_source, order_date, "
-               "priority, email, product_options)"
-               " VALUES (%(orderid)s, %(user_id)s, %(order_type)s, %(status)s,"
-               " %(note)s, %(product_opts)s, %(ee_order_id)s, %(order_source)s, "
-               "%(order_date)s, %(priority)s, %(email)s, %(product_options)s)")
+        sql = ("INSERT INTO ordering_order "
+               "(orderid, user_id, order_type, status, note, "
+               "product_opts, ee_order_id, order_source, order_date, "
+               "priority, email, product_options) "
+               "VALUES (%(orderid)s, %(user_id)s, %(order_type)s,"
+               " %(status)s, %(note)s, %(product_opts)s,"
+               " %(ee_order_id)s, %(order_source)s, %(order_date)s, "
+               "%(priority)s, %(email)s, %(product_options)s)")
 
         logger.info("Order creation parameters: {0}".format(params))
 
         try:
             with db_instance() as db:
-                logger.info('New order complete SQL: {}'.format(db.cursor.mogrify(sql, params)))
+                logger.info('New order complete SQL: {}'
+                            .format(db.cursor.mogrify(sql, params)))
                 db.execute(sql, params)
                 db.commit()
         except DBConnectException, e:
-            raise OrderException("error creating new order: {0}\n sql: {1}\n".format(e.message, sql))
+            raise OrderException("error creating new order: {0}\n"
+                                 " sql: {1}\n".format(e.message, sql))
 
         order = Order.where("orderid = '{0}'".format(params['orderid']))[0]
 
@@ -325,27 +325,27 @@ class Order(object):
                         structure: list({sceneid:, unit_num:})
         :return: dictionary representation of the EE order
         """
-        ee_order = {}
-        ee_order['format'] = 'Gtiff'
+        ee_order = {'format': 'Gtiff'}
         for item in item_ls:
             try:
                 scene_info = sensor.instance(item['sceneid'])
             except Exception:
-                log_msg = 'Received unsupported product via EE: {}'.format(item['sceneid'])
+                log_msg = ('Received unsupported product via EE: {}'
+                           .format(item['sceneid']))
                 logger.debug(log_msg)
                 continue
 
             short = scene_info.shortname
 
-            if short not in ee_order:
+            if short in ee_order:
+                ee_order[short]['inputs'].append(item['sceneid'])
+            else:
                 if isinstance(scene_info, sensor.Landsat):
-                    ee_order[short] = {'inputs': [],
+                    ee_order[short] = {'inputs': [item['sceneid']],
                                        'products': ['sr']}
                 elif isinstance(scene_info, sensor.Modis):
-                    ee_order[short] = {'inputs': [],
+                    ee_order[short] = {'inputs': [item['sceneid']],
                                        'products': ['l1']}
-
-            ee_order[short]['inputs'].append(item['sceneid'])
 
         return ee_order
 
@@ -492,8 +492,8 @@ class OptionsConversion(object):
                ('maxx', 'east', None),
                ('maxy', 'north', None)]
 
-    res_map = [('pixel_size', 'pixel_size', None),
-               ('pixel_size_units', 'pixel_size_units', None)]
+    resize_map = [('pixel_size', 'pixel_size', None),
+                  ('pixel_size_units', 'pixel_size_units', None)]
 
     prod_map = [('include_source_data', 'l1', True),
                 ('include_customized_source_data', 'l1', True),
@@ -518,8 +518,12 @@ class OptionsConversion(object):
                 ('include_lst', 'lst', True),
                 ('include_cfmask', 'cloud', True)]
 
-    keywords_map = [('resize', 'resize', res_map),
-                    ('resample_method', 'resampling_method', None),
+    resample_map = [('cc', 'cubic', None),
+                    ('nn', 'near', None),
+                    ('bil', 'bilinear', None)]
+
+    keywords_map = [('resize', 'resize', resize_map),
+                    ('resample_method', 'resampling_method', resample_map),
                     ('output_format', 'format', None),
                     ('image_extents', 'image_extents', ext_map),
                     ('reproject', 'projection', proj_names_map)]
