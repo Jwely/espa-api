@@ -518,15 +518,20 @@ class OptionsConversion(object):
                 ('include_lst', 'lst', True),
                 ('include_cfmask', 'cloud', True)]
 
-    resample_map = [('cc', 'cubic', None),
-                    ('nn', 'near', None),
-                    ('bil', 'bilinear', None)]
+    resample_map = [('cubic', 'cc', None),
+                    ('near', 'nn', None),
+                    ('bilinear', 'bil', None)]
 
     keywords_map = [('resize', 'resize', resize_map),
                     ('resample_method', 'resampling_method', resample_map),
                     ('output_format', 'format', None),
                     ('image_extents', 'image_extents', ext_map),
                     ('reproject', 'projection', proj_names_map)]
+
+    # Key words in which can have nested properties
+    majorwords = [('resize', 'resize'),
+                  ('image_extents', 'image_extents'),
+                  ('reproject', 'projection')]
 
     @classmethod
     def convert(cls, new=None, old=None, scenes=None):
@@ -623,7 +628,7 @@ class OptionsConversion(object):
     def _flatten(cls, opts, attr_map):
         ret = {}
 
-        if opts is None:
+        if opts is None or not isinstance(opts, dict):
             return ret
 
         sensor_keys = sensor.SensorCONST.instances.keys()
@@ -715,7 +720,7 @@ class OptionsConversion(object):
         ret = {}
         frm, to, conv = zip(*transl_map)
 
-        o_major_keys, n_major_keys, _ = zip(*cls.keywords_map)
+        o_major_keys, n_major_keys = zip(*cls.majorwords)
 
         for key in opts:
             try:
@@ -728,6 +733,8 @@ class OptionsConversion(object):
                 if key in n_major_keys:
                     ret.update({to[idx]: True})
                 else:  # Catch projection names
+                    if key == 'resampling_method':
+                        continue
                     ret.update({to[idx]: key})
             elif conv[idx] is not None:  # Predefined value
                 ret.update({to[idx]: conv[idx]})
