@@ -241,7 +241,6 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             sql_list.append(" processing_location = '{0}', ".format(processing_loc))
             sql_list.append(" note = '{0}'".format(note))
         else:
-            print "****  problem in set_product_retry"
             raise ProductionProviderException("Exception Retry limit exceeded, name: {0}".format(name))
 
         sql_list.append(" where name = '{0}' AND order_id = {1};".format(name, order_id))
