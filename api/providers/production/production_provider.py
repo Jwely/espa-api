@@ -224,7 +224,10 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         order_id = Scene.get('order_id', name=name, orderid=orderid)
         retry_count = Scene.get('retry_count', name=name, orderid=orderid)
         curr_limit = Scene.get('retry_limit', name=name, orderid=orderid)
-
+        logger.info("set_product_retry - name: {0}, orderid: {1}, processing_loc: {2}, error: {3}, "
+                    "note: {4}, retry_after: {5}, retry_limit: {6}, order_id: {7}, retry_count: {8}, "
+                    "curr_limit: {9}".format(name, orderid, processing_loc, error, note, retry_after,
+                                             retry_limit, order_id, retry_count, curr_limit))
         sql_list = ["update ordering_scene set "]
         comm_sep = ""
         if retry_limit is not None:
@@ -287,8 +290,8 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                                       resolution.extra['retry_after'],
                                       resolution.extra['retry_limit'])
                 except Exception, e:
-                    logger.debug("Exception setting {0} to retry:{1}"
-                                 .format(name, e))
+                    logger.debug("Exception setting product.id {0} {1} to retry:{2}"
+                                 .format(product.id, name, e))
                     product.status = 'error'
                     product.processing_location = processing_loc
                     product.log_file_contents = error
@@ -414,6 +417,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                             timeout = int(config.get('retry.retry_missing_l1.timeout'))
                             ts = datetime.datetime.now()
                             after = ts + datetime.timedelta(seconds=timeout)
+                            after = after.strftime('%Y-%m-%d %H:%M:%S.%f')
 
                             logger.info('{0} for order {1} was oncache '
                                         'but now unavailable, reordering'
@@ -607,7 +611,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
     def handle_retry_products(self):
         ''' handles all products in retry status '''
-        now = datetime.datetime.now()
+        now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
         filters = ["status = 'retry'",
                    "retry_after < '{0}'".format(now)]
 
