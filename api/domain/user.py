@@ -145,6 +145,7 @@ class User(object):
 
         sql.append(";")
         sql = " ".join(sql)
+        sql = sql.replace(",)", ")")
         with db_instance() as db:
             db.select(sql)
             returnlist = []
