@@ -31,14 +31,14 @@ class MockOrder(object):
         user = User.where("id = {0}".format(user_id))[0]
         # need to monkey with the email, otherwise we get collisions with each
         # test creating a new scratch order with the same user
-        rand = str(random.randint(1,99))
+        rand = str(random.randint(1, 99))
         user.email = rand + user.email
         orderid = self.ordering_provider.place_order(self.base_order, user)
         order = Order.where("orderid = '{0}'".format(orderid))[0]
         return order.id
 
     def scene_names_list(self, order_id):
-        scenes = Scene.where("order_id = {0}".format(order_id))
+        scenes = Scene.where({'order_id': order_id})
         names_list = [s.name for s in scenes]
         return names_list
 
@@ -56,7 +56,7 @@ class MockOrder(object):
         return True
 
     def update_scenes(self, order_id, attribute, values):
-        scenes = Scene.where("order_id = {0}".format(order_id))
+        scenes = Scene.where({'order_id': order_id})
         xscenes = chunkify(scenes, len(values))
 
         for idx, value in enumerate(values):

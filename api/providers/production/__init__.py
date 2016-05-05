@@ -9,7 +9,7 @@ class ProductionProviderInterfaceV0(object):
         return
 
     @abc.abstractmethod
-    def mark_product_complete(self, name=None, orderid=None, processing_loc=None,
+    def mark_product_complete(self, name, orderid, processing_loc=None,
                                 completed_file_location=None, destination_cksum_file=None,
                                 log_file_contents=None):
         ''' Marks product complete in the local and in EE system if applicable '''
@@ -32,7 +32,7 @@ class ProductionProviderInterfaceV0(object):
         return
 
     @abc.abstractmethod
-    def update_status(self, name=None, orderid=None,
+    def update_status(self, name, orderid,
                         processing_loc=None, status=None):
         ''' update a scene's status '''
         return
@@ -54,8 +54,7 @@ class ProductionProviderInterfaceV0(object):
         return
 
     @abc.abstractmethod
-    def set_product_error(self, name=None, orderid=None,
-                            processing_loc=None, error=None):
+    def set_product_error(self, name, orderid, processing_loc, error):
         ''' handle product error  '''
         return
 

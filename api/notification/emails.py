@@ -134,8 +134,7 @@ class Emails(object):
         m.append("Requested products\n")
         m.append("-------------------------------------------\n")
 
-        scene_params = ["order_id = {0}".format(order.id)]
-        scenes = Scene.where(scene_params)
+        scenes = Scene.where({'order_id': order.id})
         #products = order.scene_set.all()
 
         for product in scenes:
@@ -176,7 +175,7 @@ class Emails(object):
         m.append("-------------------------------------------\n")
 
         #products = order.scene_set.filter(status='complete')
-        scenes = Scene.where("status = 'complete'")
+        scenes = Scene.where({'status': 'complete'})
 
         for product in scenes:
             line = product.name

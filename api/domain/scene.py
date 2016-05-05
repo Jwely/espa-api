@@ -5,24 +5,56 @@ import psycopg2.extensions as db_extns
 from api.system.logger import ilogger as logger
 import datetime
 
+
 class SceneException(Exception):
     pass
 
+
 class Scene(object):
-    """ Class for interacting with the ordering_scene table """
+    """
+    Class for interacting with the ordering_scene table
+    and holding specific scene information
+    """
 
-    base_sql = "SELECT id, name, note, order_id, product_distro_location, product_dload_url,"\
-                " cksum_distro_location, cksum_download_url, status, processing_location,"\
-                " completion_date, log_file_contents, ee_unit_id, tram_order_id,"\
-                " sensor_type, job_name, retry_after, retry_limit, retry_count FROM"\
-                " ordering_scene WHERE "
+    base_sql = ('SELECT * '
+                'FROM ordering_scene '
+                'WHERE ')
 
-    def __init__(self, name=None, note=None, order_id=None, product_distro_location=None,
-                product_dload_url=None, cksum_distro_location=None, cksum_download_url=None,
-                status=None, processing_location=None, completion_date=None,
-                log_file_contents=None, ee_unit_id=None, tram_order_id=None,
-                sensor_type=None, job_name=None, retry_after=None, retry_limit=None,
-                retry_count=None):
+    def __init__(self, name=None, note=None, order_id=None,
+                 product_distro_location=None, product_dload_url=None,
+                 cksum_distro_location=None, cksum_download_url=None,
+                 status=None, processing_location=None,
+                 completion_date=None, log_file_contents=None,
+                 ee_unit_id=None, tram_order_id=None, sensor_type=None,
+                 job_name=None, retry_after=None, retry_limit=None,
+                 retry_count=None):
+        """
+        Initialize the Scene object with all the information for it
+        from the database
+
+        All parameters are directly related to DB columns
+
+        :param name: scene or collection id
+        :param note: text
+        :param order_id: ordering_order.id of associated Order
+        :param product_distro_location: final location
+        :param product_dload_url: access point for users
+        :param cksum_distro_location: checksum location
+        :param cksum_download_url: access point for users
+        :param status: current processing status
+        :param processing_location: Hadoop node doing the processing
+        :param completion_date: date when processing completed
+        :param log_file_contents: Hadoop log file
+        :param ee_unit_id: EarthExplorer ID
+        :param tram_order_id: LTA tram
+        :param sensor_type: landsat/modis/plot
+        :param job_name: Hadoop job name
+        :param retry_after:
+        :param retry_limit:
+        :param retry_count:
+        :return:
+        """
+
         self.name = name
         self.note = note
         self.order_id = order_id
@@ -41,30 +73,72 @@ class Scene(object):
         self.retry_after = retry_after
         self.retry_limit = retry_limit
         self.retry_count = retry_count
+
         with db_instance() as db:
-            sql = "select id from ordering_scene where "\
-                    "name = '{0}' and order_id = {1};".format(self.name, self.order_id)
-            db.select(sql)
+            sql = ('select id '
+                   'from ordering_scene where '
+                   'name = %s '
+                   'and order_id = %s')
+            db.select(sql, (self.name, self.order_id))
+
             if db:
                 self.id = db[0]['id']
             else:
                 self.id = None
 
     def __repr__(self):
-        return "Scene:{0}".format(self.__dict__)
+        return 'Scene:{}'.format(self.__dict__)
 
     @classmethod
-    def get(cls, value, name=None, orderid=None):
-        sql = "select {0} from ordering_scene join ordering_order"\
-                " on ordering_order.id = ordering_scene.order_id"\
-                " where name = '{1}' and orderid = '{2}';".format(value, name, orderid)
+    def get(cls, col_name, scene_name, orderid):
+        """
+        Retrieve a value for a particular column based on
+        the long name of the order
+
+        :param col_name: column value to retrieve
+        :param scene_name: scene/collection id
+        :param orderid: long name for the related order,
+         example@somewhere.com-12345
+        :return: column value
+        """
+        sql = ('select %s '
+               'from ordering_scene '
+               'join ordering_order '
+               'on ordering_order.id = ordering_scene.order_id '
+               'where ordering_scene.name = %s '
+               'and ordering_order.orderid = %s')
+
+        if '.' in col_name:
+            _, col = col_name.split('.')
+        else:
+            col = col_name
+
+        log_sql = ''
         try:
             with db_instance() as db:
-                db.select(sql)
-            return db[0][value]
+                log_sql = (db.cursor.
+                           mogrify(sql, (db_extns.AsIs(col_name),
+                                         scene_name, orderid)))
+                logger.info(log_sql)
+                db.select(sql, (db_extns.AsIs(col_name),
+                                scene_name, orderid))
+                ret = db[0][col]
+
         except DBConnectException, e:
-            logger.debug("err with Scene.get, \nmsg: {0}\nsql: {1}".format(e.message, sql))
+            logger.debug('err with Scene.get\n'
+                         'msg: {0}\n'
+                         'sql: {1}'.format(e.message, log_sql))
+
             raise SceneException(e.message)
+
+        except KeyError, e:
+            logger.debug('Scene.get returned no results\n'
+                         'sql: {}'.format(log_sql))
+
+            raise SceneException('Key Error: {}'
+                                 .format(e.message))
+
+        return ret
 
     @classmethod
     def create(cls, params):
@@ -72,61 +146,88 @@ class Scene(object):
         Create a new scene entry in the ordering_scene table
         Also supports a bulk insert for large sets of scenes to insert
 
-        :param params: dictionary representation of a scene to insert into the system
-                       or a list of dictionary objects
+        dict{'name': ,
+             'order_id': ,
+             'status': ,
+             'sensor_type': ,
+             'ee_unit_id': }
+
+        :param params: dictionary representation of a scene to insert
+         into the system or a list of dictionary objects
         """
         if isinstance(params, (list, tuple)):
             template = ','.join(['%s'] * len(params))
-            args = [(s['name'], s['order_id'], s['status'], s['sensor_type'], s['ee_unit_id'],
-                    '', '', '', '', '') for s in params]
+            args = [(s['name'], s['order_id'],
+                     s['status'], s['sensor_type'],
+                     s['ee_unit_id'], '', '', '', '', '')
+                    for s in params]
         else:
             template = '%s'
-            args = [(params['name'], params['order_id'], params['status'], params['sensor_type'], params['ee_unit_id'],
-                    '', '', '', '', '')]
+            args = [(params['name'], params['order_id'],
+                     params['status'], params['sensor_type'],
+                     params['ee_unit_id'], '', '', '', '', '')]
 
-        sql = ("INSERT INTO ordering_scene "
-               "(name, order_id, status, sensor_type, ee_unit_id, "
-               "product_distro_location, product_dload_url, "
-               "cksum_distro_location, cksum_download_url, "
-               "processing_location) VALUES {}".format(template))
+        sql = ('INSERT INTO ordering_scene '
+               '(name, order_id, status, sensor_type, ee_unit_id, '
+               'product_distro_location, product_dload_url, '
+               'cksum_distro_location, cksum_download_url, '
+               'processing_location) VALUES {}'.format(template))
 
         try:
             with db_instance() as db:
-                logger.info("scene creation sql: {0}".format(db.cursor.mogrify(sql, args)))
+                logger.info('scene creation sql: {}'
+                            .format(db.cursor.mogrify(sql, args)))
                 db.execute(sql, args)
                 db.commit()
-        except DBConnectException, e:
-            raise SceneException("error creating new scene(s): {0}\n sql: {1}\n".format(e.message, sql))
 
-        # scene = Scene.where("name = '{0}' AND order_id = {1}".format(params['name'], params['order_id']))[0]
-        return True
+        except DBConnectException, e:
+            logger.debug('error creating new scene(s): {}\n'
+                         'sql: {}\n'
+                         .format(e.message, sql))
+            raise SceneException(e.message)
 
     @classmethod
-    def where(cls, params):
-        sql = [str(cls.base_sql)]
-        if isinstance(params, list):
-            param_str = " AND ".join(params)
-            sql.append(param_str)
-        elif isinstance(params, str):
-            sql.append(params)
-        else:
-            raise SceneException("Scene.where arg needs to be a list or a str")
+    def where(cls, params, sql_and=None):
+        """
+        Query for a particular row in the ordering_scene table
 
-        sql.append(";")
-        sql = " ".join(sql)
+        :param field: columns to select on
+        :param value: values of the columns to select on
+        :return: list of matching Scene objects
+        """
+        if not isinstance(params, dict):
+            raise SceneException('Where arguments must be'
+                                 ' passed as a dictionary')
+
+        fields, values = zip(*params.items())
+        fields = ', '.join(fields)
+
+        sql = '{} (%s) = %s'.format(cls.base_sql)
+
+        if sql_and:
+            sql += ' AND {}'.format(sql_and)
+
+        ret = []
         with db_instance() as db:
-            db.select(sql)
-            returnlist = []
+            db.select(sql, (db_extns.AsIs(fields), values))
+
             for i in db:
                 sd = dict(i)
-                del sd["id"]
+                del sd['id']
                 obj = Scene(**sd)
-                returnlist.append(obj)
+                ret.append(obj)
 
-        return returnlist
+        return ret
 
     @classmethod
     def bulk_update(cls, ids=None, updates=None):
+        """
+        Update a list of scenes with
+
+        :param ids:
+        :param updates:
+        :return:
+        """
         if not ids:
             ids = ()
         if not updates:
@@ -157,14 +258,23 @@ class Scene(object):
         return True
 
     def update(self, att, val):
-        self.__setattr__(att, val)
-        if isinstance(val, str) or isinstance(val, datetime.datetime):
-            val = "\'{0}\'".format(val)
-        sql = "update ordering_scene set {0} = {1} where id = {2};".format(att, val, self.id)
+        """
+        Update a specifed column value for this Scene object
+        with a new value
+
+        :param att: column to update
+        :param val: new value
+        :return:
+        """
+        sql = 'update ordering_scene set %s = %s where id = %s'
+
         with db_instance() as db:
-            db.execute(sql)
+            db.execute(sql, (db_extns.AsIs(att), val, self.id))
             db.commit()
-        return True
+
+        self.__setattr__(att, val)
+
+        return self.__getattribute__(att)
 
     def save(self):
         sql_list = ["UPDATE ordering_scene SET "]

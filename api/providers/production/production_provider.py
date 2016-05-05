@@ -1,6 +1,6 @@
 from api.domain import sensor
 from api.domain.scene import Scene
-from api.domain.order import Order, OptionsConversion
+from api.domain.order import Order, OptionsConversion, OrderException
 from api.providers.configuration.configuration_provider import ConfigurationProvider
 from api.util.dbconnect import DBConnectException, db_instance
 from api.providers.production import ProductionProviderInterfaceV0
@@ -50,8 +50,12 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         for order in orders:
             product_tup = tuple(str(p) for p in orders[order])
             order = Order.where("orderid = '{0}'".format(order))[0]
-            name_filter = "name in {0}".format(product_tup).replace(",)", ")")
-            scenes = Scene.where([name_filter, "order_id = {0}".format(order.id)])
+
+            name_filter = ('name in {}'
+                           .format(product_tup)
+                           .replace(',)', ')'))
+            sql_dict = {'order_id': order.id}
+            scenes = Scene.where(sql_dict, sql_and=name_filter)
 
             updates = {"status": "queued",
                        "processing_location": processing_location,
@@ -64,8 +68,9 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         return True
 
     def mark_product_complete(self, name, orderid, processing_loc=None,
-                                completed_file_location=None, destination_cksum_file=None,
-                                log_file_contents=None):
+                              completed_file_location=None,
+                              destination_cksum_file=None,
+                              log_file_contents=None):
 
         order_id = Scene.get('order_id', name, orderid)
         order_source = Scene.get('order_source', name, orderid)
@@ -76,10 +81,12 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         cksum_file_parts = destination_cksum_file.split('/')
         cksum_file = cksum_file_parts[len(cksum_file_parts) - 1]
 
-        product_dload_url = ('%s/orders/%s/%s') % (base_url, orderid, product_file)
-        cksum_download_url = ('%s/orders/%s/%s') % (base_url, orderid, cksum_file)
+        product_dload_url = ('{}/orders/{}/{}'
+                             .format(base_url, orderid, product_file))
+        cksum_download_url = ('{}/orders/{}/{}'
+                              .format(base_url, orderid, cksum_file))
 
-        scene = Scene.where("name = '{0}' AND order_id = {1}".format(name, order_id))[0]
+        scene = Scene.where({'name': name, 'order_id': order_id})[0]
         scene.status = 'complete'
         scene.processing_location = processing_loc
         scene.product_distro_location = completed_file_location
@@ -100,7 +107,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         except DBConnectException, e:
             message = "DBConnect Exception ordering_provider mark_product_complete sql: {0}"\
                         "\nmessage: {1}".format(sql, e.message)
-            raise OrderingProviderException(message)
+            raise OrderException(message)
 
         return True
 
@@ -110,7 +117,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         order_id = Scene.get('order_id', name, orderid)
         order_source = Scene.get('order_source', name, orderid)
 
-        scene = Scene.where("name = '{0}' and order_id = {1}".format(name, order_id))[0]
+        scene = Scene.where({'name': name, 'order_id': order_id})[0]
         scene.status = 'unavailable'
         scene.processing_location = processing_loc
         scene.completion_date = datetime.datetime.now()
@@ -161,9 +168,8 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         return True
 
-    def update_status(self, name, orderid,
-                        processing_loc=None, status=None):
-        order_id = Scene.get('order_id', name=name, orderid=orderid)
+    def update_status(self, name, orderid, processing_loc=None, status=None):
+        order_id = Scene.get('order_id', scene_name=name, orderid=orderid)
         sql_list = ["update ordering_scene set "]
         comm_sep = ""
         if processing_loc:
@@ -182,48 +188,48 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                 db.commit()
         except DBConnectException, e:
             message = "DBConnect Exception ordering_provider update_status sql: {0}\nmessage: {1}".format(sql, e.message)
-            raise OrderingProviderException(message)
+            raise OrderException(message)
 
         return True
 
-    def update_product(self, action, name=None, orderid=None, processing_loc=None,
-                        status=None, error=None, note=None,
-                        completed_file_location=None,
-                        cksum_file_location=None,
-                        log_file_contents=None):
-
-        permitted_actions = ('update_status', 'set_product_error',
-                            'set_product_unavailable', 'mark_product_complete')
-
-        if action not in permitted_actions:
-            return {"msg": "{0} is not an accepted action for update_product".format(action)}
-
+    def update_product(self, action, name=None, orderid=None,
+                       processing_loc=None, status=None, error=None,
+                       note=None, completed_file_location=None,
+                       cksum_file_location=None, log_file_contents=None):
         if action == 'update_status':
-            result = self.update_status(name, orderid, processing_loc=processing_loc, status=status)
+            result = self.update_status(name, orderid,
+                                        processing_loc=processing_loc,
+                                        status=status)
 
-        if action == 'set_product_error':
-            result = self.set_product_error(name, orderid, processing_loc=processing_loc, error=error)
+        elif action == 'set_product_error':
+            result = self.set_product_error(name, orderid,
+                                            processing_loc=processing_loc,
+                                            error=error)
 
-        if action == 'set_product_unavailable':
+        elif action == 'set_product_unavailable':
             result = self.set_product_unavailable(name, orderid,
                                                   processing_loc=processing_loc,
                                                   error=error, note=note)
 
-        if action == 'mark_product_complete':
+        elif action == 'mark_product_complete':
             result = self.mark_product_complete(name, orderid,
                                                 processing_loc=processing_loc,
                                                 completed_file_location=completed_file_location,
                                                 destination_cksum_file=cksum_file_location,
                                                 log_file_contents=log_file_contents)
 
+        else:
+            result = {'msg': ('{} is not an accepted action for '
+                              'update_product'.format(action))}
+
         return result
 
     def set_product_retry(self, name, orderid, processing_loc,
-                        error, note, retry_after, retry_limit=None):
+                          error, note, retry_after, retry_limit=None):
         """ Set a product to retry status """
-        order_id = Scene.get('order_id', name=name, orderid=orderid)
-        retry_count = Scene.get('retry_count', name=name, orderid=orderid)
-        curr_limit = Scene.get('retry_limit', name=name, orderid=orderid)
+        order_id = Scene.get('order_id', scene_name=name, orderid=orderid)
+        retry_count = Scene.get('retry_count', scene_name=name, orderid=orderid)
+        curr_limit = Scene.get('retry_limit', scene_name=name, orderid=orderid)
 
         sql_list = ["update ordering_scene set "]
         comm_sep = ""
@@ -259,33 +265,32 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         ''' Marks a scene in error and accepts the log file contents '''
 
         order = Order.where("orderid = '{0}'".format(orderid))[0]
-        product = Scene.where("name = '{0}' and order_id = '{1}'".format(name, order.id))[0]
+        product = Scene.where({'name': name, 'order_id': order.id})[0]
         #attempt to determine the disposition of this error
         resolution = None
         if name != 'plot':
             resolution = errors.resolve(error, name)
 
         if resolution is not None:
-
             if resolution.status == 'submitted':
                 product.status = 'submitted'
                 product.note = ''
                 product.save()
             elif resolution.status == 'unavailable':
                 self.set_product_unavailable(product.name,
-                                        order.orderid,
-                                        processing_loc,
-                                        error,
-                                        resolution.reason)
+                                             order.orderid,
+                                             processing_loc,
+                                             error,
+                                             resolution.reason)
             elif resolution.status == 'retry':
                 try:
                     self.set_product_retry(product.name,
-                                      order.orderid,
-                                      processing_loc,
-                                      error,
-                                      resolution.reason,
-                                      resolution.extra['retry_after'],
-                                      resolution.extra['retry_limit'])
+                                           order.orderid,
+                                           processing_loc,
+                                           error,
+                                           resolution.reason,
+                                           resolution.extra['retry_after'],
+                                           resolution.extra['retry_limit'])
                 except Exception, e:
                     logger.debug("Exception setting {0} to retry:{1}"
                                  .format(name, e))
@@ -299,7 +304,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             product.log_file_contents = error
             product.save()
 
-        return True
+        return product
 
     def get_products_to_process(self, record_limit=500,
                                 for_user=None,
@@ -575,10 +580,21 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         Scene.create(tuple(bulk_ls))
 
     def update_ee_orders(self, ee_scenes, eeorder, order_id):
+        """
+        Update the LTA tracking system with the current status of
+        a product in the system
+
+        ee_scenes_example = [{'sceneid': ,
+                              'unit_num': }]
+
+        :param ee_scenes: list of dicts
+        :param eeorder: associated EE order id
+        :param order_id: order id used in the system
+        """
+
         for s in ee_scenes:
-            scene_params = ('order_id = {0} AND ee_unit_id = {1}'
-                            .format(order_id, s['unit_num']))
-            scene = Scene.where(scene_params)[0]
+            scene = Scene.where({'order_id': order_id,
+                                 'ee_unit_id': s['unit_num']})[0]
 
             if scene.status == 'complete':
                 status = 'C'
@@ -607,21 +623,28 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                                         order_id, upd_status, msg, status))
 
     def handle_retry_products(self):
-        ''' handles all products in retry status '''
-        now = datetime.datetime.now()
-        filters = ["status = 'retry'",
-                   "retry_after < '{0}'".format(now)]
+        """
+        Handles all products in retry status
 
-        products = Scene.where(filters)
+        If a product is in retry status and it is after it's
+        timeout period, set the status to submitted
+        """
+        now = datetime.datetime.now()
+        sql_and = "retry_after < '{}'".format(now)
+
+        products = Scene.where({'status': 'retry'}, sql_and=sql_and)
+
         if len(products) > 0:
-            Scene.bulk_update([p.id for p in products], {'status': 'submitted', 'note': ''})
+            Scene.bulk_update([p.id for p in products],
+                              {'status': 'submitted', 'note': ''})
 
     def handle_onorder_landsat_products(self):
-        ''' handles landsat products still on order '''
+        """
+        Handles landsat products still on order
+        """
+        sql_and = 'tram_order_id IS NOT NULL'
+        products = Scene.where({'status': 'onorder'}, sql_and=sql_and)
 
-        filters = "tram_order_id IS NOT NULL AND status = 'onorder'"
-
-        products = Scene.where(filters)
         product_tram_ids = [product.tram_order_id for product in products]
 
         rejected = []
@@ -653,13 +676,14 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                                           'Level 1 product could not be produced')
 
         # Now update everything that is now on cache
-        filters = "status = 'onorder' AND name in {0}".format(tuple(available))
-        # pull the trailing comma for single item tuples
-        filters = filters.replace(",)", ")")
+        sql_and = ('name in {}'
+                   .format(tuple(available))
+                   .replace(",)", ")"))
 
         if len(available) > 0:
-            products = Scene.where(filters)
-            Scene.bulk_update([p.id for p in products], {'status': 'oncache', 'note': ''})
+            products = Scene.where({'status': 'onorder'}, sql_and=sql_and)
+            Scene.bulk_update([p.id for p in products],
+                              {'status': 'oncache', 'note': ''})
 
         return True
 
@@ -669,7 +693,9 @@ class ProductionProvider(ProductionProviderInterfaceV0):
     def get_contactids_for_submitted_landsat_products(self):
         logger.info("Retrieving contact ids for submitted landsat products")
 
-        scenes = Scene.where("status = 'submitted' AND sensor_type = 'landsat'")
+        scenes = Scene.where({'status': 'submitted',
+                              'sensor_type': 'landsat'})
+
         if scenes:
             user_ids = [s.order_attr('user_id') for s in scenes]
             users = User.where("id in {0}".format(tuple(user_ids)))
@@ -685,7 +711,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         logger.info("Updating landsat product status")
 
         user = User.where("contactid = '{0}'".format(contact_id))[0]
-        product_list = Order.get_user_scenes(user.id, ["sensor_type = 'landsat' AND status = 'submitted'"])
+        product_list = Order.get_user_scenes(user.id, "sensor_type = 'landsat' AND status = 'submitted'")
 
         prod_name_list = [p.name for p in product_list]
 
@@ -719,8 +745,8 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         ''' inner function to support marking nlaps products unavailable '''
         logger.info("Looking for submitted landsat products, In mark_nlaps_unavailable")
         # First things first... filter out all the nlaps scenes
-        filter = "status = 'submitted' AND sensor_type = 'landsat'"
-        landsat_products = Scene.where(filter)
+        landsat_products = Scene.where({'status': 'submitted',
+                                        'sensor_type': 'landsat'})
         landsat_submitted = [l.name for l in landsat_products]
 
         logger.info("Found {0} submitted landsat products"
@@ -768,7 +794,8 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         logger.info("Handling submitted modis products...")
 
-        modis_products = Scene.where("status = 'submitted' AND sensor_type = 'modis'")
+        modis_products = Scene.where({'status': 'submitted',
+                                      'sensor_type': 'modis'})
 
         logger.warn("Found {0} submitted modis products"
                      .format(len(modis_products)))
@@ -787,7 +814,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                                  .format(product.name))
 
             if lpdaac_ids:
-                Scene.bulk_update(lpdaac_ids, {"status":"oncache"})
+                Scene.bulk_update(lpdaac_ids, {"status": "oncache"})
             if nonlp_ids:
                 Scene.bulk_update(nonlp_ids, {"status":"unavailable", "note":"not found in modis data pool"})
 
@@ -802,16 +829,16 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         plot_orders = Order.where("status = 'ordered' AND order_type = 'lpcs'")
 
         logger.info("Found {0} submitted plot orders"
-                     .format(len(plot_orders)))
+                    .format(len(plot_orders)))
 
         for order in plot_orders:
             products = order.scenes()
             product_count = len(products)
 
-            complete_products = order.scenes(["status = 'complete'"])
+            complete_products = order.scenes({'status': 'complete'})
             complete_count = len(complete_products)
 
-            unavailable_products = order.scenes(["status = 'unavailable'"])
+            unavailable_products = order.scenes({'status': 'unavailable'})
             unavailable_count = len(unavailable_products)
 
             #if this is an lpcs order and there is only 1 product left that
@@ -824,7 +851,8 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             #logger.info("complete_count = {0}".format(complete_count))
 
             if product_count - (unavailable_count + complete_count) == 1:
-                plot = order.scenes(["status = 'submitted'", "sensor_type = 'plot'"])
+                plot = order.scenes({'status': 'submitted',
+                                     'sensor_type': 'plot'})
                 if len(plot) >= 1:
                     for p in plot:
                         if complete_count == 0:
@@ -876,7 +904,8 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             raise TypeError(msg)
 
         # find all scenes that are not complete
-        scenes = order.scenes(["status NOT IN ('complete', 'unavailable')"])
+        scenes = order.scenes(sql_and=("status NOT IN "
+                                       "('complete', 'unavailable')"))
         if len(scenes) == 0:
 
             logger.info('Completing order: {0}'.format(order.orderid))
