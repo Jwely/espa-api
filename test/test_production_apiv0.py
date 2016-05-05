@@ -65,7 +65,7 @@ class TestProductionAPI(unittest.TestCase):
     def test_production_set_product_retry(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
         order = Order.where("id = {0}".format(order_id))[0]
-        scene = order.scenes()[0]
+        scene = order.scenes()[3]
         scene.update('retry_count', 4)
         processing_loc = "get_products_to_process"
         error = 'not available after EE call '
@@ -125,8 +125,8 @@ class TestProductionAPI(unittest.TestCase):
         new = Scene.get('ordering_scene.status', scene.name, order.orderid)
         self.assertTrue('submitted' == new)
 
-    @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry',
-           mock_production_provider.set_product_retry)
+    # @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry',
+    #        mock_production_provider.set_product_retry)
     # @patch('api.system.errors.resolve', errors.resolve_retry)
     def test_production_set_product_error_retry(self):
         """
@@ -136,10 +136,7 @@ class TestProductionAPI(unittest.TestCase):
         order_id = self.mock_order.generate_testing_order(self.user_id)
         order = Order.where("id = {0}".format(order_id))[0]
 
-        for s in order.scenes():
-            if s.name != 'plot':
-                scene = s
-                break
+        scene = order.scenes()[2]
 
         processing_loc = 'somewhere'
         error = 'Verify the missing auxillary data products'

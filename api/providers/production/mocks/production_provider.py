@@ -6,13 +6,13 @@ class MockProductionProvider(object):
     def set_product_retry(self, name, orderid, processing_loc,
                         error, note, retry_after, retry_limit=None):
         try:
-            order_id = Scene.get('order_id', scene_name=name, orderid=orderid)
+            order_id = Scene.get('order_id', name, orderid)
             assert(type(retry_after) is int)
             assert(type(processing_loc) is str)
             assert(type(error) is str)
             assert(type(note) is str)
-        except Exception, e:
-            raise(e.message)
+        except Exception:
+            raise
 
         return True
 
