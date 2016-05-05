@@ -470,8 +470,7 @@ class OptionsConversion(object):
     resize_map = [('pixel_size', 'pixel_size', None),
                   ('pixel_size_units', 'pixel_size_units', None)]
 
-    prod_map = [('include_source_data', 'l1', True),
-                ('include_customized_source_data', 'l1', True),
+    prod_map = [('include_customized_source_data', 'l1', True),
                 ('include_sourcefile', 'include_sourcefile', True),
                 ('include_solr_index', 'include_solr_index', True),
                 ('include_sca', 'include_sca', True),
