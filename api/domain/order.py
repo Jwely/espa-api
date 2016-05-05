@@ -407,6 +407,20 @@ class Order(object):
         slist = Scene.where(sql)
         return slist
 
+    def products_by_sensor(self):
+        po = self.product_opts
+        _out_list = []
+        prod_out = {}
+        for k, v in po.iteritems():
+            if isinstance(po[k], dict) and 'products' in po[k].keys():
+                _out_list.append(po[k])
+
+        for item in _out_list:
+            for input in item['inputs']:
+                prod_out[input] = item['products']
+
+        return prod_out
+
     @staticmethod
     def generate_order_id(email):
         """
