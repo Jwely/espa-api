@@ -299,7 +299,7 @@ class Scene(object):
         sql_list.append("WHERE id = {0};".format(self.id))
 
         sql = " ".join(sql_list)
-        logger.info("saving updates to scene {0}\n sql: {1}\n\n".format(self.name, sql))
+        logger.info("saving updates to scene id:{0}, name:{1}\n sql: {2}\n args: {3}\n".format(self.id, self.name, sql, arg_list))
         try:
             with db_instance() as db:
                 db.execute(sql, arg_list)

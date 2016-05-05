@@ -41,7 +41,7 @@ class Order(object):
                 self.email = email
                 self.priority = priority
                 with db_instance() as db:
-                    db.select("select id from ordering_order where orderid = '{0}';".format(orderid))
+                    db.select("select id from ordering_order where orderid = %s;", orderid)
                     if db:
                         self.id = db[0]['id']
                     else:
@@ -360,66 +360,27 @@ class Order(object):
                     'order_type', 'initial_email_sent', 'completion_email_sent',
                     'note', 'completion_date', 'order_date', 'user_id', 'ee_order_id',
                     'email', 'priority')
-        null_fields = ('ordering_date', 'completion_date', 'initial_email_sent',
-                        'completion_email_sent', 'product_opts')
 
-        if self.id:
-            # this is an existing order
-            sql_list = ["UPDATE ordering_order SET "]
-            snip_pre = "{0} = "
-        else:
-            # this is a new order
-            sql_list = ["INSERT INTO ordering_order "]
-            sql_list.append(" {0} VALUES (".format(attr_tup))
-            snip_pre = "{0}"
+        ql = ['insert into ordering_order ({0}) values (']
+        val_list = []
+        sub_list = []
+        for item in attr_tup:
+            _i = self.__getattribute__(item)
+            _iv = Json(_i) if item == 'product_opts' else _i
+            val_list.append(_iv)
+            sub_list.append('%s,')
 
-
-        for idx, attr in enumerate(attr_tup):
-            val = self.__getattribute__(attr)
-            if val is None:
-                if attr in null_fields:
-                    sql_snip = "{1}, "
-                    val = 'null'
-                else:
-                    sql_snip = "'{1}', "
-                    val = ''
-            else:
-                if attr == "user_id":
-                    sql_snip = "{1}, "
-                elif attr == "product_opts":
-                    sql_snip = "{1},  "
-                    # subsequent call to order.product_opts returns Json object
-                    # only way could get the insert into the db. method for
-                    # returning str from that is getquoted()
-                    val = Json(self.product_opts)
-                else:
-                    sql_snip = "'{1}', "
-
-            if idx == len(attr_tup) - 1:
-                sql_snip = sql_snip.replace(",", "")
-
-            sql_snip = snip_pre + sql_snip
-
-            if "=" in snip_pre:
-                sql_snip = sql_snip.format(attr, val)
-            else:
-                sql_snip = sql_snip.format("", val)
-
-            sql_list.append(sql_snip)
-
-        if "=" in snip_pre:
-            verbage = "saving updates to "
-            sql_list.append("WHERE id = {0};".format(self.id))
-        else:
-            verbage = "creating "
-            sql_list.append(");")
-
-        sql = " ".join(sql_list)
-        logger.info("{0} order {1}\n sql: {2}\n\n".format(verbage, self.orderid, sql))
-        #return sql
+        sub_string = ' '.join(sub_list)
+        ql.append(sub_string)
+        ql.append(") on conflict (orderid) do update set ({0}) = (")
+        ql.append(sub_string)
+        ql.append(")")
+        sql = " ".join(ql)
+        sql = sql.format(", ".join((attr_tup)))
+        sql = sql.replace(", )", ")")
 
         with db_instance() as db:
-            db.execute(sql)
+            db.execute(sql, tuple(val_list + val_list))
             db.commit()
         return True
 
@@ -451,6 +412,20 @@ class Order(object):
             sql_dict = {'order_id': self.id}
 
         return Scene.where(sql_dict, sql_and=sql_and)
+
+    def products_by_sensor(self):
+        po = self.product_opts
+        _out_list = []
+        prod_out = {}
+        for k, v in po.iteritems():
+            if isinstance(po[k], dict) and 'products' in po[k].keys():
+                _out_list.append(po[k])
+
+        for item in _out_list:
+            for input in item['inputs']:
+                prod_out[input] = item['products']
+
+        return prod_out
 
     @staticmethod
     def generate_order_id(email):
@@ -501,8 +476,7 @@ class OptionsConversion(object):
     resize_map = [('pixel_size', 'pixel_size', None),
                   ('pixel_size_units', 'pixel_size_units', None)]
 
-    prod_map = [('include_source_data', 'l1', True),
-                ('include_customized_source_data', 'l1', True),
+    prod_map = [('include_customized_source_data', 'l1', True),
                 ('include_sourcefile', 'include_sourcefile', True),
                 ('include_solr_index', 'include_solr_index', True),
                 ('include_sca', 'include_sca', True),

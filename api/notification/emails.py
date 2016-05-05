@@ -25,8 +25,10 @@ class Emails(object):
     def __send(self, recipient, subject, body):
         return self.send_email(recipient=recipient, subject=subject, body=body)
 
-    def __order_status_url(self, email):
-        return ''.join([self.status_base_url, '/', email])
+    def __order_status_url(self, orderid):
+        _base_url = self.status_base_url
+        _base_url = _base_url.replace("status", "order-status")
+        return ''.join([_base_url, '/', orderid])
 
     def send_email(self, recipient, subject, body):
         '''Sends an email to a receipient on the behalf of espa'''
@@ -122,7 +124,8 @@ class Emails(object):
             raise TypeError(msg)
 
         email = order.user_email()
-        url = self.__order_status_url(email)
+        url = self.__order_status_url(order.orderid)
+
 
         m = list()
         m.append("Thank you for your order.\n\n")
@@ -134,8 +137,7 @@ class Emails(object):
         m.append("Requested products\n")
         m.append("-------------------------------------------\n")
 
-        scenes = Scene.where({'order_id': order.id})
-        #products = order.scene_set.all()
+        scenes = order.scenes()
 
         for product in scenes:
             name = product.name
@@ -152,16 +154,16 @@ class Emails(object):
     def send_completion(self, order):
 
         if isinstance(order, str):
-            order = Order.where(["orderid = '{0}'".format(order)])
+            order = Order.where(["orderid = '{0}'".format(order)])[0]
         elif isinstance(order, int):
-            order = Order.where(["id = {0}".format(order)])
+            order = Order.where(["id = {0}".format(order)])[0]
 
         if not isinstance(order, Order):
             msg = 'order must be str, int or instance of Order'
             raise TypeError(msg)
 
         email = order.user_email()
-        url = self.__order_status_url(email)
+        url = self.__order_status_url(order.orderid)
 
         m = list()
         m.append("%s is now complete and can be downloaded " % order.orderid)
@@ -174,11 +176,11 @@ class Emails(object):
         m.append("Requested products\n")
         m.append("-------------------------------------------\n")
 
-        #products = order.scene_set.filter(status='complete')
-        scenes = Scene.where({'status': 'complete'})
+        scenes = order.scenes(["status = 'complete'"])
+        pbs = order.products_by_sensor()
 
         for product in scenes:
-            line = product.name
+            line = "{}: {}".format(product.name, ", ".join(pbs[product.name]))
             if line == 'plot':
                 line = "Plotting & Statistics"
 
