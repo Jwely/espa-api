@@ -844,7 +844,8 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         logger.info("Handling submitted plot products...")
 
-        plot_orders = Order.where("status = 'ordered' AND order_type = 'lpcs'")
+        plot_scenes = Scene.where({'status': 'submitted', 'sensor_type': 'plot'})
+        plot_orders = [Order.where("id = " + str(s.order_id))[0] for s in plot_scenes]
 
         logger.info("Found {0} submitted plot orders"
                     .format(len(plot_orders)))
@@ -859,20 +860,18 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             unavailable_products = order.scenes({'status': 'unavailable'})
             unavailable_count = len(unavailable_products)
 
-            #if this is an lpcs order and there is only 1 product left that
-            #is not done, it must be the plot product.  Will verify this
-            #in next step.  Plotting cannot run unless everything else
-            #is done.
+            # if there is only 1 product left that is not done, it must be
+            # the plot product. Will verify this in next step.  Plotting
+            # cannot run unless everything else is done.
 
-            #logger.info("product_count = {0}".format(product_count))
-            #logger.info("unavailable_count = {0}".format(unavailable_count))
-            #logger.info("complete_count = {0}".format(complete_count))
+            logger.info("plot product_count = {0}".format(product_count))
+            logger.info("plot unavailable_count = {0}".format(unavailable_count))
+            logger.info("plot complete_count = {0}".format(complete_count))
 
             if product_count - (unavailable_count + complete_count) == 1:
-                plot = order.scenes({'status': 'submitted',
-                                     'sensor_type': 'plot'})
-                if len(plot) >= 1:
-                    for p in plot:
+
+                if len(plot_scenes) >= 1:
+                    for p in plot_scenes:
                         if complete_count == 0:
                             p.status = 'unavailable'
                             note = 'No input products were available for '\
