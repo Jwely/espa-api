@@ -65,7 +65,7 @@ class TestProductionAPI(unittest.TestCase):
     def test_production_set_product_retry(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
         order = Order.where("id = {0}".format(order_id))[0]
-        scene = order.scenes()[0]
+        scene = order.scenes()[3]
         scene.update('retry_count', 4)
         processing_loc = "get_products_to_process"
         error = 'not available after EE call '
@@ -74,43 +74,79 @@ class TestProductionAPI(unittest.TestCase):
         retry_limit = 9
         response = production_provider.set_product_retry(scene.name, order.orderid, processing_loc,
                                                          error, note, retry_after, retry_limit)
-        self.assertTrue(response)
+
+        new = Scene.get('ordering_scene.status', scene.name, order.orderid)
+        self.assertTrue('retry' == new)
 
     @patch('api.external.lta.update_order_status', mock_production_provider.respond_true)
-    @patch('api.system.errors.resolve', errors.resolve_unavailable)
+    # @patch('api.system.errors.resolve', errors.resolve_unavailable)
     def test_production_set_product_error_unavailable(self):
+        """
+        Move a scene status from error to unavailable based on the error
+        message
+        """
         order_id = self.mock_order.generate_testing_order(self.user_id)
         order = Order.where("id = {0}".format(order_id))[0]
-        scene = order.scenes()[0]
+
+        for s in order.scenes():
+            if s.name != 'plot':
+                scene = s
+                break
+
         processing_loc = "get_products_to_process"
-        error = 'not available after EE call '
+        error = 'include_dswe is an unavailable product option for OLITIRS'
         response = production_provider.set_product_error(scene.name, order.orderid,
                                                          processing_loc, error)
-        self.assertTrue(response)
 
-    @patch('api.system.errors.resolve', errors.resolve_submitted)
+        new = Scene.get('ordering_scene.status', scene.name, order.orderid)
+        self.assertTrue('unavailable' == new)
+
+    # @patch('api.system.errors.resolve', errors.resolve_submitted)
     def test_production_set_product_error_submitted(self):
+        """
+        Move a scene status from error to submitted based on the error
+        message
+        """
         order_id = self.mock_order.generate_testing_order(self.user_id)
         order = Order.where("id = {0}".format(order_id))[0]
-        scene = order.scenes()[0]
-        processing_loc = "get_products_to_process"
-        error = 'not available after EE call '
-        response = production_provider.set_product_error(scene.name, order.orderid,
-                                                         processing_loc, error)
-        self.assertTrue(response)
 
-    @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry',
-           mock_production_provider.set_product_retry)
-    @patch('api.system.errors.resolve', errors.resolve_retry)
+        for s in order.scenes():
+            if s.name != 'plot':
+                scene = s
+                break
+
+        processing_loc = "get_products_to_process"
+        error = 'BLOCK, COMING FROM LST AS WELL: No such file or directory'
+        response = production_provider.set_product_error(scene.name,
+                                                         order.orderid,
+                                                         processing_loc,
+                                                         error)
+
+        new = Scene.get('ordering_scene.status', scene.name, order.orderid)
+        self.assertTrue('submitted' == new)
+
+    # @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry',
+    #        mock_production_provider.set_product_retry)
+    # @patch('api.system.errors.resolve', errors.resolve_retry)
     def test_production_set_product_error_retry(self):
+        """
+        Move a scene status from error to retry based on the error
+        message
+        """
         order_id = self.mock_order.generate_testing_order(self.user_id)
         order = Order.where("id = {0}".format(order_id))[0]
-        scene = order.scenes()[0]
-        processing_loc = "get_products_to_process"
-        error = 'not available after EE call '
-        response = production_provider.set_product_error(scene.name, order.orderid,
-                                                         processing_loc, error)
-        self.assertTrue(response)
+
+        scene = order.scenes()[2]
+
+        processing_loc = 'somewhere'
+        error = 'Verify the missing auxillary data products'
+        response = production_provider.set_product_error(scene.name,
+                                                         order.orderid,
+                                                         processing_loc,
+                                                         error)
+
+        new = Scene.get('ordering_scene.status', scene.name, order.orderid)
+        self.assertTrue('retry' == new)
 
     def test_fetch_production_products_plot(self):
         pass
@@ -118,19 +154,31 @@ class TestProductionAPI(unittest.TestCase):
     @patch('api.external.lta.update_order_status', lta.update_order_status)
     @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
     def test_update_product_details_update_status(self):
+        """
+        Set a scene status to Queued
+        """
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        order = Order.where("id = {0}".format(order_id))[0]
+        order = Order.where('id = {0}'.format(order_id))[0]
         scene = order.scenes()[0]
-        processing_loc = "L8SRLEXAMPLE"
+        processing_loc = 'L8SRLEXAMPLE'
         status = 'Queued'
-        response = api.update_product_details('update_status', {'name': scene.name, 'orderid': order.orderid,
-                                                                'processing_loc':processing_loc, 'status': status})
-        self.assertTrue(response)
+        response = api.update_product_details('update_status',
+                                              {'name': scene.name,
+                                               'orderid': order.orderid,
+                                               'processing_loc': processing_loc,
+                                               'status': status})
+
+        new = Scene.get('ordering_scene.status', scene.name, order.orderid)
+        self.assertTrue(new == status)
 
     @patch('api.external.lta.update_order_status', lta.update_order_status)
     @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
     # @patch('api.external.onlinecache.capacity', onlinecache.capacity)
     def test_update_product_details_set_product_error(self):
+        """
+        Set a scene status to error
+        :return:
+        """
         order_id = self.mock_order.generate_testing_order(self.user_id)
         order = Order.where("id = {0}".format(order_id))[0]
         scene = order.scenes()[0]
@@ -139,7 +187,9 @@ class TestProductionAPI(unittest.TestCase):
         response = production_provider.update_product('set_product_error',
                                                       name=scene.name, orderid=order.orderid,
                                                       processing_loc=processing_loc, error=error)
-        self.assertTrue(response)
+
+        new = Scene.get('ordering_scene.status', scene.name, order.orderid)
+        self.assertTrue('error' == new)
 
     @patch('api.external.lta.update_order_status', lta.update_order_status)
     @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
@@ -152,7 +202,9 @@ class TestProductionAPI(unittest.TestCase):
         response = production_provider.update_product('set_product_unavailable',
                                                       name=scene.name, orderid=order.orderid,
                                                       processing_loc=processing_loc, error=error)
-        self.assertTrue(response)
+
+        new = Scene.get('ordering_scene.status', scene.name, order.orderid)
+        self.assertTrue('unavailable' == new)
 
     @patch('api.external.lta.update_order_status', lta.update_order_status)
     @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
@@ -160,17 +212,21 @@ class TestProductionAPI(unittest.TestCase):
         order_id = self.mock_order.generate_testing_order(self.user_id)
         order = Order.where("id = {0}".format(order_id))[0]
         scene = order.scenes()[0]
-        processing_loc = "L8SRLEXAMPLE"
+        processing_loc = 'L8SRLEXAMPLE'
         file_loc = '/some/loc'
         cksum = 'some checksum'
         logfile = 'some log'
         response = production_provider.update_product('mark_product_complete',
-                                                      name=scene.name, orderid=order.orderid,
+                                                      name=scene.name,
+                                                      orderid=order.orderid,
                                                       processing_loc=processing_loc,
                                                       completed_file_location=file_loc,
                                                       cksum_file_location=cksum,
                                                       log_file_contents=logfile)
-        self.assertTrue(response)
+
+        new = Scene.get('ordering_scene.status', scene.name, order.orderid)
+
+        self.assertTrue('complete' == new)
 
     @patch('api.providers.production.production_provider.ProductionProvider.send_initial_emails',
            mock_production_provider.respond_true)
@@ -244,7 +300,7 @@ class TestProductionAPI(unittest.TestCase):
 
         production_provider.handle_retry_products()
 
-        scenes = Scene.where('order_id = {0}'.format(order_id))
+        scenes = Scene.where({'order_id': order_id})
         for s in scenes:
             self.assertTrue(s.status == 'submitted')
 
@@ -330,7 +386,7 @@ class TestProductionAPI(unittest.TestCase):
             scene.sensor_type = 'modis'
             scene.save()
         response = production_provider.handle_submitted_modis_products()
-        scene = Scene.where("id = {0}".format(scenes[0].id))[0]
+        scene = Scene.where({'id': scenes[0].id})[0]
         self.assertTrue(response)
         self.assertEquals(scene.status, "oncache")
 
@@ -344,7 +400,7 @@ class TestProductionAPI(unittest.TestCase):
             scene.sensor_type = 'modis'
             scene.save()
         response = production_provider.handle_submitted_modis_products()
-        scene = Scene.where("id = {0}".format(scenes[0].id))[0]
+        scene = Scene.where({'id': scenes[0].id})[0]
         self.assertTrue(response)
         self.assertEquals(scene.status, "unavailable")
 
@@ -373,7 +429,7 @@ class TestProductionAPI(unittest.TestCase):
 
         response = production_provider.handle_submitted_plot_products()
 
-        plot_product = Scene.where("id = {0}".format(plot_id))[0]
+        plot_product = Scene.where({'id': plot_id})[0]
         self.assertEqual(plot_product.status, "oncache")
         self.assertTrue(response)
 

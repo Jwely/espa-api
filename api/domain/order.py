@@ -170,7 +170,7 @@ class Order(object):
         scene_list = []
         user_orders = Order.where("user_id = {0}".format(user_id))
         for order in user_orders:
-            scenes = order.scenes(params)
+            scenes = order.scenes(sql_and=params)
             if scenes:
                 for i in scenes:
                     scene_list.append(i)
@@ -325,7 +325,7 @@ class Order(object):
                         structure: list({sceneid:, unit_num:})
         :return: dictionary representation of the EE order
         """
-        ee_order = {'format': 'Gtiff'}
+        ee_order = {'format': 'gtiff'}
         for item in item_ls:
             try:
                 scene_info = sensor.instance(item['sceneid'])
@@ -397,15 +397,21 @@ class Order(object):
             db.commit()
         return True
 
-    def scenes(self, conditions=None):
-        _conds = ["order_id = {0}".format(self.id)]
-        if conditions:
-          for i in conditions:
-                _conds.append(i)
+    def scenes(self, sql_dict=None, sql_and=None):
+        """
+        Retrieve a list of Scene objects related to this
+        initialized Order object
 
-        sql = " AND ".join(_conds)
-        slist = Scene.where(sql)
-        return slist
+        :param sql_dict: dictionary object for sql parameters
+        :param sql_and: additional query parameters
+        :return: list of Scene objects
+        """
+        if sql_dict:
+            sql_dict['order_id'] = self.id
+        else:
+            sql_dict = {'order_id': self.id}
+
+        return Scene.where(sql_dict, sql_and=sql_and)
 
     def products_by_sensor(self):
         po = self.product_opts

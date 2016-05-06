@@ -90,7 +90,7 @@ class Errors(object):
         timeout = config.get('retry.{0}.timeout'.format(timeout_key))
         ts = datetime.datetime.now()
         ts = ts + datetime.timedelta(seconds=int(timeout))
-        extras['retry_after'] = ts.strftime('%Y-%m-%d %H:%M:%S.%f')
+        extras['retry_after'] = ts.strftime('%Y-%m-%d %H:%M:%S')
         extras['retry_limit'] = config.get('retry.{0}.retries'.format(timeout_key))
         return extras
 
