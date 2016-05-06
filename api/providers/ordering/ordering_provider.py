@@ -113,7 +113,7 @@ class OrderingProvider(ProviderInterfaceV0):
         for orderid in orders_d:
             order = Order.where("orderid = '{0}'".format(orderid))[0]
             products_ordered = len(order.scenes())
-            products_complete = len(order.scenes(["status = 'complete'"]))
+            products_complete = len(order.scenes({'status': 'complete'}))
             out_d = {'orderid': orderid, 'products_ordered': products_ordered,
                      'products_complete': products_complete,
                      'order_status': order.status, 'order_note': order.note}
@@ -131,7 +131,7 @@ class OrderingProvider(ProviderInterfaceV0):
         if not outd:
             for orderid in orders['orders']:
                 order = Order.where("orderid = '{0}'".format(orderid))[0]
-                scenes = order.scenes(["status = 'complete'"])
+                scenes = order.scenes({"status": "complete"})
                 if scenes:
                     outd[order.orderid] = {'orderdate': str(order.order_date)}
                     scene_list = []
