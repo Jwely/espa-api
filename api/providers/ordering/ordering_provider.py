@@ -183,7 +183,7 @@ class OrderingProvider(ProviderInterfaceV0):
         order_dict = {'orderid': Order.generate_order_id(user.email),
                       'user_id': user.id,
                       'order_type': 'level2_ondemand',
-                      'status': 'submitted',
+                      'status': 'ordered',
                       'product_opts': new_order,
                       'ee_order_id': '',
                       'order_source': 'espa',
