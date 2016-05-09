@@ -478,7 +478,9 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                         if encode_urls:
                             dload_url = urllib.quote(dload_url, '')
 
-                if config.get('convertprodopts') == 'True':
+                if item['name'] == 'plot':
+                    options = None
+                elif config.get('convertprodopts') == 'True':
                     options = OptionsConversion.convert(new=item['product_opts'],
                                                         scenes=[item['name']])
                 else:
