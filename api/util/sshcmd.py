@@ -10,12 +10,13 @@ from api.system.logger import ilogger as logger
 class RemoteHost(object):
     client = None
 
-    def __init__(self, host, user, pw=None, debug=False):
+    def __init__(self, host, user, pw=None, debug=False, timeout=None):
         """ """
         self.host = host
         self.user = user
         self.pw = pw
         self.debug = debug
+        self.timeout = timeout
 
     def execute(self, command):
         """ """
@@ -31,9 +32,12 @@ class RemoteHost(object):
             if self.pw is not None:
                 self.client.connect(self.host,
                                     username=self.user,
-                                    password=self.pw)
+                                    password=self.pw,
+                                    timeout=self.timeout)
             else:
-                self.client.connect(self.host, username=self.user)
+                self.client.connect(self.host,
+                                    username=self.user,
+                                    timeout=self.timeout)
 
             stdin, stdout, stderr = self.client.exec_command(command)
             stdin.close()

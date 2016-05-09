@@ -36,7 +36,7 @@ class OnlineCache(object):
                                           self.__user_key,
                                           self.__pw_key])
 
-        self.client = sshcmd.RemoteHost(host, user, pw)
+        self.client = sshcmd.RemoteHost(host, user, pw, timeout=5)
 
         try:
             self.client.execute('ls')
