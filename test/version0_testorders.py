@@ -524,9 +524,9 @@ class InvalidOrders(object):
 
         return results
 
-    def invalidate_role_restricted(self, restr, mapping):
+    def invalidate_restricted(self, restr, mapping):
         """
-        If role base restrictions are on, add a restricted value to the list
+        If restrictions are on, add a restricted value to the list
         """
         order = copy.deepcopy(self.valid_order)
         results = []
@@ -539,7 +539,7 @@ class InvalidOrders(object):
             prods.append('restricted_prod')
 
             upd = self.build_update_dict(mapping, prods)
-            exc = self.build_exception('The requested product(s) is not available at this time',
+            exc = self.build_exception('Requested products are not available',
                                        ['restricted_prod'], mapping[-1], path=mapping)
 
             results.append((self.update_dict(order, upd), 'role_restricted', exc))

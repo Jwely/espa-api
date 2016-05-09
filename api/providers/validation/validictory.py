@@ -173,7 +173,8 @@ class OrderValidatorV0(validictory.SchemaValidator):
                         self._error('Value must fall between {} and {}'.format(val_range[0], val_range[1]),
                                     value, fieldname, path=path)
 
-    def validate_role_restricted(self, x, fieldname, schema, path, restricted):
+    def validate_restricted(self, x, fieldname, schema, path, restricted):
+        """Validate that the requested products are available by date or role"""
         if not restricted:
             return
 
@@ -189,19 +190,43 @@ class OrderValidatorV0(validictory.SchemaValidator):
         if not req_prods:
             return
 
-        acq = x['inputs'][0]
-        avail_prods = ordering.OrderingProvider().available_products(acq, self.username)
+        avail_prods = (ordering.OrderingProvider()
+                       .available_products(x['inputs'], self.username))
 
-        if 'not_implemented' in avail_prods:
+        not_implemented = avail_prods.pop('not_implemented', None)
+        date_restricted = avail_prods.pop('date_restricted', None)
+
+        # Check for to make sure there is only one sensor type in there
+        if len(avail_prods) > 1:
             return
 
-        for key in avail_prods:
-            avail_prods = avail_prods[key]['outputs']
+        if date_restricted:
+            restr_prods = date_restricted.keys()
 
-        dif = set(req_prods) - set(avail_prods)
+            for key in restr_prods:
+                if key not in req_prods:
+                    date_restricted.pop(key, None)
+
+            self._error('Requested products are restricted by date',
+                        date_restricted, fieldname, path=path)
+
+        prods = []
+        for key in avail_prods:
+            prods = [_ for _ in avail_prods[key]['outputs']]
+
+        if not prods:
+            return
+
+        dif = list(set(req_prods) - set(prods))
+
+        if date_restricted:
+            for d in dif:
+                if d in date_restricted:
+                    dif.remove(d)
+
         if dif:
-            self._error('The requested product(s) is not available at this time', list(dif),
-                        fieldname, path=path)
+            self._error('Requested products are not available',
+                        list(dif), fieldname, path=path)
 
     def validate_oneormoreobjects(self, x, fieldname, schema, path, key_list):
         """Validates that at least one value is present from the list"""
@@ -358,7 +383,7 @@ class BaseValidationSchema(object):
                                              'products': {'type': 'array',
                                                           'uniqueItems': True,
                                                           'required': True,
-                                                          'role_restricted': True,
+                                                          'restricted': True,
                                                           'items': {'type': 'string',
                                                                     'enum': sn.instance(
                                                                             _sensor_reg[key][2]).products}}}}

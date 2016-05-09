@@ -33,24 +33,24 @@ class TestNLAPS(unittest.TestCase):
             self.assertTrue(prod not in self.non_nlaps)
 
 
-class TestOnlineCache(unittest.TestCase):
-    """
-    Tests for dealing with the distribution cache
-    """
-    def setUp(self):
-        self.cache = onlinecache.OnlineCache()
-
-    def test_cache_listorders(self):
-        results = self.cache.list()
-
-        self.assertTrue(results)
-
-    def test_cache_capcity(self):
-        results = self.cache.capacity()
-
-        self.assertTrue('capacity' in results)
-
-    @patch('api.external.onlinecache.OnlineCache.delete', mockonlinecache.delete)
-    def test_cache_deleteorder(self):
-        results = self.cache.delete('bilbo')
-        self.assertTrue(results)
+# class TestOnlineCache(unittest.TestCase):
+#     """
+#     Tests for dealing with the distribution cache
+#     """
+#     def setUp(self):
+#         self.cache = onlinecache.OnlineCache()
+#
+#     def test_cache_listorders(self):
+#         results = self.cache.list()
+#
+#         self.assertTrue(results)
+#
+#     def test_cache_capcity(self):
+#         results = self.cache.capacity()
+#
+#         self.assertTrue('capacity' in results)
+#
+#     @patch('api.external.onlinecache.OnlineCache.delete', mockonlinecache.delete)
+#     def test_cache_deleteorder(self):
+#         results = self.cache.delete('bilbo')
+#         self.assertTrue(results)

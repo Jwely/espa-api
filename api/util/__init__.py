@@ -113,3 +113,66 @@ def chunkify(lst, n):
     return [lst[i::n] for i in xrange(n)]
 
 
+def julian_date_check(julian_date, restrictions):
+    """
+    Compare julian dates with a list of formatted restrictions
+    to make sure it is a valid date to use
+
+    >>> restrictions = ['< 2015305 | > 2015307', '< 2015365']
+    >>> result = julian_date_check(2015306, restrictions)
+    >>> assert(result == False)
+    >>> result = julian_date_check('2015308', restrictions)
+    >>> assert(result == True)
+
+    :param julian_date: integer represention of julian date
+    :param restrictions: list/tuple of restrictions
+    :return: True if it meets the restriction criteria
+    """
+    valid_comp = '<>!'
+
+    if not isinstance(julian_date, int):
+        try:
+            julian_date = int(julian_date)
+        except:
+            raise ValueError('julian_date variable must be int or be '
+                             'transformed to int')
+
+    if not isinstance(restrictions, tuple):
+        if isinstance(restrictions, list):
+            restrictions = tuple(restrictions)
+        elif isinstance(restrictions, basestring):
+            restrictions = restrictions,
+
+    for r in restrictions:
+        r = r.lstrip().rstrip()
+        if '|' in r:
+            s = False
+            for sub in r.split('|'):
+                if julian_date_check(julian_date, sub):
+                    s = True
+                    break
+
+            if not s:
+                return False
+            else:
+                continue
+
+        comp, lim = r.split()
+
+        if comp not in valid_comp:
+            raise ValueError('Comparison not implemented: {}'
+                             .format(comp))
+
+        if comp == '<':
+            if julian_date >= int(lim):
+                return False
+
+        elif comp == '>':
+            if julian_date <= int(lim):
+                return False
+
+        elif comp == '!':
+            if julian_date == int(lim):
+                return False
+
+    return True

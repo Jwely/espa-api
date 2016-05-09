@@ -3,6 +3,7 @@ import datetime
 from api.domain import sensor
 from api.domain.order import Order
 from api.util.dbconnect import db_instance, DBConnectException
+from api.util import julian_date_check
 from validate_email import validate_email
 from api.providers.ordering import ProviderInterfaceV0
 from api.providers.configuration.configuration_provider import ConfigurationProvider
@@ -40,22 +41,74 @@ class OrderingProvider(ProviderInterfaceV0):
         return db[0]
 
     def available_products(self, product_id, username):
+        """
+        Check to see what products are available to user based on
+        a an input list of scenes
+
+        :param product_id: list of desired inputs
+        :param username: username
+        :return: dictionary
+        """
         userlist = OrderingProvider.fetch_user(username)
         pub_prods = copy.deepcopy(OrderingProvider.sensor_products(product_id))
 
-        if not userlist['is_staff']:
-            with open('api/domain/restricted.yaml') as f:
+        with open('api/domain/restricted.yaml') as f:
                 restricted = yaml.load(f.read())
 
-            for sensor_type in pub_prods:
-                sensor_restr = restricted.get(sensor_type, [])
-                sensor_restr.extend(restricted.get('all'))
+        role = True
+        if userlist['is_staff']:
+            role = False
 
-                if sensor_type == 'not_implemented':
+        all = restricted.get('all', {})
+        all_role = all.get('role', [])
+        all_by_date = all.get('by_date', {})
+
+        upd = {'date_restricted': {}}
+        for sensor_type, prods in pub_prods.items():
+            if sensor_type == 'not_implemented':
+                continue
+
+            sensor_restr = restricted.get(sensor_type, {})
+            role_restr = sensor_restr.get('role', []) + all_role
+            by_date_restr = sensor_restr.get('by_date', {})
+
+            # All overrides any sensor related dates
+            by_date_restr.update(all_by_date)
+
+            outs = pub_prods[sensor_type]['outputs']
+            ins = pub_prods[sensor_type]['inputs']
+
+            remove_me = []
+            if role:
+                for prod in role_restr:
+                    try:
+                        outs.remove(prod)
+                    except ValueError:
+                        continue
+
+            for prod in outs:
+                if prod in by_date_restr:
+                    r = sensor_restr['by_date'][prod]
+                    for sc_id in ins:
+                        obj = sensor.instance(sc_id)
+                        julian = '{}{}'.format(obj.year, obj.doy)
+
+                        if not julian_date_check(julian, r):
+                            remove_me.append(prod)
+
+                            if prod in upd['date_restricted']:
+                                upd['date_restricted'][prod].append(sc_id)
+                            else:
+                                upd['date_restricted'][prod] = [sc_id]
+
+            for rem in remove_me:
+                try:
+                    outs.remove(rem)
+                except ValueError:
                     continue
-                for restr in sensor_restr:
-                    if restr in pub_prods[sensor_type]['outputs']:
-                        pub_prods[sensor_type]['outputs'].remove(restr)
+
+        if upd['date_restricted']:
+            pub_prods.update(upd)
 
         return pub_prods
 
