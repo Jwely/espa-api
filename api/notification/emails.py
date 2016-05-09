@@ -176,7 +176,7 @@ class Emails(object):
         m.append("Requested products\n")
         m.append("-------------------------------------------\n")
 
-        scenes = order.scenes(["status = 'complete'"])
+        scenes = order.scenes({"status": "complete"})
         pbs = order.products_by_sensor()
 
         for product in scenes:

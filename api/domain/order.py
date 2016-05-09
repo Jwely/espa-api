@@ -641,7 +641,8 @@ class OptionsConversion(object):
             elif key == 'plot_statistics':
                 # No appropriate mapping as it is handled as a dummy scene in the DB
                 continue
-
+            elif key == 'note':
+                continue
             else:
                 raise ValueError('Unrecognized key: {}'.format(key))
 

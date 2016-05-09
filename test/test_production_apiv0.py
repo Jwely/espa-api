@@ -36,16 +36,15 @@ class TestProductionAPI(unittest.TestCase):
         os.environ['espa_api_testing'] = ''
 
     @patch('api.external.lpdaac.get_download_urls', lpdaac.get_download_urls)
-    @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
+    @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry',
+           mock_production_provider.set_product_retry)
     def test_fetch_production_products_modis(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
         # need scenes with statuses of 'processing' and 'ordered'
         self.mock_order.update_scenes(order_id, 'status', ['processing', 'ordered', 'oncache'])
         user = User.where("id = {0}".format(self.user_id))[0]
         params = {'for_user': user.username, 'product_types': ['modis']}
-
         response = api.fetch_production_products(params)
-        #response = production_provider.get_products_to_process(**params)
         self.assertTrue('bilbo' in response[0]['orderid'])
 
     @patch('api.external.lta.get_download_urls', lta.get_download_urls)
@@ -57,10 +56,22 @@ class TestProductionAPI(unittest.TestCase):
         self.mock_order.update_scenes(order_id, 'status', ['processing','ordered','oncache'])
         user = User.where("id = {0}".format(self.user_id))[0]
         params = {'for_user': user.username, 'product_types': ['landsat']}
-
         response = api.fetch_production_products(params)
-        #response = production_provider.get_products_to_process(**params)
         self.assertTrue('bilbo' in response[0]['orderid'])
+
+    def test_fetch_production_products_plot(self):
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        self.mock_order.update_scenes(order_id, 'status', ['complete'])
+        order = Order.where("id = {0}".format(order_id))[0]
+        plot_scene = order.scenes()[0]
+        plot_scene.name = 'plot'
+        plot_scene.sensor_type = 'plot'
+        plot_scene.status = 'submitted'
+        plot_scene.save()
+        response = production_provider.handle_submitted_plot_products()
+        pscene = order.scenes({'status': 'oncache', 'sensor_type': 'plot'})
+        self.assertTrue(response is True)
+        self.assertEqual(len(pscene), 1)
 
     def test_production_set_product_retry(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
@@ -101,7 +112,6 @@ class TestProductionAPI(unittest.TestCase):
         new = Scene.get('ordering_scene.status', scene.name, order.orderid)
         self.assertTrue('unavailable' == new)
 
-    # @patch('api.system.errors.resolve', errors.resolve_submitted)
     def test_production_set_product_error_submitted(self):
         """
         Move a scene status from error to submitted based on the error
@@ -147,9 +157,6 @@ class TestProductionAPI(unittest.TestCase):
 
         new = Scene.get('ordering_scene.status', scene.name, order.orderid)
         self.assertTrue('retry' == new)
-
-    def test_fetch_production_products_plot(self):
-        pass
 
     @patch('api.external.lta.update_order_status', lta.update_order_status)
     @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
