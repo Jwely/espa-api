@@ -43,7 +43,7 @@ class OrderingProvider(ProviderInterfaceV0):
     def available_products(self, product_id, username):
         """
         Check to see what products are available to user based on
-        a an input list of scenes
+        an input list of scenes
 
         :param product_id: list of desired inputs
         :param username: username
@@ -59,9 +59,9 @@ class OrderingProvider(ProviderInterfaceV0):
         if userlist['is_staff']:
             role = False
 
-        all = restricted.get('all', {})
-        all_role = all.get('role', [])
-        all_by_date = all.get('by_date', {})
+        restrict_all = restricted.get('all', {})
+        all_role = restrict_all.get('role', [])
+        all_by_date = restrict_all.get('by_date', {})
 
         upd = {'date_restricted': {}}
         for sensor_type, prods in pub_prods.items():

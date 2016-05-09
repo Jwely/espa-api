@@ -226,7 +226,7 @@ class OrderValidatorV0(validictory.SchemaValidator):
 
         if dif:
             self._error('Requested products are not available',
-                        list(dif), fieldname, path=path)
+                        dif, fieldname, path=path)
 
     def validate_oneormoreobjects(self, x, fieldname, schema, path, key_list):
         """Validates that at least one value is present from the list"""
