@@ -42,6 +42,7 @@ class Errors(object):
         self.conditions.append(self.sixs_errors)
         self.conditions.append(self.ssh_errors)
         self.conditions.append(self.warp_errors)
+        self.conditions.append(self.narr_data_bounds)
 
         #construct the named tuple for the return value of this module
         self.resolution = collections.namedtuple('ErrorResolution',
@@ -248,6 +249,12 @@ class Errors(object):
         reason = 'Error generating product, retrying'
         extras = self.__add_retry('sixs_errors')
         return self.__find_error(error_message, keys, status, reason, extras)
+
+    def narr_data_bounds(self, error_message):
+        keys = ['Scene partially or completely outside NARR data bounds']
+        status = 'unavailable'
+        reason = 'Scene partially or completely outside NARR data bounds'
+        return self.__find_error(error_message, keys, status, reason)
 
 
 def resolve(error_message, name):
