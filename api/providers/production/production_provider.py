@@ -479,7 +479,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                             dload_url = urllib.quote(dload_url, '')
 
                 if item['name'] == 'plot':
-                    options = None
+                    options = {}
                 elif config.get('convertprodopts') == 'True':
                     options = OptionsConversion.convert(new=item['product_opts'],
                                                         scenes=[item['name']])
