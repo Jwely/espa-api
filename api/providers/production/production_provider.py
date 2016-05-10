@@ -246,6 +246,10 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         if not retry_limit:
             retry_limit = Scene.get('retry_limit', name, orderid)
 
+        # make sure retry_limit and retry_count are ints
+        retry_count = int(retry_count)
+        retry_limit = int(retry_limit)
+
         logger.info('set_product_retry - name: {0}, orderid: {1}, '
                     'processing_loc: {2}, error: {3}, note: {4}, '
                     'retry_after: {5}, retry_limit: {6}, '
@@ -292,6 +296,12 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         if name != 'plot':
             resolution = errors.resolve(error, name)
 
+        logger.info("\n\n*** set_product_error: orderid {0}, "
+                    "scene id {1} , scene name {2},\n"
+                    "error {4},\n"
+                    "resolution {3}\n\n".format(order.orderid, product.id,
+                                                product.name, resolution, error))
+
         if resolution is not None:
             if resolution.status == 'submitted':
                 product.status = 'submitted'
@@ -313,7 +323,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                                            resolution.extra['retry_after'],
                                            resolution.extra['retry_limit'])
                 except Exception as e:
-                    logger.debug('Exception setting product.id {} {} '
+                    logger.info('Exception setting product.id {} {} '
                                  'to retry: {}'
                                  .format(product.id, name, e))
                     product.status = 'error'

@@ -26,6 +26,7 @@ class Errors(object):
         #build list of known error conditions to be checked
         self.conditions = list()
 
+        self.conditions.append(self.narr_data_bounds)
         self.conditions.append(self.db_lock_errors)
         self.conditions.append(self.dswe_unavailable)
         self.conditions.append(self.ftp_errors)
@@ -42,7 +43,6 @@ class Errors(object):
         self.conditions.append(self.sixs_errors)
         self.conditions.append(self.ssh_errors)
         self.conditions.append(self.warp_errors)
-        self.conditions.append(self.narr_data_bounds)
 
         #construct the named tuple for the return value of this module
         self.resolution = collections.namedtuple('ErrorResolution',
@@ -174,7 +174,8 @@ class Errors(object):
         sun was beneath the horizon'''
 
         keys = ['solar zenith angle out of range',
-                'Solar zenith angle is out of range']
+                'Solar zenith angle is out of range',
+                'Solar zenith angle is too large']
         status = 'unavailable'
         reason = ('This scene cannot be processed to surface reflectance '
                   'due to the high solar zenith angle')
