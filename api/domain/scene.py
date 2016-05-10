@@ -87,7 +87,7 @@ class Scene(object):
                 self.id = None
 
     def __repr__(self):
-        return 'Scene:{}'.format(self.__dict__)
+        return 'Scene: {}'.format(self.__dict__)
 
     @classmethod
     def get(cls, col_name, scene_name, orderid):
@@ -124,14 +124,14 @@ class Scene(object):
                                 scene_name, orderid))
                 ret = db[0][col]
 
-        except DBConnectException, e:
+        except DBConnectException as e:
             logger.debug('err with Scene.get\n'
                          'msg: {0}\n'
                          'sql: {1}'.format(e.message, log_sql))
 
             raise SceneException(e.message)
 
-        except KeyError, e:
+        except KeyError as e:
             logger.debug('Scene.get returned no results\n'
                          'sql: {}'.format(log_sql))
 
@@ -173,17 +173,19 @@ class Scene(object):
                'cksum_distro_location, cksum_download_url, '
                'processing_location) VALUES {}'.format(template))
 
+        log_sql = ''
         try:
             with db_instance() as db:
+                log_sql = db.cursor.mogrify(sql, args)
                 logger.info('scene creation sql: {}'
-                            .format(db.cursor.mogrify(sql, args)))
+                            .format(log_sql))
                 db.execute(sql, args)
                 db.commit()
 
-        except DBConnectException, e:
+        except DBConnectException as e:
             logger.debug('error creating new scene(s): {}\n'
                          'sql: {}\n'
-                         .format(e.message, sql))
+                         .format(e.message, log_sql))
             raise SceneException(e.message)
 
     @classmethod
@@ -234,9 +236,9 @@ class Scene(object):
             updates = {}
 
         if not isinstance(ids, (list, tuple)):
-            raise TypeError("Scene.bulk_update ids should be a list")
+            raise TypeError('Scene.bulk_update ids should be a list')
         if not isinstance(updates, dict):
-            raise TypeError("Scene.bulk_update updates should be a dict")
+            raise TypeError('Scene.bulk_update updates should be a dict')
 
         sql = 'UPDATE ordering_scene SET %s = %s WHERE id in %s'
 
@@ -247,13 +249,18 @@ class Scene(object):
         if ",)" in sql:
             sql = sql.replace(",)", ")")
 
+        log_sql = ''
         try:
             with db_instance() as db:
-                logger.info(db.cursor.mogrify(sql, (db_extns.AsIs(fields), vals, ids)))
+                log_sql = db.cursor.mogrify(sql, (db_extns.AsIs(fields),
+                                                  vals, ids))
+                logger.info(log_sql)
                 db.execute(sql, (db_extns.AsIs(fields), vals, ids))
                 db.commit()
-        except DBConnectException, e:
-            raise SceneException(e.message)
+        except DBConnectException as e:
+            logger.debug('Error scene.py bulk_update: {}\nSQL: {}'
+                         .format(e.message, log_sql))
+            raise SceneException(e)
 
         return True
 
@@ -264,59 +271,95 @@ class Scene(object):
 
         :param att: column to update
         :param val: new value
-        :return:
+        :return: update value from self
         """
         sql = 'update ordering_scene set %s = %s where id = %s'
 
-        with db_instance() as db:
-            db.execute(sql, (db_extns.AsIs(att), val, self.id))
-            db.commit()
+        log_sql = ''
+        try:
+            with db_instance() as db:
+                log_sql = db.cursor.mogrify(sql, (db_extns.AsIs(att),
+                                                  val, self.id))
+                logger.info(log_sql)
+                db.execute(sql, (db_extns.AsIs(att), val, self.id))
+                db.commit()
+        except DBConnectException as e:
+            logger.debug('Error scene.py update: {}\nSQL: {}'
+                         .format(e.message, log_sql))
 
         self.__setattr__(att, val)
 
         return self.__getattribute__(att)
 
     def save(self):
-        sql_list = ["UPDATE ordering_scene SET "]
-        attr_tup = ('status', 'cksum_download_url', 'log_file_contents', 'processing_location',
-                    'retry_after', 'job_name', 'note', 'retry_count', 'sensor_type',
-                    'product_dload_url', 'tram_order_id', 'completion_date', 'ee_unit_id',
-                    'retry_limit', 'cksum_distro_location', 'product_distro_location')
-        date_fields = ('retry_after', 'completion_date')
-        arg_list = []
-        for idx, attr in enumerate(attr_tup):
-            sql_snip = "{0} = %s, "
-            val = self.__getattribute__(attr)
+        """
+        Save the current configuration of the scene object to the DB
+        """
+        sql = 'UPDATE ordering_scene SET %s = %s WHERE id = %s'
 
-            # strip the trailing comma 
-            if idx == len(attr_tup) - 1:
-                sql_snip = sql_snip.replace(",","")
+        attr_tup = ('status', 'cksum_download_url', 'log_file_contents',
+                    'processing_location', 'retry_after', 'job_name',
+                    'note', 'retry_count', 'sensor_type',
+                    'product_dload_url', 'tram_order_id',
+                    'completion_date', 'ee_unit_id', 'retry_limit',
+                    'cksum_distro_location', 'product_distro_location')
 
-            sql_snip = sql_snip.format(attr)
-            sql_list.append(sql_snip)
-            arg_list.append(val)
+        vals = tuple(self.__getattribute__(v) for v in attr_tup)
+        cols = '({})'.format(','.join(attr_tup))
 
-        sql_list.append("WHERE id = {0};".format(self.id))
-
-        sql = " ".join(sql_list)
-        logger.info("saving updates to scene id:{0}, name:{1}\n sql: {2}\n args: {3}\n".format(self.id, self.name, sql, arg_list))
+        log_sql = ''
         try:
             with db_instance() as db:
-                db.execute(sql, arg_list)
+                log_sql = db.cursor.mogrify(sql, (db_extns.AsIs(cols),
+                                                  vals, self.id))
+
+                db.execute(sql, (db_extns.AsIs(cols), vals, self.id))
                 db.commit()
-                return True
-        except DBConnectException, e:
-            logger.debug("ERROR saving scene. msg: {0}\nsql: {1}".format(e.message, sql))
-            raise SceneException(e.message)
+                logger.info('Saved updates to scene id: {}, name:{}\n'
+                            'sql: {}\n args: {}\n'
+                            .format(self.id, self.name,
+                                    log_sql, zip(attr_tup, vals)))
+        except DBConnectException as e:
+            logger.debug("Error scene.py save: {}\n"
+                         "sql: {}".format(e.message, log_sql))
+            raise SceneException(e)
 
-    def order_attr(self, att):
-        sql = "select {0} from ordering_scene join ordering_order "\
-                "on ordering_order.id = ordering_scene.order_id "\
-                "where name = '{1}';".format(att, self.name)
+        new = Scene.where({'id': self.id})[0]
+
+        for att in attr_tup:
+            self.__setattr__(att, new.__getattribute__(att))
+
+    def order_attr(self, col):
+        """
+        Select the column value from the ordering_order table for this
+        specific scene
+
+        :param col: column to select on
+        :return: value
+        """
+        sql = ('SELECT %s '
+               'FROM ordering_scene JOIN ordering_order '
+               'ON ordering_order.id = ordering_scene.order_id '
+               'WHERE name = %s')
+
+        log_sql = ''
         try:
             with db_instance() as db:
-                db.select(sql)
-            return db[0][att]
+                log_sql = db.cursor.mogrify(sql, (db_extns.AsIs(col),
+                                                  self.name))
+                db.select(sql, (db_extns.AsIs(col), self.name))
+                ret = db[0][col]
+
         except DBConnectException as e:
-            logger.debug("err with Scene.get, \nmsg: {0}\nsql: {1} \n".format(e.message, sql))
+            logger.debug('Error scene.py order_attr: {}\n'
+                         'sql: {} \n'.format(e.message, log_sql))
             raise SceneException(e)
+
+        except KeyError as e:
+            logger.debug('Error scene.py order_attr returned no results\n'
+                         'sql: {}'.format(log_sql))
+
+            raise SceneException('Key Error: {}'
+                                 .format(e.message))
+
+        return ret
