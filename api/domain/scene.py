@@ -228,6 +228,10 @@ class Scene(object):
                          'sql: {}'.format(e.message, log_sql))
             raise SceneException(e)
 
+        if not ret:
+            logger.warning('Error where returned no results\n'
+                           'sql: {}'.format(log_sql))
+
         return ret
 
     @classmethod
