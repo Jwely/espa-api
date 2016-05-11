@@ -103,7 +103,7 @@ class Emails(object):
         '''Finds all the orders that have not had their initial emails sent and
         sends them'''
 
-        orders = Order.where(["status = 'ordered'"])
+        orders = Order.where({'status': 'ordered'})
         for o in orders:
             if not o.initial_email_sent:
                 self.send_initial(o.orderid)
@@ -113,9 +113,9 @@ class Emails(object):
     def send_initial(self, order_id):
 
         if isinstance(order_id, str):
-            order = Order.where("orderid = '{0}'".format(order_id))[0]
+            order = Order.where({'orderid': order_id})[0]
         elif isinstance(order_id, int):
-            order = Order.where("id = {0}".format(order_id))[0]
+            order = Order.where({'id': order_id})[0]
         elif isinstance(order_id, Order):
             order = order_id
 
@@ -154,9 +154,9 @@ class Emails(object):
     def send_completion(self, order):
 
         if isinstance(order, str):
-            order = Order.where(["orderid = '{0}'".format(order)])[0]
+            order = Order.where({'orderid': order})[0]
         elif isinstance(order, int):
-            order = Order.where(["id = {0}".format(order)])[0]
+            order = Order.where({'id': order})[0]
 
         if not isinstance(order, Order):
             msg = 'order must be str, int or instance of Order'

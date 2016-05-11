@@ -4,56 +4,84 @@ import datetime
 import copy
 
 from api.util.dbconnect import DBConnectException, db_instance
+import psycopg2.extensions as db_extns
 from api.domain.scene import Scene
 from api.domain import sensor
 from api.system.logger import ilogger as logger
 from psycopg2.extras import Json
 
+
 class OrderException(Exception):
     pass
+
 
 class Order(object):
     """ Class for interacting with the ordering_order table """
 
-    base_sql = "SELECT id, orderid, email, order_date, status, product_options,"\
-                "order_source, ee_order_id, user_id, order_type, priority,"\
-                "completion_date, note, initial_email_sent,"\
-                "completion_email_sent, product_opts FROM ordering_order WHERE "
+    base_sql = ('SELECT * '
+                'FROM ordering_order '
+                'WHERE ')
 
-    def __init__(self, orderid=None, status=None, order_source=None, order_type=None,
-                product_options=None, product_opts=None, initial_email_sent=None,
-                completion_email_sent=None, note=None, completion_date=None,
-                order_date=None, user_id=None, ee_order_id=None, email=None,
-                priority=None):
-                self.orderid = orderid
-                self.status = status
-                self.order_source = order_source
-                self.order_type = order_type
-                self.product_options = product_options
-                self.product_opts = product_opts
-                self.initial_email_sent = initial_email_sent
-                self.completion_email_sent = completion_email_sent
-                self.note = note
-                self.completion_date = completion_date
-                self.order_date = order_date
-                self.user_id = user_id
-                self.ee_order_id = ee_order_id
-                self.email = email
-                self.priority = priority
-                with db_instance() as db:
-                    db.select("select id from ordering_order where orderid = %s;", orderid)
-                    if db:
-                        self.id = db[0]['id']
-                    else:
-                        self.id = None
+    def __init__(self, orderid=None, status=None, order_source=None,
+                 order_type=None, product_options=None,
+                 product_opts=None, initial_email_sent=None,
+                 completion_email_sent=None, note=None,
+                 completion_date=None, order_date=None, user_id=None,
+                 ee_order_id=None, email=None, priority=None):
+        """
+        Initialize the Order object with all the information for it
+        from the database
+
+        All parameters are directly related to DB columns
+
+        :param orderid: order ID long name, someone@someplace-123456
+        :param status: current status in the system
+        :param order_source: origination of the Order, earthexplorer or ESPA
+        :param order_type: typically 'level2_ondemand'
+        :param product_options: legacy column
+        :param product_opts: dict representation of the order
+        :param initial_email_sent: date
+        :param completion_email_sent: date
+        :param note: user note on the order
+        :param completion_date: date
+        :param order_date: date
+        :param user_id: earth explorer ID of the user
+        :param ee_order_id: ID used by EE to track the order
+        :param email: user email
+        :param priority: legacy
+        """
+        self.orderid = orderid
+        self.status = status
+        self.order_source = order_source
+        self.order_type = order_type
+        self.product_options = product_options
+        self.product_opts = product_opts
+        self.initial_email_sent = initial_email_sent
+        self.completion_email_sent = completion_email_sent
+        self.note = note
+        self.completion_date = completion_date
+        self.order_date = order_date
+        self.user_id = user_id
+        self.ee_order_id = ee_order_id
+        self.email = email
+        self.priority = priority
+
+        with db_instance() as db:
+            sql = 'select id from ordering_order where orderid = %s'
+            db.select(sql, orderid)
+            if db:
+                self.id = db[0]['id']
+            else:
+                self.id = None
 
     def __repr__(self):
-        return "Order:{0}".format(self.__dict__)
+        return 'Order: {}'.format(self.__dict__)
 
     @classmethod
     def create(cls, params):
         """
         Place a new order into the system
+
         :param params: dict of required parameters to be used
             params = {'product_opts': {dictionary object of the order received}
                       'orderid': id generated from generate_order_id
@@ -73,28 +101,31 @@ class Order(object):
 
         params['product_opts'] = json.dumps(params['product_opts'])
 
-        sql = ("INSERT INTO ordering_order "
-               "(orderid, user_id, order_type, status, note, "
-               "product_opts, ee_order_id, order_source, order_date, "
-               "priority, email, product_options) "
-               "VALUES (%(orderid)s, %(user_id)s, %(order_type)s,"
-               " %(status)s, %(note)s, %(product_opts)s,"
-               " %(ee_order_id)s, %(order_source)s, %(order_date)s, "
-               "%(priority)s, %(email)s, %(product_options)s)")
+        sql = ('INSERT INTO ordering_order '
+               '(orderid, user_id, order_type, status, note, '
+               'product_opts, ee_order_id, order_source, order_date, '
+               'priority, email, product_options) '
+               'VALUES (%(orderid)s, %(user_id)s, %(order_type)s, '
+               '%(status)s, %(note)s, %(product_opts)s, '
+               '%(ee_order_id)s, %(order_source)s, %(order_date)s, '
+               '%(priority)s, %(email)s, %(product_options)s)')
 
-        logger.info("Order creation parameters: {0}".format(params))
+        logger.info('Order creation parameters: {}'.format(params))
 
+        log_sql = ''
         try:
             with db_instance() as db:
+                log_sql = db.cursor.mogrify(sql, params)
                 logger.info('New order complete SQL: {}'
-                            .format(db.cursor.mogrify(sql, params)))
+                            .format(log_sql))
                 db.execute(sql, params)
                 db.commit()
-        except DBConnectException, e:
-            raise OrderException("error creating new order: {0}\n"
-                                 " sql: {1}\n".format(e.message, sql))
+        except DBConnectException as e:
+            logger.debug('Error creating new order: {}\n'
+                         'sql: {}'.format(e.message, log_sql))
+            raise OrderException(e)
 
-        order = Order.where("orderid = '{0}'".format(params['orderid']))[0]
+        order = Order.where({'orderid': params['orderid']})[0]
 
         # Let the load_ee_order method handle the scene injection
         # as there is special logic for interacting with LTA
@@ -137,38 +168,59 @@ class Order(object):
         return order
 
     @classmethod
-    def where(cls, params):
-        sql = [str(cls.base_sql)]
-        if isinstance(params, list):
-            param_str = " AND ".join(params)
-            sql.append(param_str)
-        elif isinstance(params, str):
-            sql.append(params)
-        else:
-            raise OrderException("Order.where arg needs to be a list or a str")
+    def where(cls, params, sql_and=None):
+        """
+        Query for a particular row in the ordering_oder table
 
-        sql.append(";")
-        sql = " ".join(sql)
-        results = []
-        with db_instance() as db:
-            db.select(sql)
-            returnlist = []
-            for i in db:
-                results.append(i)
+        :param params: dictionary of column: value parameter to select on
+        :param sql_and: custom query parameter for anything besides =
+        :return: list of matching Order objects
+        """
+        if not isinstance(params, dict):
+            raise OrderException('Where arguments must be '
+                                 'passed as a dictionary')
 
-        returnlist = []
-        for i in results:
-            od = dict(i)
-            del od["id"]
-            order = Order(**od)
-            returnlist.append(order)
+        fields, values = zip(*params.items())
+        fields = ', '.join(fields)
 
-        return returnlist
+        sql = '{} (%s) = %s'.format(cls.base_sql)
+
+        if sql_and:
+            sql += ' AND {}'.format(sql_and)
+
+        ret = []
+        log_sql = ''
+        try:
+            with db_instance() as db:
+                log_sql = db.cursor.mogrify(sql, (db_extns.AsIs(fields),
+                                                  values))
+                logger.info('order.py where sql: {}'.format(log_sql))
+
+                db.select(sql, (db_extns.AsIs(fields), values))
+
+                for i in db:
+                    od = dict(i)
+                    del od['id']
+                    obj = Order(**od)
+                    ret.append(obj)
+        except DBConnectException as e:
+            logger.debug('Error order where: {}\n'
+                         'sql: {}'.format(e.message, log_sql))
+            raise OrderException(e)
+
+        return ret
 
     @classmethod
     def get_user_scenes(cls, user_id, params=None):
+        """
+        Retrieve a list of scenes associated with a user
+
+        :param user_id: user info
+        :param params: additional SQL query parameters
+        :return: list of scene objects
+        """
         scene_list = []
-        user_orders = Order.where("user_id = {0}".format(user_id))
+        user_orders = Order.where({'user_id': user_id})
         for order in user_orders:
             scenes = order.scenes(sql_and=params)
             if scenes:
@@ -179,132 +231,139 @@ class Order(object):
 
     @classmethod
     def generate_ee_order_id(cls, email_addr, eeorder):
-        '''Generate an order id if the order came from Earth Explorer
+        """
+        Generate an order id if the order came from Earth Explorer
 
-        Keyword args:
-        email -- Email address of the requestor
-        eeorder -- The Earth Explorer order id
-
-        Return:
-        An order id string for the espa system for ee created orders
-        str(email-eeorder)
-        '''
-        return '%s-%s' % (email_addr, eeorder)
+        :param eeorder: The Earth Explorer order id
+        :param email_addr: Email address of the requestor
+        :return: An order id string for the ESPA system for ee created orders
+        """
+        return '{}-{}'.format(email_addr, eeorder)
 
     @staticmethod
     def get_default_product_options():
-        '''Factory method to return default product selection options
+        """
+        LEGACY METHOD
 
-        Return:
-        Dictionary populated with default product options
-        '''
-        o = {}
+        Factory method to return default product selection options
+
+        :return: Dictionary populated with default product options
+        """
         # standard product selection options
-        o['include_source_data'] = False            # underlying raster
-        o['include_source_metadata'] = False        # source metadata
-        o['include_customized_source_data'] = False
-        o['include_sr_toa'] = False           # LEDAPS top of atmosphere
-        o['include_sr_thermal'] = False       # LEDAPS band 6
-        o['include_sr'] = False               # LEDAPS surface reflectance
-        o['include_dswe'] = False             # Dynamic Surface Water
-        o['include_sr_browse'] = False        # surface reflectance browse
-        o['include_sr_ndvi'] = False          # normalized difference veg
-        o['include_sr_ndmi'] = False          # normalized difference moisture
-        o['include_sr_nbr'] = False           # normalized burn ratio
-        o['include_sr_nbr2'] = False          # normalized burn ratio 2
-        o['include_sr_savi'] = False          # soil adjusted vegetation
-        o['include_sr_msavi'] = False         # modified soil adjusted veg
-        o['include_sr_evi'] = False           # enhanced vegetation
-        o['include_lst'] = False              # land surface temperature
-        o['include_solr_index'] = False       # solr search index record
-        o['include_cfmask'] = False           # (deprecated)
-        o['include_statistics'] = False       # should we do stats & plots?
+        o = {'include_source_data': False,  # underlying raster
+             'include_source_metadata': False,  # source metadata
+             'include_customized_source_data': False,
+             'include_sr_toa': False,  # LEDAPS top of atmosphere
+             'include_sr_thermal': False,  # LEDAPS band 6
+             'include_sr': False,  # LEDAPS surface reflectance
+             'include_dswe': False,  # Dynamic Surface Water
+             'include_sr_browse': False,  # surface reflectance browse
+             'include_sr_ndvi': False,  # normalized difference veg
+             'include_sr_ndmi': False,  # normalized difference moisture
+             'include_sr_nbr': False,  # normalized burn ratio
+             'include_sr_nbr2': False,  # normalized burn ratio 2
+             'include_sr_savi': False,  # soil adjusted vegetation
+             'include_sr_msavi': False,  # modified soil adjusted veg
+             'include_sr_evi': False,  # enhanced vegetation
+             'include_lst': False,  # land surface temperature
+             'include_solr_index': False,  # solr search index record
+             'include_cfmask': False,  # (deprecated) not
+             'include_statistics': False}  # should we do stats & plots?
 
         return o
 
     @staticmethod
     def get_default_projection_options():
-        '''Factory method to return default reprojection options
+        """
+        LEGACY METHOD
 
-        Return:
-        Dictionary populated with default reprojection options
-        '''
-        o = {}
-        o['reproject'] = False             # reproject all rasters (True/False)
-        o['target_projection'] = None      # if 'reproject' which projection?
-        o['central_meridian'] = None       #
-        o['false_easting'] = None          #
-        o['false_northing'] = None         #
-        o['origin_lat'] = None             #
-        o['std_parallel_1'] = None         #
-        o['std_parallel_2'] = None         #
-        o['datum'] = 'wgs84'
-        o['longitude_pole'] = None         #
-        o['latitude_true_scale'] = None
+        Factory method to return default reprojection options
 
-        #utm only options
-        o['utm_zone'] = None               # 1 to 60
-        o['utm_north_south'] = None        # north or south
+        :return: Dictionary populated with default reprojection options
+        """
+        o = {'reproject': False,
+             'target_projection': None,
+             'central_meridian': None,
+             'false_easting': None,
+             'false_northing': None,
+             'origin_lat': None,
+             'std_parallel_1': None,
+             'std_parallel_2': None,
+             'datum': 'wgs84',
+             'longitude_pole': None,
+             'latitude_true_scale': None,
+             'utm_zone': None,
+             'utm_north_south': None}
 
         return o
 
     @staticmethod
     def get_default_subset_options():
-        '''Factory method to return default subsetting/framing options
+        """
+        LEGACY METHOD
 
-        Return:
-        Dictionary populated with default subsettings/framing options
-        '''
-        o = {}
-        o['image_extents'] = False       # modify image extent(subset or frame)
-        o['image_extents_units'] = None  # what units are the coords in?
-        o['minx'] = None                 #
-        o['miny'] = None                 #
-        o['maxx'] = None                 #
-        o['maxy'] = None                 #
+        Factory method to return default subsetting/framing options
+
+        :return: Dictionary populated with default subsettings/framing
+         options
+        """
+        o = {'image_extents': False,
+             'image_extents_units': None,
+             'minx': None,
+             'miny': None,
+             'maxx': None,
+             'maxy': None}
+
         return o
 
     @staticmethod
     def get_default_resize_options():
-        '''Factory method to return default resizing options
+        """
+        LEGACY METHOD
 
-        Return:
-        Dictionary populated with default resizing options
-        '''
-        o = {}
-        #Pixel resizing options
-        o['resize'] = False            # resize output pixel size (True/False)
-        o['pixel_size'] = None         # if resize, how big (30 to 1000 meters)
-        o['pixel_size_units'] = None   # meters or dd.
+        Factory method to return default resizing options
+
+        :return: Dictionary populated with default resizing options
+        """
+        o = {'resize': False,
+             'pixel_size': None,
+             'pixel_size_units': None}
 
         return o
 
     @staticmethod
     def get_default_resample_options():
-        '''Factory method to returns default resampling options
+        """
+        LEGACY METHOD
 
-        Return:
-        Dictionary populated with default resampling options
-        '''
-        o = {}
-        o['resample_method'] = 'near'  # how would user like to resample?
+        Factory method to returns default resampling options
+
+        :return: Dictionary populated with default resampling options
+        """
+        o = {'resample_method': 'near'}
 
         return o
 
     @staticmethod
     def get_default_output_format():
-        ''' Returns the default ESPA output format'''
-        o = {}
-        o['output_format'] = 'gtiff'
+        """
+        LEGACY METHOD
+
+        :return: Returns the default ESPA output format
+        """
+        o = {'output_format': 'gtiff'}
+
         return o
 
     @classmethod
     def get_default_options(cls):
-        '''Factory method to return default espa order options
+        """
+        LEGACY METHOD
 
-        Return:
-        Dictionary populated with default espa ordering options
-        '''
+        Factory method to return default espa order options
+
+        :return: Dictionary populated with default espa ordering options
+        """
         o = {}
         o.update(cls.get_default_product_options())
         o.update(cls.get_default_projection_options())
@@ -329,7 +388,7 @@ class Order(object):
         for item in item_ls:
             try:
                 scene_info = sensor.instance(item['sceneid'])
-            except Exception:
+            except sensor.ProductNotImplemented:
                 log_msg = ('Received unsupported product via EE: {}'
                            .format(item['sceneid']))
                 logger.debug(log_msg)
@@ -350,52 +409,103 @@ class Order(object):
         return ee_order
 
     def user_email(self):
-        sql = "select email from auth_user where id = {0};".format(self.user_id)
-        with db_instance() as db:
-            db.select(sql)
-            return db[0]['email']
+        """
+        Retrieve the email address associated with this order
+
+        :return: email address
+        """
+        sql = 'select email from auth_user where id = %s'
+
+        ret = None
+        log_sql = ''
+        try:
+            with db_instance() as db:
+                log_sql = db.cursor.mogrify(sql, (self.user_id,))
+                logger.info('order.py user_email: {}'.format(log_sql))
+
+                db.select(sql, self.user_id)
+
+                ret = db[0]['email']
+        except DBConnectException as e:
+            logger.debug('Error retrieving user_email: {}'
+                         .format(log_sql))
+            raise OrderException(e)
+
+        return ret
 
     def save(self):
-        attr_tup = ('orderid', 'status', 'order_source', 'product_options', 'product_opts',
-                    'order_type', 'initial_email_sent', 'completion_email_sent',
-                    'note', 'completion_date', 'order_date', 'user_id', 'ee_order_id',
-                    'email', 'priority')
+        """
+        Upsert self to the database
+        """
+        sql = ('INSERT INTO ordering_order %s VALUES %s '
+               'ON CONFLICT (orderid) '
+               'DO UPDATE '
+               'SET %s = %s')
 
-        ql = ['insert into ordering_order ({0}) values (']
-        val_list = []
-        sub_list = []
-        for item in attr_tup:
-            _i = self.__getattribute__(item)
-            _iv = Json(_i) if item == 'product_opts' else _i
-            val_list.append(_iv)
-            sub_list.append('%s,')
+        attr_tup = ('orderid', 'status', 'order_source',
+                    'product_options', 'product_opts', 'order_type',
+                    'initial_email_sent', 'completion_email_sent',
+                    'note', 'completion_date', 'order_date', 'user_id',
+                    'ee_order_id', 'email', 'priority')
 
-        sub_string = ' '.join(sub_list)
-        ql.append(sub_string)
-        ql.append(") on conflict (orderid) do update set ({0}) = (")
-        ql.append(sub_string)
-        ql.append(")")
-        sql = " ".join(ql)
-        sql = sql.format(", ".join((attr_tup)))
-        sql = sql.replace(", )", ")")
+        vals = tuple(self.__getattribute__(v)
+                     if v != 'product_opts'
+                     else json.dumps(self.__getattribute__(v))
+                     for v in attr_tup)
 
-        with db_instance() as db:
-            db.execute(sql, tuple(val_list + val_list))
-            db.commit()
-        return True
+        cols = '({})'.format(','.join(attr_tup))
+
+        log_sql = ''
+        try:
+            with db_instance() as db:
+                log_sql = db.cursor.mogrify(sql, (db_extns.AsIs(cols),
+                                                  vals,
+                                                  db_extns.AsIs(cols),
+                                                  vals))
+                db.execute(sql, (db_extns.AsIs(cols), vals,
+                                 db_extns.AsIs(cols), vals))
+                db.commit()
+
+                logger.info('Saved updates to order id: {}\n'
+                            'order.id: {}\nsql: {}\nargs: {}'
+                            .format(self.orderid, self.id, log_sql,
+                                    zip(attr_tup, vals)))
+        except DBConnectException as e:
+            logger.debug('Error saving order: {}\nsql: {}'
+                         .format(e.message, log_sql))
+
+            raise OrderException(e)
+
+        new = Order.where({'id': self.id})[0]
+
+        for att in attr_tup:
+            self.__setattr__(att, new.__getattribute__(att))
 
     def update(self, att, val):
+        """
+        Update a specified column value for this Order object
+
+        :param att: column to update
+        :param val: new value
+        :return: updated value from self
+        """
+        sql = 'update ordering_order set %s = %s where id = %s'
+
+        log_sql = ''
+        try:
+            with db_instance() as db:
+                log_sql = db.cursor.mogrify(sql, (db_extns.AsIs(att),
+                                                  val, self.id))
+                logger.info(log_sql)
+                db.execute(sql, (db_extns.AsIs(att), val, self.id))
+                db.commit()
+        except DBConnectException as e:
+            logger.debug('Error updating order: {}\nSQL: {}'
+                         .format(e.message, log_sql))
+
         self.__setattr__(att, val)
-        if val is None:
-            vale = "null"
-        elif isinstance(val, str) or isinstance(val, datetime.datetime):
-            val = "\'{0}\'".format(val)
-        sql = "update ordering_order set {0} = {1} where id = {2};".format(att, val, self.id)
-        #return sql
-        with db_instance() as db:
-            db.execute(sql)
-            db.commit()
-        return True
+
+        return self.__getattribute__(att)
 
     def scenes(self, sql_dict=None, sql_and=None):
         """
@@ -414,6 +524,11 @@ class Order(object):
         return Scene.where(sql_dict, sql_and=sql_and)
 
     def products_by_sensor(self):
+        """
+        Return a dictionary of the requested products, keyed on sensor
+
+        :return: dictionary of products
+        """
         po = self.product_opts
         _out_list = []
         prod_out = {}
@@ -431,6 +546,9 @@ class Order(object):
     def generate_order_id(email):
         """
         Generate ESPA order id
+
+        :param email: email associated with the order
+        :return: longname for an order_id, someone@someplace-1234556
         """
         d = datetime.datetime.now()
 
@@ -438,6 +556,11 @@ class Order(object):
 
 
 class OptionsConversion(object):
+    """
+    Provides a means to convert between the old legacy product_options
+    format to the new JSON/dict product_opts format
+    """
+
     # [(old, new, old val)]
     aea_map = [('std_parallel_1', 'standard_parallel_1', None),
                ('std_parallel_2', 'standard_parallel_2', None),
@@ -612,6 +735,13 @@ class OptionsConversion(object):
 
     @classmethod
     def _flatten(cls, opts, attr_map):
+        """
+        Attempt to bring nested objects to the same level
+
+        :param opts: nested struct to work on
+        :param attr_map: conversion mapping
+        :return: flat dictionary
+        """
         ret = {}
 
         if opts is None or not isinstance(opts, dict):
@@ -639,7 +769,8 @@ class OptionsConversion(object):
                     ret.update(cls._translate(conv_map, {key: val}))
 
             elif key == 'plot_statistics':
-                # No appropriate mapping as it is handled as a dummy scene in the DB
+                # No appropriate mapping as it is handled as a dummy
+                # scene in the DB
                 continue
             elif key == 'note':
                 continue
@@ -654,6 +785,14 @@ class OptionsConversion(object):
 
     @classmethod
     def _build_nested(cls, opts, attr_map):
+        """
+        Attempt to build a nested data structure based on attribute
+        mappings
+
+        :param opts: attributes to nest
+        :param attr_map: conversion mapping
+        :return: nested dictionary structure
+        """
         ret = {}
 
         old_attrs, new_attrs, conv_maps = zip(*attr_map)
@@ -672,16 +811,25 @@ class OptionsConversion(object):
                 conv_map = conv_maps[idx]
 
                 if isinstance(conv_map, list):
-                    ret[new_attrs[idx]] = cls._build_nested(opts, conv_map)
+                    ret[new_attrs[idx]] = cls._build_nested(opts,
+                                                            conv_map)
                 elif conv_map is None:
                     ret.update({new_attrs[idx]: opts[key]})
                 else:
-                    ret.update(cls._translate(conv_map, {key: opts[key]}))
+                    ret.update(cls._translate(conv_map,
+                                              {key: opts[key]}))
 
         return ret
 
     @classmethod
     def _build_nested_sensors(cls, prods, scenes):
+        """
+        Build the nested sensor structures
+
+        :param prods: associated products
+        :param scenes: associated scenes
+        :return: nested sensor structures
+        """
         ret = {}
 
         for scene in scenes:
@@ -704,6 +852,13 @@ class OptionsConversion(object):
 
     @classmethod
     def _translate(cls, transl_map, opts):
+        """
+        Convert the specified options
+
+        :param transl_map: conversion map to use
+        :param opts: options to convert
+        :return: converted namings
+        """
         ret = {}
         frm, to, conv = zip(*transl_map)
 

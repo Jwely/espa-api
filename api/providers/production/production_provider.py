@@ -49,7 +49,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         # now use the orders dict we built to update the db
         for order in orders:
             product_tup = tuple(str(p) for p in orders[order])
-            order = Order.where("orderid = '{0}'".format(order))[0]
+            order = Order.where({'orderid': order})[0]
 
             name_filter = ('name in {}'
                            .format(product_tup)
@@ -285,7 +285,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
     def set_product_error(self, name, orderid, processing_loc, error):
         ''' Marks a scene in error and accepts the log file contents '''
 
-        order = Order.where("orderid = '{0}'".format(orderid))[0]
+        order = Order.where({'orderid': orderid})[0]
         product = Scene.where({'name': name, 'order_id': order.id})[0]
         #attempt to determine the disposition of this error
         resolution = None
@@ -526,7 +526,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             # create the orderid based on the info from the eeorder
             order_id = Order.generate_ee_order_id(email_addr, eeorder)
 
-            order = Order.where("orderid = '{0}'".format(order_id))
+            order = Order.where({'orderid': order_id})
             scene_info = orders[eeorder, email_addr, contactid]
 
             if order and order[0]:
@@ -614,7 +614,6 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         :param eeorder: associated EE order id
         :param order_id: order id used in the system
         """
-
         for s in ee_scenes:
             scene = Scene.where({'order_id': order_id,
                                  'ee_unit_id': s['unit_num']})[0]
@@ -845,7 +844,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         logger.info("Handling submitted plot products...")
 
         plot_scenes = Scene.where({'status': 'submitted', 'sensor_type': 'plot'})
-        plot_orders = [Order.where("id = " + str(s.order_id))[0] for s in plot_scenes]
+        plot_orders = [Order.where({'id': str(s.order_id)})[0] for s in plot_scenes]
 
         logger.info("Found {0} submitted plot orders"
                     .format(len(plot_orders)))
@@ -912,9 +911,9 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         '''
         if type(order) == str:
             #will raise Order.DoesNotExist
-            order = Order.where("orderid = '{0}'".format(order))[0]
+            order = Order.where({'orderid': order})[0]
         elif type(order) == int:
-            order = Order.where("id = {0}".format(order))[0]
+            order = Order.where({'id': order})[0]
 
         if not type(order) == Order:
             msg = "%s must be of type Order, int or str" % order
@@ -951,7 +950,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         '''Checks all open orders in the system and marks them complete if all
         required scene processing is done'''
 
-        orders = Order.where("status = 'ordered'")
+        orders = Order.where({'status': 'ordered'})
         [self.update_order_if_complete(o) for o in orders]
         return True
 
@@ -965,7 +964,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         cutoff = datetime.datetime.now() - datetime.timedelta(days=int(days))
 
-        orders = Order.where("status = 'complete' AND completion_date < '{0}'".format(cutoff))
+        orders = Order.where({'status': 'complete'}, sql_and="completion_date < '{}'".format(cutoff))
 
         logger.info('Purging {0} orders from the active record.'
             .format(len(orders)))

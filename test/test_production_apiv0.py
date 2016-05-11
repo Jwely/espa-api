@@ -62,7 +62,7 @@ class TestProductionAPI(unittest.TestCase):
     def test_fetch_production_products_plot(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
         self.mock_order.update_scenes(order_id, 'status', ['complete'])
-        order = Order.where("id = {0}".format(order_id))[0]
+        order = Order.where({'id': order_id})[0]
         plot_scene = order.scenes()[0]
         plot_scene.name = 'plot'
         plot_scene.sensor_type = 'plot'
@@ -75,7 +75,7 @@ class TestProductionAPI(unittest.TestCase):
 
     def test_production_set_product_retry(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        order = Order.where("id = {0}".format(order_id))[0]
+        order = Order.where({'id': order_id})[0]
         scene = order.scenes()[3]
         scene.update('retry_count', 4)
         processing_loc = "get_products_to_process"
@@ -97,7 +97,7 @@ class TestProductionAPI(unittest.TestCase):
         message
         """
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        order = Order.where("id = {0}".format(order_id))[0]
+        order = Order.where({'id': order_id})[0]
 
         for s in order.scenes():
             if s.name != 'plot':
@@ -118,7 +118,7 @@ class TestProductionAPI(unittest.TestCase):
         message
         """
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        order = Order.where("id = {0}".format(order_id))[0]
+        order = Order.where({'id': order_id})[0]
 
         for s in order.scenes():
             if s.name != 'plot':
@@ -144,7 +144,7 @@ class TestProductionAPI(unittest.TestCase):
         message
         """
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        order = Order.where("id = {0}".format(order_id))[0]
+        order = Order.where({'id': order_id})[0]
 
         scene = order.scenes()[2]
 
@@ -165,7 +165,7 @@ class TestProductionAPI(unittest.TestCase):
         Set a scene status to Queued
         """
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        order = Order.where('id = {0}'.format(order_id))[0]
+        order = Order.where({'id': order_id})[0]
         scene = order.scenes()[0]
         processing_loc = 'L8SRLEXAMPLE'
         status = 'Queued'
@@ -187,7 +187,7 @@ class TestProductionAPI(unittest.TestCase):
         :return:
         """
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        order = Order.where("id = {0}".format(order_id))[0]
+        order = Order.where({'id': order_id})[0]
         scene = order.scenes()[0]
         processing_loc = "L8SRLEXAMPLE"
         error = 'GDAL Warp failed to transform'
@@ -202,7 +202,7 @@ class TestProductionAPI(unittest.TestCase):
     @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
     def test_update_product_details_set_product_unavailable(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        order = Order.where("id = {0}".format(order_id))[0]
+        order = Order.where({'id': order_id})[0]
         scene = order.scenes()[0]
         processing_loc = "L8SRLEXAMPLE"
         error = 'include_dswe is an unavailable product option for OLITIRS'
@@ -217,7 +217,7 @@ class TestProductionAPI(unittest.TestCase):
     @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
     def test_update_product_details_mark_product_complete(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        order = Order.where("id = {0}".format(order_id))[0]
+        order = Order.where({'id': order_id})[0]
         scene = order.scenes()[0]
         processing_loc = 'L8SRLEXAMPLE'
         file_loc = '/some/loc'
@@ -262,7 +262,7 @@ class TestProductionAPI(unittest.TestCase):
     def test_production_purge_orders(self):
         new_completion_date = datetime.datetime.now() - datetime.timedelta(days=12)
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        order = Order.where("id = {0}".format(order_id))[0]
+        order = Order.where({'id': order_id})[0]
         order.update('status', 'complete')
         order.update('completion_date', new_completion_date)
         response = production_provider.purge_orders()
@@ -273,7 +273,7 @@ class TestProductionAPI(unittest.TestCase):
            mock_production_provider.respond_true)
     def test_production_send_initial_emails(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        order = Order.where("id = {0}".format(order_id))[0]
+        order = Order.where({'id': order_id})[0]
         order.update('status', 'ordered')
         response = emails.Emails().send_all_initial()
         self.assertTrue(response)
@@ -284,7 +284,7 @@ class TestProductionAPI(unittest.TestCase):
         tram_order_ids = lta.sample_tram_order_ids()[0:3]
         scene_names = lta.sample_scene_names()[0:3]
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        order = Order.where("id = {0}".format(order_id))[0]
+        order = Order.where({'id': order_id})[0]
         scenes = order.scenes()[0:3]
         for idx, scene in enumerate(scenes):
             scene.tram_order_id = tram_order_ids[idx]
@@ -343,7 +343,7 @@ class TestProductionAPI(unittest.TestCase):
            mock_production_provider.respond_true)
     def test_production_mark_nlaps_unavailable(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        scenes = Order.where("id = {0}".format(order_id))[0].scenes()
+        scenes = Order.where({'id': order_id})[0].scenes()
         for scene in scenes:
             scene.status = 'submitted'
             scene.sensor_type = 'landsat'
@@ -354,7 +354,7 @@ class TestProductionAPI(unittest.TestCase):
     @patch('api.external.lta.update_order_status', lta.update_order_status)
     def test_production_set_products_unavailable(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        scenes = Order.where("id = {0}".format(order_id))[0].scenes()
+        scenes = Order.where({'id': order_id})[0].scenes()
         response = production_provider.set_products_unavailable(scenes, "you want a reason?")
         self.assertTrue(response)
 
@@ -363,7 +363,7 @@ class TestProductionAPI(unittest.TestCase):
            mock_production_provider.respond_true)
     def test_production_update_landsat_product_status(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        scenes = Order.where("id = {0}".format(order_id))[0].scenes()
+        scenes = Order.where({'id': order_id})[0].scenes()
         for scene in scenes:
             scene.status = 'submitted'
             scene.sensor_type = 'landsat'
@@ -374,7 +374,7 @@ class TestProductionAPI(unittest.TestCase):
 
     def test_production_get_contactids_for_submitted_landsat_products(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        scenes = Order.where("id = {0}".format(order_id))[0].scenes()
+        scenes = Order.where({'id': order_id})[0].scenes()
         for scene in scenes:
             scene.status = 'submitted'
             scene.sensor_type = 'landsat'
@@ -387,7 +387,7 @@ class TestProductionAPI(unittest.TestCase):
     def test_production_handle_submitted_modis_products_input_exists(self):
         # handle oncache scenario
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        scenes = Order.where("id = {0}".format(order_id))[0].scenes()
+        scenes = Order.where({'id': order_id})[0].scenes()
         for scene in scenes:
             scene.status = 'submitted'
             scene.sensor_type = 'modis'
@@ -401,7 +401,7 @@ class TestProductionAPI(unittest.TestCase):
     def test_production_handle_submitted_modis_products_input_missing(self):
         # handle unavailable scenario
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        scenes = Order.where("id = {0}".format(order_id))[0].scenes()
+        scenes = Order.where({'id': order_id})[0].scenes()
         for scene in scenes:
             scene.status = 'submitted'
             scene.sensor_type = 'modis'
@@ -413,7 +413,7 @@ class TestProductionAPI(unittest.TestCase):
 
     def test_production_handle_submitted_plot_products(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        order = Order.where("id = {0}".format(order_id))[0]
+        order = Order.where({'id': order_id})[0]
         order.status = 'ordered'
         order.order_type = 'lpcs'
         order.save()
@@ -444,7 +444,7 @@ class TestProductionAPI(unittest.TestCase):
            mock_production_provider.respond_true)
     def test_production_finalize_orders(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        order = Order.where("id = {0}".format(order_id))[0]
+        order = Order.where({'id': order_id})[0]
         order.update('status', 'ordered')
         response = production_provider.finalize_orders()
         self.assertTrue(response)
@@ -453,9 +453,9 @@ class TestProductionAPI(unittest.TestCase):
            mock_production_provider.respond_true)
     def test_production_update_order_if_complete(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        order = Order.where("id = {0}".format(order_id))[0]
+        order = Order.where({'id': order_id})[0]
         scenes = order.scenes()
-        Scene.bulk_update([s.id for s in scenes], {'status':'retry'})
+        Scene.bulk_update([s.id for s in scenes], {'status': 'retry'})
         order.order_source = 'espa'
         order.completion_email_sent = None
         order.save()
