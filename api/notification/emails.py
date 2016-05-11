@@ -180,9 +180,10 @@ class Emails(object):
         pbs = order.products_by_sensor()
 
         for product in scenes:
-            line = "{}: {}".format(product.name, ", ".join(pbs[product.name]))
-            if line == 'plot':
-                line = "Plotting & Statistics"
+            if product.sensor_type == 'plot':
+                line = "plotting & statistics"
+            else:
+                line = "{}: {}".format(product.name, ", ".join(pbs[product.name]))
 
             m.append("%s\n" % line)
 
