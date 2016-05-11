@@ -607,7 +607,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             scene_dict = {'name': product.product_id,
                           'sensor_type': sensor_type,
                           'order_id': order_id,
-                          'status': 'ordered',
+                          'status': 'submitted',
                           'ee_unit_id': s['unit_num']}
 
             bulk_ls.append(scene_dict)
