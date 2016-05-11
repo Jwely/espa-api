@@ -52,7 +52,6 @@ class Scene(object):
         :param retry_after:
         :param retry_limit:
         :param retry_count:
-        :return:
         """
 
         self.name = name
@@ -125,7 +124,7 @@ class Scene(object):
                 ret = db[0][col]
 
         except DBConnectException as e:
-            logger.debug('err with Scene.get\n'
+            logger.debug('Error scene get\n'
                          'msg: {0}\n'
                          'sql: {1}'.format(e.message, log_sql))
 
@@ -193,13 +192,13 @@ class Scene(object):
         """
         Query for a particular row in the ordering_scene table
 
-        :param field: columns to select on
-        :param value: values of the columns to select on
+        :param params: dictionary of column: value parameter to select on
+        :param sql_and: custom query parameter for anything besides =
         :return: list of matching Scene objects
         """
         if not isinstance(params, dict):
-            raise SceneException('Where arguments must be'
-                                 ' passed as a dictionary')
+            raise SceneException('Where arguments must be '
+                                 'passed as a dictionary')
 
         fields, values = zip(*params.items())
         fields = ', '.join(fields)
@@ -210,14 +209,24 @@ class Scene(object):
             sql += ' AND {}'.format(sql_and)
 
         ret = []
-        with db_instance() as db:
-            db.select(sql, (db_extns.AsIs(fields), values))
+        log_sql = ''
+        try:
+            with db_instance() as db:
+                log_sql = db.cursor.mogrify(sql, (db_extns.AsIs(fields),
+                                                  values))
+                logger.info('scene.py where sql: {}'.format(log_sql))
 
-            for i in db:
-                sd = dict(i)
-                del sd['id']
-                obj = Scene(**sd)
-                ret.append(obj)
+                db.select(sql, (db_extns.AsIs(fields), values))
+
+                for i in db:
+                    sd = dict(i)
+                    del sd['id']
+                    obj = Scene(**sd)
+                    ret.append(obj)
+        except DBConnectException as e:
+            logger.debug('Error retrieving scenes: {}\n'
+                         'sql: {}'.format(e.message, log_sql))
+            raise SceneException(e)
 
         return ret
 
@@ -258,7 +267,7 @@ class Scene(object):
                 db.execute(sql, (db_extns.AsIs(fields), vals, ids))
                 db.commit()
         except DBConnectException as e:
-            logger.debug('Error scene.py bulk_update: {}\nSQL: {}'
+            logger.debug('Error scene bulk_update: {}\nSQL: {}'
                          .format(e.message, log_sql))
             raise SceneException(e)
 
@@ -271,7 +280,7 @@ class Scene(object):
 
         :param att: column to update
         :param val: new value
-        :return: update value from self
+        :return: updated value from self
         """
         sql = 'update ordering_scene set %s = %s where id = %s'
 
@@ -284,7 +293,7 @@ class Scene(object):
                 db.execute(sql, (db_extns.AsIs(att), val, self.id))
                 db.commit()
         except DBConnectException as e:
-            logger.debug('Error scene.py update: {}\nSQL: {}'
+            logger.debug('Error updating scene: {}\nSQL: {}'
                          .format(e.message, log_sql))
 
         self.__setattr__(att, val)
@@ -320,7 +329,7 @@ class Scene(object):
                             .format(self.id, self.name,
                                     log_sql, zip(attr_tup, vals)))
         except DBConnectException as e:
-            logger.debug("Error scene.py save: {}\n"
+            logger.debug("Error saving scene: {}\n"
                          "sql: {}".format(e.message, log_sql))
             raise SceneException(e)
 
@@ -351,12 +360,12 @@ class Scene(object):
                 ret = db[0][col]
 
         except DBConnectException as e:
-            logger.debug('Error scene.py order_attr: {}\n'
+            logger.debug('Error retrieving order_attr: {}\n'
                          'sql: {} \n'.format(e.message, log_sql))
             raise SceneException(e)
 
         except KeyError as e:
-            logger.debug('Error scene.py order_attr returned no results\n'
+            logger.debug('Error order_attr returned no results\n'
                          'sql: {}'.format(log_sql))
 
             raise SceneException('Key Error: {}'
