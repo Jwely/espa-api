@@ -26,6 +26,7 @@ class Errors(object):
         #build list of known error conditions to be checked
         self.conditions = list()
 
+        self.conditions.append(self.narr_data_bounds)
         self.conditions.append(self.db_lock_errors)
         self.conditions.append(self.dswe_unavailable)
         self.conditions.append(self.ftp_errors)
@@ -173,7 +174,8 @@ class Errors(object):
         sun was beneath the horizon'''
 
         keys = ['solar zenith angle out of range',
-                'Solar zenith angle is out of range']
+                'Solar zenith angle is out of range',
+                'Solar zenith angle is too large']
         status = 'unavailable'
         reason = ('This scene cannot be processed to surface reflectance '
                   'due to the high solar zenith angle')
@@ -248,6 +250,12 @@ class Errors(object):
         reason = 'Error generating product, retrying'
         extras = self.__add_retry('sixs_errors')
         return self.__find_error(error_message, keys, status, reason, extras)
+
+    def narr_data_bounds(self, error_message):
+        keys = ['Scene partially or completely outside NARR data bounds']
+        status = 'unavailable'
+        reason = 'Scene partially or completely outside NARR data bounds'
+        return self.__find_error(error_message, keys, status, reason)
 
 
 def resolve(error_message, name):
