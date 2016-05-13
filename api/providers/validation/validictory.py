@@ -207,8 +207,9 @@ class OrderValidatorV0(validictory.SchemaValidator):
                 if key not in req_prods:
                     date_restricted.pop(key, None)
 
-            self._error('Requested products are restricted by date',
-                        date_restricted, fieldname, path=path)
+            if date_restricted:
+                self._error('Requested products are restricted by date',
+                            date_restricted, fieldname, path=path)
 
         prods = []
         for key in avail_prods:
