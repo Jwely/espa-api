@@ -167,8 +167,10 @@ class OrderingProvider(ProviderInterfaceV0):
             order = Order.where({'orderid': orderid})[0]
             products_ordered = len(order.scenes())
             products_complete = len(order.scenes({'status': 'complete'}))
+            products_error = len(order.scenes({'status': 'error'}))
             out_d = {'orderid': orderid, 'products_ordered': products_ordered,
                      'products_complete': products_complete,
+                     'products_error': products_error,
                      'order_status': order.status, 'order_note': order.note}
             output.append(out_d)
         return output
@@ -264,8 +266,8 @@ class OrderingProvider(ProviderInterfaceV0):
 
     def item_status(self, orderid, itemid='ALL'):
         response = {}
-        sql = "select oo.orderid, os.name, os.status, os.completion_date, os.note, " \
-              "os.product_dload_url, os.cksum_download_url " \
+        sql = "select oo.orderid, os.id scene_id, os.name, os.status, os.completion_date, os.note, " \
+              "os.product_dload_url, os.cksum_download_url, os.log_file_contents " \
               "from ordering_order oo left join ordering_scene os on oo.id = " \
               "os.order_id where oo.orderid = %s"
         if itemid is not "ALL":
@@ -290,12 +292,14 @@ class OrderingProvider(ProviderInterfaceV0):
                 except:
                     pass
 
-                i = {'name': item['name'],
+                i = {'scene_id': item['scene_id'],
+                     'name': item['name'],
                      'status': item['status'],
                      'completion_date': ts,
                      'note': item['note'],
                      'product_dload_url': item['product_dload_url'],
-                     'cksum_download_url': item['cksum_download_url']}
+                     'cksum_download_url': item['cksum_download_url'],
+                     'log_file_contents': item['log_file_contents']}
                 response['orderid'][id].append(i)
         else:
             response['msg'] = 'sorry, no items matched orderid %s , itemid %s' % (orderid, itemid)
