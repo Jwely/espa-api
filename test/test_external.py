@@ -4,6 +4,25 @@ from mock import patch
 from api.external.nlaps import products_are_nlaps
 from api.external import onlinecache
 from api.external.mocks import onlinecache as mockonlinecache
+from api.external import lta
+from api.external.mocks import lta as mocklta
+
+class TestLTA(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def test_verify_scenes(self):
+        product_list = ['LT50300372011275PAC01','LE70280312004362EDC00']
+        resp = lta.verify_scenes(product_list)
+        for item in product_list:
+            self.assertTrue(item in resp.keys())
+            self.assertTrue(resp[item])
+
+    @patch('api.external.lta.OrderUpdateServiceClient.update_order', mocklta.return_update_order_resp)
+    @patch('api.external.lta.SoapClient.getAvailableOrders', mocklta.get_available_orders)
+    def test_get_available_orders(self):
+        resp = lta.get_available_orders()
+        print resp
 
 
 class TestNLAPS(unittest.TestCase):

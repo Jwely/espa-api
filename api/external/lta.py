@@ -667,7 +667,7 @@ class OrderDeliveryServiceClient(LTASoapService):
         except Exception, e:
             raise e
 
-        #if there were none just return
+        #if there were none jusgetAvailt return
         if len(resp.units) == 0:
             return rtn
 

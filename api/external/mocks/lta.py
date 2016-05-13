@@ -1,6 +1,12 @@
 from api.util import chunkify
 from api.domain.scene import Scene
 
+def return_update_order_resp(*args, **kwargs):
+    class foo(object):
+        def success(self):
+            return True
+    return foo()
+
 def get_user_name(arg1):
     return 'klsmith@usgs.gov'
 
