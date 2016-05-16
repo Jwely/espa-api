@@ -1,5 +1,5 @@
 from api.domain import sensor
-from api.domain.scene import Scene
+from api.domain.scene import Scene, SceneException
 from api.domain.order import Order, OptionsConversion, OrderException
 from api.providers.configuration.configuration_provider import ConfigurationProvider
 from api.util.dbconnect import DBConnectException, db_instance
@@ -587,22 +587,25 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
     @staticmethod
     def load_ee_scenes(ee_scenes, order_id):
+        """
+        Load the associated EE scenes into the system for processing
+
+        ee_scenes_example = [{'sceneid': ,
+                              'unit_num': }]
+
+        :param ee_scenes: list of scenes to place in the DB
+        :param order_id: numeric ordering_order.id associated with the
+          scenes
+        """
         bulk_ls = []
         for s in ee_scenes:
-            try:
-                product = sensor.instance(s['sceneid'])
+            product = sensor.instance(s['sceneid'])
 
-                sensor_type = ''
-                if isinstance(product, sensor.Landsat):
-                    sensor_type = 'landsat'
-                elif isinstance(product, sensor.Modis):
-                    sensor_type = 'modis'
-
-            except Exception:
-                log_msg = ('Received product via EE that '
-                           'is not implemented: {}'.format(s['sceneid']))
-                logger.debug(log_msg)
-                continue
+            sensor_type = ''
+            if isinstance(product, sensor.Landsat):
+                sensor_type = 'landsat'
+            elif isinstance(product, sensor.Modis):
+                sensor_type = 'modis'
 
             scene_dict = {'name': product.product_id,
                           'sensor_type': sensor_type,
@@ -612,7 +615,19 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
             bulk_ls.append(scene_dict)
 
-        Scene.create(tuple(bulk_ls))
+        try:
+            Scene.create(bulk_ls)
+        except (SceneException, sensor.ProductNotImplemented) as e:
+            logger.debug('EE Order creation failed on scene injection, '
+                         'order: {}\nexception: {}'
+                         .format(order_id, e.message))
+
+            with db_instance() as db:
+                db.execute('delete ordering_order where id = %s',
+                           order_id)
+                db.commit()
+
+            raise ProductionProviderException(e)
 
     def update_ee_orders(self, ee_scenes, eeorder, order_id):
         """
