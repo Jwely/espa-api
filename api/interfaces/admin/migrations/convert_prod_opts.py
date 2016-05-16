@@ -39,6 +39,11 @@ class ConvertProductOptions(object):
 
             self._update_product_opts(json.dumps(prod_opts), co['id'])
 
+        try:
+            self.db.commit()
+        except:
+            raise
+
     def _retrieve_orders(self):
         sql = ('select id, product_options, product_opts '
                'from ordering_order')
@@ -63,9 +68,7 @@ class ConvertProductOptions(object):
 
         try:
             self.db.execute(sql, (opts, oid))
-            self.db.commit()
         except DBConnectException:
-            self.db.rollback()
             raise
 
     def __del__(self):
