@@ -583,8 +583,6 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             self.load_ee_scenes(scene_info, order.id)
             self.update_ee_orders(scene_info, eeorder, order.id)
 
-            return order
-
     @staticmethod
     def load_ee_scenes(ee_scenes, order_id):
         """
