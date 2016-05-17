@@ -5,7 +5,7 @@ import copy
 
 from api.util.dbconnect import DBConnectException, db_instance
 import psycopg2.extensions as db_extns
-from api.domain.scene import Scene
+from api.domain.scene import Scene, SceneException
 from api.domain import sensor
 from api.system.logger import ilogger as logger
 from psycopg2.extras import Json
@@ -163,7 +163,19 @@ class Order(object):
 
             bulk_ls.append(scene_dict)
 
-        Scene.create(bulk_ls)
+        try:
+            Scene.create(bulk_ls)
+        except SceneException as e:
+            logger.debug('Order creation failed on scene injection, '
+                         'order: {}\nexception: {}'
+                         .format(order.orderid, e.message))
+
+            with db_instance() as db:
+                db.execute('delete ordering_order where id = %s',
+                           order.id)
+                db.commit()
+
+            raise OrderException(e)
 
         return order
 
