@@ -116,15 +116,13 @@ class OrderingProvider(ProviderInterfaceV0):
         # deal with unicode uid
         if isinstance(uid, basestring):
             uid = str(uid)
-        id_type = 'email' if validate_email(uid) else 'username'
         order_list = []
         out_dict = {}
 
         with db_instance() as db:
-            user_sql = "select id, username, email from auth_user where "
-            user_sql += "email = %s;" if id_type == 'email' else "username = %s;"
-
-            db.select(user_sql, (uid))
+            user_sql = "select id, username, email from auth_user where " \
+                       "email = %s OR username = %s;"
+            db.select(user_sql, (uid, uid))
             # username uniqueness enforced on the db
             # not the case for emails though
             if db:
