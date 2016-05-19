@@ -598,10 +598,33 @@ class InvalidOrders(object):
 
         upd = self.build_update_dict(mapping, base)
         exc = self.build_exception('Count exceeds size limit of {max} for {key}', None, None,
-                                    exctype=validator.DependencyValidationError, max=max_val, key=key)
+                                   exctype=validator.DependencyValidationError, max=max_val, key=key)
         results.append((self.update_dict(order, upd), 'ItemCount', exc))
 
         return results
+
+    def invalidate_minItems(self, num, mapping):
+        """
+        Reduce the number of items in the list below the threshold
+        """
+        order = copy.deepcopy(self.valid_order)
+        results = []
+
+        ls = order
+        for key in mapping:
+            ls = ls[key]
+
+        while len(ls) >= num:
+            del ls[-1]
+
+        upd = self.build_update_dict(mapping, ls)
+        exc = self.build_exception('must have length greater than or equal to {length}',
+                                   ls, mapping[-1], length=num, path=mapping)
+
+        results.append((self.update_dict(order, upd), 'minItems', exc))
+
+        return results
+
 
     def update_dict(self, old, new):
         """
