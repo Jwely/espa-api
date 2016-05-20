@@ -379,12 +379,14 @@ class BaseValidationSchema(object):
                                                         'required': True,
                                                         'ItemCount': 'inputs',
                                                         'uniqueItems': True,
+                                                        'minItems': 1,
                                                         'items': {'type': 'string',
                                                                   'pattern': _sensor_reg[key][0]}},
                                              'products': {'type': 'array',
                                                           'uniqueItems': True,
                                                           'required': True,
                                                           'restricted': True,
+                                                          'minItems': 1,
                                                           'items': {'type': 'string',
                                                                     'enum': sn.instance(
                                                                             _sensor_reg[key][2]).products}}}}
