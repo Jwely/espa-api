@@ -138,7 +138,7 @@ class OnlineCache(object):
             logger.debug('Error executing command: {} '
                          'stderror returned: {}'.format(cmd, result['stderr']))
 
-            raise OnlineCacheException(result['stderror'])
+            raise OnlineCacheException(result['stderr'])
 
         logger.info('call to {} returned {}'.format(cmd, result))
 
