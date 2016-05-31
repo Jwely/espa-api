@@ -134,7 +134,7 @@ class OnlineCache(object):
                          'Raised exception: {}'.format(cmd, exception))
             raise OnlineCacheException(exception)
 
-        if result['stderr']:
+        if 'stderr' in result and result['stderr']:
             logger.debug('Error executing command: {} '
                          'stderror returned: {}'.format(cmd, result['stderr']))
 
@@ -147,6 +147,7 @@ class OnlineCache(object):
 
 def delete(orderid):
     return OnlineCache().delete(orderid)
+
 
 def capacity():
     return OnlineCache().capacity()
