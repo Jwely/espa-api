@@ -164,10 +164,12 @@ class Emails(object):
 
         email = order.user_email()
         url = self.__order_status_url(order.orderid)
+        bdl_url = "https://github.com/USGS-EROS/espa-bulk-downloader"
 
         m = list()
         m.append("%s is now complete and can be downloaded " % order.orderid)
         m.append("from %s.\n\n" % url)
+        m.append("For large orders, the ESPA Bulk Downloader is available %s \n\n" % bdl_url)
         m.append("This order will remain available for 10 days.  ")
         m.append("Any data not downloaded will need to be reordered ")
         m.append("after this time.\n\n")
