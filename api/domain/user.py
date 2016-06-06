@@ -94,7 +94,7 @@ class User(object):
                 user_tup = (str(username), str(lta_user.email), str(lta_user.first_name), str(lta_user.last_name), str(contactid))
             except:
                 exc_type, exc_val, exc_trace = sys.exc_info()
-                logger.debug("ERR retrieving user from lta, username: {0}\n exception {1}".format(username, traceback.format_exc()))
+                logger.info("ERR retrieving user from lta, username: {0}\n exception {1}".format(username, traceback.format_exc()))
                 raise exc_type, exc_val, exc_trace
 
         return user_tup

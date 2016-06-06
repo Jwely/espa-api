@@ -684,8 +684,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         """
         Handles landsat products still on order
         """
-        sql_and = 'tram_order_id IS NOT NULL'
-        products = Scene.where({'status': 'onorder'}, sql_and=sql_and)
+        products = Scene.where({'status': 'onorder'}, sql_and='tram_order_id IS NOT NULL')
 
         product_tram_ids = [product.tram_order_id for product in products]
 
@@ -714,18 +713,18 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         # have been rejected
         if len(rejected) > 0:
             rejected_products = [p for p in products if p.name in rejected]
-            self.set_products_unavailable(rejected_products,
-                                          'Level 1 product could not be produced')
+            # scene may not be rejected or complete
+            if rejected_products:
+                self.set_products_unavailable(rejected_products, 'Level 1 product could not be produced')
 
         # Now update everything that is now on cache
-        sql_and = ('name in {}'
-                   .format(tuple(available))
-                   .replace(",)", ")"))
+        sql_and = ('name in {}'.format(tuple(available)).replace(",)", ")"))
 
         if len(available) > 0:
             products = Scene.where({'status': 'onorder'}, sql_and=sql_and)
-            Scene.bulk_update([p.id for p in products],
-                              {'status': 'oncache', 'note': ''})
+            # scene may not be rejected or complete
+            if products:
+                Scene.bulk_update([p.id for p in products], {'status': 'oncache', 'note': ''})
 
         return True
 
@@ -753,7 +752,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         logger.info("Updating landsat product status")
 
         user = User.where("contactid = '{0}'".format(contact_id))[0]
-        product_list = Order.get_user_scenes(user.id, "sensor_type = 'landsat' AND status = 'submitted'")
+        product_list = Order.get_user_scenes(user.id, "sensor_type = 'landsat' AND status = 'submitted'")[:500]
 
         prod_name_list = [p.name for p in product_list]
 

@@ -21,8 +21,8 @@ class DbgFilter(Filter):
 ilogger = logging.getLogger("api")
 ilogger.setLevel(logging.DEBUG)
 
-ih = FileHandler("logs/api-info.log")
-dh = FileHandler("logs/api-debug.log")
+ih = FileHandler("/var/log/uwsgi/espa-api-info.log")
+dh = FileHandler("/var/log/uwsgi/espa-api-debug.log")
 eh = SMTPHandler(mailhost='localhost', fromaddr=config.get('apiemailsender'), toaddrs=config.get('apiemailreceive').split(','), subject='ESPA API ERROR')
 
 ih.setLevel(logging.INFO)
