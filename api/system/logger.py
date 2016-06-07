@@ -7,9 +7,6 @@ from logging import Filter
 from logging.handlers import SMTPHandler
 from api.providers.configuration.configuration_provider import ConfigurationProvider
 
-if not os.path.exists("logs"):
-    os.mkdir("logs")
-
 config = ConfigurationProvider()
 
 LOG_FORMAT = ("%(asctime)s [%(levelname)s]: %(message)s in %(pathname)s:%(lineno)d")
