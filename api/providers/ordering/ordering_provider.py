@@ -162,10 +162,11 @@ class OrderingProvider(ProviderInterfaceV0):
         orders_d = orders['orders']
         output = []
         for orderid in orders_d:
-            order = Order.where({'orderid': orderid})[0]
-            products_ordered = len(order.scenes())
-            products_complete = len(order.scenes({'status': 'complete'}))
-            products_error = len(order.scenes({'status': 'error'}))
+            order = Order.find(orderid)
+            products_complete = order.scene_status_count('complete')
+            products_error = order.scene_status_count('error')
+            products_ordered = order.scene_status_count()
+
             out_d = {'orderid': orderid, 'products_ordered': products_ordered,
                      'products_complete': products_complete,
                      'products_error': products_error,
@@ -183,7 +184,7 @@ class OrderingProvider(ProviderInterfaceV0):
 
         if not outd:
             for orderid in orders['orders']:
-                order = Order.where({'orderid': orderid})[0]
+                order = Order.find(orderid)
                 scenes = order.scenes({"status": "complete"})
                 if scenes:
                     outd[order.orderid] = {'orderdate': str(order.order_date)}
@@ -196,7 +197,6 @@ class OrderingProvider(ProviderInterfaceV0):
             cache.set(cache_key, outd)
 
         return outd
-
 
     def fetch_order(self, ordernum):
         sql = "select * from ordering_order where orderid = %s;"

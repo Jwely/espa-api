@@ -111,13 +111,10 @@ class Emails(object):
         return True
 
     def send_initial(self, order_id):
-
-        if isinstance(order_id, str):
-            order = Order.where({'orderid': order_id})[0]
-        elif isinstance(order_id, int):
-            order = Order.where({'id': order_id})[0]
-        elif isinstance(order_id, Order):
+        if isinstance(order_id, Order):
             order = order_id
+        else:
+            order = Order.find(order_id)
 
         if not isinstance(order, Order):
             msg = 'order must be str of orderid, int of pk or instance of Order'
@@ -152,11 +149,7 @@ class Emails(object):
         return self.__send(recipient=email, subject=subject, body=email_msg)
 
     def send_completion(self, order):
-
-        if isinstance(order, str):
-            order = Order.where({'orderid': order})[0]
-        elif isinstance(order, int):
-            order = Order.where({'id': order})[0]
+        order = Order.find(order)
 
         if not isinstance(order, Order):
             msg = 'order must be str, int or instance of Order'

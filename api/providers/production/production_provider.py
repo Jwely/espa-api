@@ -49,7 +49,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         # now use the orders dict we built to update the db
         for order in orders:
             product_tup = tuple(str(p) for p in orders[order])
-            order = Order.where({'orderid': order})[0]
+            order = Order.find(order)
 
             name_filter = ('name in {}'
                            .format(product_tup)
@@ -289,7 +289,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
     def set_product_error(self, name, orderid, processing_loc, error):
         ''' Marks a scene in error and accepts the log file contents '''
 
-        order = Order.where({'orderid': orderid})[0]
+        order = Order.find(orderid)
         product = Scene.where({'name': name, 'order_id': order.id})[0]
         #attempt to determine the disposition of this error
         resolution = None
@@ -538,13 +538,13 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             # create the orderid based on the info from the eeorder
             order_id = Order.generate_ee_order_id(email_addr, eeorder)
 
-            order = Order.where({'orderid': order_id})
+            order = Order.find(order_id)
             scene_info = orders[eeorder, email_addr, contactid]
 
-            if order and order[0]:
+            if order:
                 # EE order already exists in the system
                 # update the associated scenes
-                self.update_ee_orders(scene_info, eeorder, order[0].id)
+                self.update_ee_orders(scene_info, eeorder, order.id)
                 continue
 
             cache_key = '-'.join(['load_ee_orders', str(contactid)])
@@ -868,7 +868,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         logger.info("Handling submitted plot products...")
 
         plot_scenes = Scene.where({'status': 'submitted', 'sensor_type': 'plot'})
-        plot_orders = [Order.where({'id': str(s.order_id)})[0] for s in plot_scenes]
+        plot_orders = [Order.find(s.order_id) for s in plot_scenes]
 
         logger.info("Found {0} submitted plot orders"
                     .format(len(plot_orders)))
@@ -924,7 +924,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         ''' public interface to send the completion email '''
         return emails.Emails().send_completion(order)
 
-    def update_order_if_complete(self, order):
+    def update_order_if_complete(self, order_id):
         '''Method to send out the order completion email
         for orders if the completion of a scene
         completes the order
@@ -933,11 +933,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         orderid -- id of the order
 
         '''
-        if type(order) == str:
-            #will raise Order.DoesNotExist
-            order = Order.where({'orderid': order})[0]
-        elif type(order) == int:
-            order = Order.where({'id': order})[0]
+        order = order_id if isinstance(order_id, Order) else Order.find(order_id)
 
         if not type(order) == Order:
             msg = "%s must be of type Order, int or str" % order

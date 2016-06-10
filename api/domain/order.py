@@ -22,6 +22,9 @@ class Order(object):
                 'FROM ordering_order '
                 'WHERE ')
 
+    valid_statuses = ('complete', 'queued', 'oncache', 'onorder', 'purged',
+                      'processing', 'error', 'unavailable', 'submitted')
+
     def __init__(self, orderid=None, status=None, order_source=None,
                  order_type=None, product_options=None,
                  product_opts=None, initial_email_sent=None,
@@ -125,7 +128,7 @@ class Order(object):
                          'sql: {}'.format(e.message, log_sql))
             raise OrderException(e)
 
-        order = Order.where({'orderid': params['orderid']})[0]
+        order = Order.find(params['orderid'])
 
         # Let the load_ee_order method handle the scene injection
         # as there is special logic for interacting with LTA
@@ -221,6 +224,28 @@ class Order(object):
             raise OrderException(e)
 
         return ret
+
+    @classmethod
+    def find(cls, id):
+        """
+        Convenience method for finding orders by id and orderid attributes.
+        Uniqueness for each enforced by constraints on the table
+        :param id:
+        :return: a single Order object
+        """
+        if isinstance(id, int):
+            found = cls.where({'id': id})
+        elif isinstance(id, basestring):
+            found = cls.where({'orderid': str(id)})
+        else:
+            raise OrderException(" cannot find order by %s " % id)
+
+        try:
+            result = found[0]
+        except IndexError:
+            result = None
+
+        return result
 
     @classmethod
     def get_user_scenes(cls, user_id, params=None):
@@ -488,7 +513,7 @@ class Order(object):
 
             raise OrderException(e)
 
-        new = Order.where({'id': self.id})[0]
+        new = Order.find(self.id)
 
         for att in attr_tup:
             self.__setattr__(att, new.__getattribute__(att))
@@ -534,6 +559,19 @@ class Order(object):
             sql_dict = {'order_id': self.id}
 
         return Scene.where(sql_dict, sql_and=sql_and)
+
+    def scene_status_count(self, status=None):
+        sql = "select count(id) from ordering_scene where order_id = %s"
+        arg_tup = (self.id,)
+
+        if status in self.valid_statuses:
+            sql += " AND status = %s "
+            arg_tup = (self.id, status)
+
+        with db_instance() as db:
+            db.select(sql+";", arg_tup)
+
+        return int(db[0][0])
 
     def products_by_sensor(self):
         """
