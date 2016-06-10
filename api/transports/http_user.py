@@ -45,7 +45,7 @@ def verify_user(username, password):
 
         cache_entry = {'password': password,
                        'user_entry': user_entry}
-        cache.set(cache_key, cache_entry, 300)
+        cache.set(cache_key, cache_entry, 7200)
 
         user = User(*user_entry)
         flask.g.user = user  # Replace usage with cached version
