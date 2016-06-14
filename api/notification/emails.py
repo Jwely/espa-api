@@ -149,11 +149,8 @@ class Emails(object):
         return self.__send(recipient=email, subject=subject, body=email_msg)
 
     def send_completion(self, order):
-        order = Order.find(order)
-
         if not isinstance(order, Order):
-            msg = 'order must be str, int or instance of Order'
-            raise TypeError(msg)
+            order = Order.find(order)
 
         email = order.user_email()
         url = self.__order_status_url(order.orderid)
