@@ -1,6 +1,8 @@
 from api.util import chunkify
 from api.domain.scene import Scene
 
+from mock import MagicMock
+
 def return_update_order_resp(*args, **kwargs):
     class foo(object):
         def success(self):
@@ -52,6 +54,30 @@ def get_available_orders():
                                                'unit_num': 780},
                                               {'sceneid': 'LE70900652008327EDC00',
                                                'unit_num': 799}]
+
+    class UF(object):
+        def __init__(self):
+            self.orderNbr = '99996666777'
+            self.orderingId = 'LC81390422014071LGN00'
+            self.unitNbr = 780
+            self.productCode = 'sr01'
+            self.processingParam = "<email>klsmith@usgs.gov</email>" \
+                                   "<contactid>418779</contactid>"
+
+
+    class Foo(object):
+        @property
+        def units(self):
+            class X(object):
+                @property
+                def unit(self):
+                    return [UF()]
+            return X()
+
+
+
+    uf = UF()
+
     return ret
 
 def sample_tram_order_ids():

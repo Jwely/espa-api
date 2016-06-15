@@ -1,11 +1,14 @@
 import unittest
-from mock import patch
+from mock import patch, PropertyMock
 
 from api.external.nlaps import products_are_nlaps
 from api.external import onlinecache
 from api.external.mocks import onlinecache as mockonlinecache
 from api.external import lta
 from api.external.mocks import lta as mocklta
+from mock import MagicMock
+
+from suds.client import ServiceSelector
 
 class TestLTA(unittest.TestCase):
     def setUp(self):
@@ -19,11 +22,12 @@ class TestLTA(unittest.TestCase):
             self.assertTrue(resp[item])
 
     @patch('api.external.lta.OrderUpdateServiceClient.update_order', mocklta.return_update_order_resp)
-    @patch('api.external.lta.SoapClient.getAvailableOrders', mocklta.get_available_orders)
+    #@patch('suds.client.ServiceSelector.__getitem__', mocklta.get_available_orders)
+    #@patch("suds.client.ServiceSelector")
     def test_get_available_orders(self):
-        resp = lta.get_available_orders()
-        print resp
-
+        odsc = lta.OrderDeliveryServiceClient()
+        odsc.client.service.getAvailableOrders = MagicMock(return_value=mocklta.get_available_orders())
+        print odsc.client.service.getAvailableOrders()
 
 class TestNLAPS(unittest.TestCase):
     """
