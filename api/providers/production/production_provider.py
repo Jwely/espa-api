@@ -336,7 +336,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             product.log_file_contents = error
             product.save()
 
-        return product
+        return True
 
     def get_products_to_process(self, record_limit=500,
                                 for_user=None,
