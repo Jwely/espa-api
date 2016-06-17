@@ -8,10 +8,12 @@ from flask.ext.restful import Api, Resource, reqparse, fields, marshal
 from api.providers.configuration.configuration_provider import ConfigurationProvider
 from api.util import api_cfg
 
-from http_user import Index, VersionInfo, Reports, SystemStatus,\
-    AvailableProducts, ValidationInfo, ListOrders, Ordering, UserInfo, ItemStatus
+from http_user import Index, VersionInfo, AvailableProducts, ValidationInfo,\
+    ListOrders, Ordering, UserInfo, ItemStatus
 
 from http_production import ProductionVersion, ProductionConfiguration, ProductionOperations
+
+from http_admin import Reports, SystemStatus
 
 config = ConfigurationProvider()
 
