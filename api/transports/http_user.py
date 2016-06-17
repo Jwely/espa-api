@@ -29,7 +29,8 @@ def unauthorized():
 
 def verify_user(username, password):
     try:
-        cache_key = '{}-credentials'.format(username)
+        # usernames with spaces are valid in EE, though they can't be used for cache keys
+        cache_key = '{}-credentials'.format(username.replace(' ', '_espa_cred_insert_'))
         cache_entry = cache.get(cache_key)
 
         if cache_entry:
