@@ -26,7 +26,6 @@ def unauthorized():
 
 
 @auth.verify_password
-
 def verify_user(username, password):
     try:
         # usernames with spaces are valid in EE, though they can't be used for cache keys

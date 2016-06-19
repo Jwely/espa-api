@@ -1,10 +1,28 @@
-from flask import request
+from flask import request, make_response, jsonify
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal
 
 from api.interfaces.production.version0 import API
 from api.domain import api_operations_v0
+from api.util import api_cfg
+
 
 espa = API()
+
+
+def whitelist(func):
+    def decorated(*args, **kwargs):
+        white_ls = api_cfg(section='production_whitelist').keys()
+        if 'X-Forwarded-For' in request.headers:
+            remote_addr = request.headers.getlist('X-Forwarded-For')[0].rpartition(' ')[-1]
+        else:
+            remote_addr = request.remote_addr or 'untrackable'
+
+        if remote_addr in white_ls:
+            return func(*args, **kwargs)
+        else:
+            return make_response(jsonify({'msg': 'Access Denied'}), 403)
+    return decorated
+
 
 class ProductionVersion(Resource):
     def get(self):
@@ -15,6 +33,7 @@ class ProductionVersion(Resource):
 
 
 class ProductionOperations(Resource):
+    decorators = [whitelist]
     def get(self):
         if 'products' in request.url:
             # request.args is an ImmutableMultiDict
@@ -37,5 +56,6 @@ class ProductionOperations(Resource):
 
 
 class ProductionConfiguration(Resource):
+    decorators = [whitelist]
     def get(self, key):
         return espa.get_production_key(key)
