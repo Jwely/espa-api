@@ -11,7 +11,7 @@ espa = API()
 
 def whitelist(func):
     def decorated(*args, **kwargs):
-        white_ls = api_cfg(section='production_whitelist').keys()
+        white_ls = api_cfg(section='config').get('production_whitelist').split(',')
         if 'X-Forwarded-For' in request.headers:
             remote_addr = request.headers.getlist('X-Forwarded-For')[0].rpartition(' ')[-1]
         else:
@@ -25,6 +25,7 @@ def whitelist(func):
 
 
 class ProductionVersion(Resource):
+    decorators = [whitelist]
     def get(self):
         if 'v0' in request.url:
             return api_operations_v0['production']
