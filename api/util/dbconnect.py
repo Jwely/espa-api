@@ -49,6 +49,12 @@ class DBConnect(object):
 
         try:
             self.cursor.execute(sql_str, params)
+            if self.cursor.description:
+                # when cursor.description is not None
+                # cursor.fetchall() will not raise  ProgrammingError
+                # this is for instances when execute is called, and
+                # a information is returned from the db
+                self.fetcharr = self.cursor.fetchall()
         except psycopg2.Error or psycopg2.Warning as e:
             raise DBConnectException(e)
 
