@@ -10,6 +10,12 @@ espa = API()
 
 
 def whitelist(func):
+    """
+    Provide a decorator to enact a white filter on an endpoint
+
+    References http://flask.pocoo.org/docs/0.11/deploying/wsgi-standalone/#proxy_setups
+    and http://github.com/mattupsate/flask-security
+    """
     def decorated(*args, **kwargs):
         white_ls = api_cfg(section='config').get('production_whitelist').split(',')
         if 'X-Forwarded-For' in request.headers:
