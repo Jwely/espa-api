@@ -108,21 +108,21 @@ class User(object):
         insert_stmt = "insert into auth_user (username, " \
                       "email, first_name, last_name, password, " \
                       "is_staff, is_active, is_superuser, " \
-                      "last_login, date_joined, contactid) values {};"
+                      "last_login, date_joined, contactid) values " \
+                      "(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) " \
+                      "on conflict (username) " \
+                      "do update set (email, contactid) = (%s, %s) " \
+                      "where auth_user.username = %s" \
+                      "returning id"
         arg_tup = (username, email, first_name, last_name,
-                    'pass', 'f', 't', 'f', nownow, nownow, contactid)
+                   'pass', 'f', 't', 'f', nownow, nownow, contactid,
+                   email, contactid, username)
 
         with db_instance() as db:
-            user_sql = "select id from auth_user where username = %s;"
-            db.select(user_sql, username)
-            if len(db) == 0:
-                # we need to create a local user
-                db.execute(insert_stmt.format(arg_tup))
-                db.commit()
-            # user should be there now, lets try this again
-            db.select(user_sql, username)
             try:
-                user_id = db[0]['id']
+                db.execute(insert_stmt, arg_tup)
+                db.commit()
+                user_id = db.fetcharr[0]['id']
             except:
                 exc_type, exc_val, exc_trace = sys.exc_info()
                 logger.debug("ERR user find_or_create args {0} {1} " \
