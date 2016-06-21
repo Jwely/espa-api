@@ -185,7 +185,8 @@ class Errors(object):
         '''Could not run due to aux data no available yet'''
 
         keys = ['Verify the missing auxillary data products',
-                'Warning: main : Could not find auxnm data file']
+                'Warning: main : Could not find auxnm data file',
+                'Could not find TOMS aux']
         status = 'retry'
         reason = 'Auxiliary data not yet available for this date'
         extras = self.__add_retry('missing_aux_data')
