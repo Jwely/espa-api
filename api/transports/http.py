@@ -2,7 +2,7 @@
 
 import os
 
-from flask import Flask
+from flask import Flask, request
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal
 
 from api.providers.configuration.configuration_provider import ConfigurationProvider
