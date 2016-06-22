@@ -336,7 +336,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             product.log_file_contents = error
             product.save()
 
-        return product
+        return True
 
     def get_products_to_process(self, record_limit=500,
                                 for_user=None,
@@ -584,16 +584,16 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             self.update_ee_orders(scene_info, eeorder, order.id)
 
     @staticmethod
-    def load_ee_scenes(ee_scenes, order_id):
+    def gen_ee_scene_list(ee_scenes, order_id):
         """
-        Load the associated EE scenes into the system for processing
+            Return formatted list of dictionaries used to insert
+            scene records from EE orders
 
-        ee_scenes_example = [{'sceneid': ,
-                              'unit_num': }]
+            ee_scenes = [{'sceneid': xxx , 'unit_num': iii }]
 
-        :param ee_scenes: list of scenes to place in the DB
-        :param order_id: numeric ordering_order.id associated with the
-          scenes
+            :param ee_scenes: list of scenes to insert into the db
+            :param order_id: the id of the order the scenes belong to
+            :return: list of dictionaries, used for generating scene records
         """
         bulk_ls = []
         for s in ee_scenes:
@@ -612,18 +612,40 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                           'ee_unit_id': s['unit_num']}
 
             bulk_ls.append(scene_dict)
+        return bulk_ls
 
+    def load_ee_scenes(self, ee_scenes, order_id, missed=None):
+        """
+        Load the associated EE scenes into the system for processing
+
+        ee_scenes_example = [{'sceneid': xxx, 'unit_num': iii}]
+
+        :param ee_scenes: list of scenes to place in the DB
+        :param order_id: numeric ordering_order.id associated with the
+          scenes
+        :param missed: used to indicate adding missing scenes to existing
+          order
+        """
+        bulk_ls = self.gen_ee_scene_list(ee_scenes, order_id)
         try:
             Scene.create(bulk_ls)
         except (SceneException, sensor.ProductNotImplemented) as e:
-            logger.debug('EE Order creation failed on scene injection, '
-                         'order: {}\nexception: {}'
-                         .format(order_id, e.message))
+            if missed:
+                # we failed to load scenes missed on initial EE order import
+                # we do not want to delete the order, as we would on initial
+                # creation
+                logger.debug('EE Scene creation failed on scene injection, '
+                             'for missing EE scenes on existing order '
+                             'order: {}\nexception: {}'.format(order_id, e.message))
+            else:
+                logger.debug('EE Order creation failed on scene injection, '
+                             'order: {}\nexception: {}'
+                             .format(order_id, e.message))
 
-            with db_instance() as db:
-                db.execute('delete ordering_order where id = %s',
-                           order_id)
-                db.commit()
+                with db_instance() as db:
+                    db.execute('delete ordering_order where id = %s',
+                               order_id)
+                    db.commit()
 
             raise ProductionProviderException(e)
 
@@ -639,19 +661,28 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         :param eeorder: associated EE order id
         :param order_id: order id used in the system
         """
+        missing_scenes = []
         for s in ee_scenes:
-            scene = Scene.where({'order_id': order_id,
-                                 'ee_unit_id': s['unit_num']})[0]
+            scene = Scene.where({'order_id': order_id, 'ee_unit_id': s['unit_num']})
 
-            if scene.status == 'complete':
-                status = 'C'
-            elif scene.status == 'unavailable':
-                status = 'R'
+            if scene:
+                scene = scene[0]
+                if scene.status == 'complete':
+                    status = 'C'
+                elif scene.status == 'unavailable':
+                    status = 'R'
+                else:
+                    status = 'I'
+
+                self.update_lta_status(eeorder, s['unit_num'], status, s['sceneid'], order_id)
             else:
-                status = 'I'
+                # scene insertion was missed initially, add it now
+                missing_scenes.append(s)
 
-            self.update_lta_status(eeorder, s['unit_num'], status,
-                                   s['sceneid'], order_id)
+        if missing_scenes:
+            # There appear to be scenes in this order which we didn't receive the
+            # first go around, try adding them now
+            self.load_ee_scenes(missing_scenes, order_id, missed=True)
 
     @staticmethod
     def update_lta_status(eeorder, unit_num, upd_status, sceneid, order_id):

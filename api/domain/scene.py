@@ -353,14 +353,14 @@ class Scene(object):
         sql = ('SELECT %s '
                'FROM ordering_scene JOIN ordering_order '
                'ON ordering_order.id = ordering_scene.order_id '
-               'WHERE name = %s')
+               'WHERE ordering_scene.id = %s')
 
         log_sql = ''
         try:
             with db_instance() as db:
                 log_sql = db.cursor.mogrify(sql, (db_extns.AsIs(col),
-                                                  self.name))
-                db.select(sql, (db_extns.AsIs(col), self.name))
+                                                  self.id))
+                db.select(sql, (db_extns.AsIs(col), self.id))
                 ret = db[0][col]
 
         except DBConnectException as e:
