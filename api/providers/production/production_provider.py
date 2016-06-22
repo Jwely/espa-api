@@ -614,32 +614,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             bulk_ls.append(scene_dict)
         return bulk_ls
 
-    def load_missed_ee_scenes(self, ee_scenes, order_id):
-        """
-            Load missing EE scenes into the system for processing
-
-            Differs from load_ee_scenes() in that it doesn't delete
-            the order if there is a problem adding the scenes.
-
-            ee_scenes = [{'sceneid': xxx , 'unit_num': iii }]
-
-            :param ee_scenes: list of scenes to place in the DB
-            :param order_id: numeric ordering_order.id associated with the
-              scenes
-            """
-        bulk_ls = self.gen_ee_scene_list(ee_scenes, order_id)
-        try:
-            logger.info("Missing scenes found for EE order, order.id = {}\n"
-                        "number of missing scenes: {}\n".format(order_id, len(ee_scenes)))
-            Scene.create(bulk_ls)
-        except (SceneException, sensor.ProductNotImplemented) as e:
-            logger.debug('EE Scene creation failed on scene injection, '
-                         'for missing EE scenes on existing order '
-                         'order: {}\nexception: {}'.format(order_id, e.message))
-
-            raise ProductionProviderException(e)
-
-    def load_ee_scenes(self, ee_scenes, order_id):
+    def load_ee_scenes(self, ee_scenes, order_id, missed=None):
         """
         Load the associated EE scenes into the system for processing
 
@@ -648,19 +623,29 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         :param ee_scenes: list of scenes to place in the DB
         :param order_id: numeric ordering_order.id associated with the
           scenes
+        :param missed: used to indicate adding missing scenes to existing
+          order
         """
         bulk_ls = self.gen_ee_scene_list(ee_scenes, order_id)
         try:
             Scene.create(bulk_ls)
         except (SceneException, sensor.ProductNotImplemented) as e:
-            logger.debug('EE Order creation failed on scene injection, '
-                         'order: {}\nexception: {}'
-                         .format(order_id, e.message))
+            if missed:
+                # we failed to load scenes missed on initial EE order import
+                # we do not want to delete the order, as we would on initial
+                # creation
+                logger.debug('EE Scene creation failed on scene injection, '
+                             'for missing EE scenes on existing order '
+                             'order: {}\nexception: {}'.format(order_id, e.message))
+            else:
+                logger.debug('EE Order creation failed on scene injection, '
+                             'order: {}\nexception: {}'
+                             .format(order_id, e.message))
 
-            with db_instance() as db:
-                db.execute('delete ordering_order where id = %s',
-                           order_id)
-                db.commit()
+                with db_instance() as db:
+                    db.execute('delete ordering_order where id = %s',
+                               order_id)
+                    db.commit()
 
             raise ProductionProviderException(e)
 
@@ -697,7 +682,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         if missing_scenes:
             # There appear to be scenes in this order which we didn't receive the
             # first go around, try adding them now
-            self.load_missed_ee_scenes(missing_scenes, order_id)
+            self.load_ee_scenes(missing_scenes, order_id, missed=True)
 
     @staticmethod
     def update_lta_status(eeorder, unit_num, upd_status, sceneid, order_id):
