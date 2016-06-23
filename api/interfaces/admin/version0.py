@@ -13,13 +13,6 @@ class API(object):
             self.providers = DefaultProviders()
 
         self.admin = self.providers.administration
-
-        self.ordering = self.providers.ordering
-        self.inventory = self.providers.inventory
-        self.validation = self.providers.validation
-        self.metrics = self.providers.metrics
-        self.production = self.providers.production
-        self.configuration = self.providers.configuration
         self.reporting = self.providers.reporting
 
     def api_versions(self):
@@ -57,10 +50,8 @@ class API(object):
 
         return response
 
-    # def load_configuration(self, filepath, clear=False):
     def load_configuration(self, filepath):
         try:
-            # response = self.admin.restore_configuration(filepath, clear=clear)
             response = self.admin.restore_configuration(filepath)
         except:
             logger.debug('ERR version0 load_configuration: '

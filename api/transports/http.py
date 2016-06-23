@@ -20,12 +20,8 @@ config = ConfigurationProvider()
 app = Flask(__name__)
 app.secret_key = api_cfg('config').get('key')
 
-if config.mode == 'dev' or os.environ.get('ESPA_DEBUG'):
-    app.debug = True
-
 errors = {'NotFound': {'message': 'The requested URL was not found on the server.',
                        'status': 404}}
-
 
 transport_api = Api(app, errors=errors, catch_all_404s=True)
 
@@ -99,4 +95,8 @@ transport_api.add_resource(ProductionConfiguration,
 
 
 if __name__ == '__main__':
-    app.run()
+
+    debug = False
+    if 'ESPA_DEBUG' in os.environ and os.environ['ESPA_DEBUG'] == 'True':
+        debug = True
+    app.run(debug=debug)
