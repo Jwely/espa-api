@@ -1,6 +1,8 @@
 import traceback
+import sys
 from api.system.logger import ilogger as logger
 from api.domain import default_error_message
+
 
 class API(object):
     def __init__(self, providers=None):
@@ -11,6 +13,7 @@ class API(object):
             self.providers = DefaultProviders()
 
         self.admin = self.providers.administration
+        self.reporting = self.providers.reporting
 
     def api_versions(self):
         """
@@ -47,10 +50,8 @@ class API(object):
 
         return response
 
-    # def load_configuration(self, filepath, clear=False):
     def load_configuration(self, filepath):
         try:
-            # response = self.admin.restore_configuration(filepath, clear=clear)
             response = self.admin.restore_configuration(filepath)
         except:
             logger.debug('ERR version0 load_configuration: '
@@ -69,14 +70,92 @@ class API(object):
 
         return response
 
-    def order_management(self):
-        pass
+    def get_report(self, name):
+        """
+        retrieve a named report
+        :param name:
+        :return: OrderedDict
+        """
+        try:
+            response = str(self.reporting.run(name))
+        except:
+            logger.debug("ERR version0 get_report name {0}\ntraceback {1}".format(name, traceback.format_exc()))
+            response = default_error_message
 
-    def system_management(self):
-        pass
+        return response
 
-    def hadoop_management(self):
-        pass
+    def available_reports(self):
+        """
+        returns list of available reports
+        :return: List
+        """
+        try:
+            response = self.reporting.listing()
+        except:
+            logger.debug("ERR version0 available_reports traceback {0}".format(traceback.format_exc()))
+            response = default_error_message
 
-    def onlinecache_management(self):
-        pass
+        return response
+
+    def get_system_status(self):
+        """
+        retrieve the system status message
+        :return: str
+        """
+        try:
+            response = self.admin.get_system_status()
+        except:
+            logger.debug("ERR version0 get_system_status. traceback {0}".format(traceback.format_exc()))
+            response = default_error_message
+
+        return response
+
+    def update_system_status(self, params):
+        """
+        update system status attributes
+        """
+        try:
+            response = self.admin.update_system_status(params)
+        except:
+            exc_type, exc_val, exc_trace = sys.exc_info()
+            logger.debug("ERR updating system status params: {0}\n exception {1}".format(params, traceback.format_exc()))
+            raise exc_type, exc_val, exc_trace
+
+        return response
+
+    def get_system_config(self):
+        """
+        retrieve system configuration variables
+        """
+        try:
+            return self.admin.get_system_config()
+        except:
+            exc_type, exc_val, exc_trace = sys.exc_info()
+            logger.debug(
+                "ERR retrieving system config: exception {0}".format(traceback.format_exc()))
+            raise exc_type, exc_val, exc_trace
+
+    def available_stats(self):
+        """
+        returns list of available statistics
+        :return: list
+        """
+        try:
+            response = self.reporting.stat_list()
+        except:
+            logger.debug("ERR version0 available_stats traceback {0}".format(traceback.format_exc()))
+            response = default_error_message
+
+        return response
+
+    def get_stat(self, name):
+        """
+        retrieve requested statistic value
+        :return: long
+        """
+        try:
+            response = self.reporting.get_stat(name)
+        except:
+            logger.debug("ERR version0 get_stat name: {0}, traceback: {1}".format(name, traceback.format_exc()))
+            response = default_error_message
+        return response

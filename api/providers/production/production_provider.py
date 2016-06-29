@@ -29,8 +29,13 @@ class ProductionProviderException(Exception):
 class ProductionProvider(ProductionProviderInterfaceV0):
 
     def queue_products(self, order_name_tuple_list, processing_location, job_name):
-        ''' Allows the caller to place products into queued status in bulk '''
-
+        """
+        Allows the caller to place products into queued status in bulk
+        :param order_name_tuple_list: list of tuples, ie [(orderid, scene_name), ...]
+        :param processing_location: location of request to queue products
+        :param job_name: name of job
+        :return: True
+        """
         if not isinstance(order_name_tuple_list, list):
             msg = list()
             msg.append("queue_products expects a list of ")
@@ -71,6 +76,16 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                               completed_file_location=None,
                               destination_cksum_file=None,
                               log_file_contents=None):
+        """
+        Mark a scene complete
+        :param name: name of scene
+        :param orderid: order id of scene
+        :param processing_loc: where request originated
+        :param completed_file_location: where completed product was stored
+        :param destination_cksum_file: where product cksum file was stored
+        :param log_file_contents: log file contents from processing
+        :return: True
+        """
 
         order_id = Scene.get('order_id', name, orderid)
         order_source = Scene.get('order_source', name, orderid)
@@ -105,14 +120,23 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         try:
             scene.save()
         except DBConnectException, e:
-            message = "DBConnect Exception ordering_provider mark_product_complete sql: {0}"\
-                        "\nmessage: {1}".format(sql, e.message)
+            message = "DBConnect Exception ordering_provider mark_product_complete scene: {0}"\
+                        "\nmessage: {1}".format(scene, e.message)
             raise OrderException(message)
 
         return True
 
     def set_product_unavailable(self, name, orderid,
                                 processing_loc=None, error=None, note=None):
+        """
+        Set a product unavailable
+        :param name: name of scene to mark unavailable
+        :param orderid: order id of scene to mark unavailable
+        :param processing_loc: where call to mark scene unavailable originated
+        :param error: error message
+        :param note: note
+        :return: True
+        """
 
         order_id = Scene.get('order_id', name, orderid)
         order_source = Scene.get('order_source', name, orderid)
@@ -134,19 +158,21 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         try:
             scene.save()
         except DBConnectException, e:
-            message = "DBConnect Exception ordering_provider set_product_unavailable sql: {0}\nmessage: {1}".format(sql, e.message)
+            message = "DBConnect Exception ordering_provider set_product_unavailable " \
+                      "scene: {0}\nmessage: {1}".format(scene, e.message)
             raise ProductionProviderException(message)
 
         return True
 
     @staticmethod
     def set_products_unavailable(products, reason):
-        '''Bulk updates products to unavailable status and updates EE if
+        """
+        Bulk updates products to unavailable status and updates EE if
         necessary.
-        Keyword args:
-        products - A list of models.Scene objects
-        reason - The user facing reason the product was rejected
-        '''
+        :param products: list of Scene objects
+        :param reason: user facing explanation for why request was rejected
+        :return: True
+        """
         product_ids = []
         for p in products:
             if isinstance(p, Scene):
@@ -155,20 +181,33 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                 raise TypeError()
 
         attrs = {'status': 'unavailable',
-                'completion_date': datetime.datetime.now(),
-                'note': reason}
+                 'completion_date': datetime.datetime.now(),
+                 'note': reason}
 
-        Scene.bulk_update(product_ids, attrs)
-        # an exception will be raised in bulk_update
-        # if it fails, so we shouldn't need to wrap
-        # the lta call in a conditional
-        for p in products:
-            if p.order_attr('order_source') == 'ee':
-                lta.update_order_status(p.order.ee_order_id, p.ee_unit_id, 'R')
+        try:
+            Scene.bulk_update(product_ids, attrs)
+            # an exception will be raised in bulk_update
+            # if it fails, so we shouldn't need to wrap
+            # the lta call in a conditional
+            for p in products:
+                if p.order_attr('order_source') == 'ee':
+                    lta.update_order_status(p.order.ee_order_id, p.ee_unit_id, 'R')
+        except Exception, e:
+            message = "ERR set_products_unavailable failure" \
+                      "\nexceptio: {}\nproduct_ids: {}\nreason: {}".format(e.message, product_ids, reason)
+            raise ProductionProviderException(message)
 
         return True
 
     def update_status(self, name, orderid, processing_loc=None, status=None):
+        """
+        Update the status for a scene give its name, and order_id
+        :param name: name of scene to update
+        :param orderid: the order id of scene to update
+        :param processing_loc: where in processing the status is being updated from
+        :param status: what the status is to be set to
+        :return: True
+        """
         order_id = Scene.get('order_id', scene_name=name, orderid=orderid)
         sql_list = ["update ordering_scene set "]
         comm_sep = ""
@@ -188,7 +227,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                 db.commit()
         except DBConnectException, e:
             message = "DBConnect Exception ordering_provider update_status sql: {0}\nmessage: {1}".format(sql, e.message)
-            raise OrderException(message)
+            raise ProductionProviderException(message)
 
         return True
 
@@ -196,6 +235,21 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                        processing_loc=None, status=None, error=None,
                        note=None, completed_file_location=None,
                        cksum_file_location=None, log_file_contents=None):
+        """
+        Update a scene's status to error, unavailable, complete, or something else
+
+        :param action: name of the action to perform
+        :param name: name of the scene to perform action on
+        :param orderid: order id of the scene to perform action on
+        :param processing_loc: where the request to perform the action came from
+        :param status: new scene status
+        :param error: new error message
+        :param note: new note value
+        :param completed_file_location: where finished product is stored
+        :param cksum_file_location: where cksum file for product is stored
+        :param log_file_contents: new log file contents
+        :return: True
+        """
         if action == 'update_status':
             result = self.update_status(name, orderid,
                                         processing_loc=processing_loc,
@@ -287,8 +341,14 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         return True
 
     def set_product_error(self, name, orderid, processing_loc, error):
-        ''' Marks a scene in error and accepts the log file contents '''
-
+        """
+        Marks a scene in error and accepts the log file contents
+        :param name: name of scene to update
+        :param orderid: order id of scene to update
+        :param processing_loc: where command to update scene came from
+        :param error: error message from processing
+        :return: True
+        """
         order = Order.find(orderid)
         product = Scene.where({'name': name, 'order_id': order.id})[0]
         #attempt to determine the disposition of this error
@@ -343,9 +403,16 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                                 priority=None,
                                 product_types=['landsat', 'modis'],
                                 encode_urls=False):
-        '''Find scenes that are oncache and return them as properly formatted
-        json per the interface description between the web and processing tier'''
-
+        """
+        Find scenes that are oncache and return them as properly formatted
+        json per the interface description between the web and processing tier
+        :param record_limit: max number of scenes to retrieve
+        :param for_user: the user whose scenes to retrieve
+        :param priority: the priority of scenes to retrieve
+        :param product_types: types of products to retrieve
+        :param encode_urls: whether to encode the urls
+        :return: list
+        """
         logger.info('Retrieving products to process...')
         logger.warn('Record limit:{0}'.format(record_limit))
         logger.warn('Priority:{0}'.format(priority))
@@ -403,7 +470,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         buff.close()
         logger.warn("QUERY:{0}".format(query))
 
-        query_results = None
+        #query_results = None
 
         with db_instance() as db:
             db.select(query)
@@ -503,7 +570,6 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                     'scene': item['name'],
                     'priority': item['priority'],
                     'options': options
-                    #'options': json.loads(item['product_options'])
                 }
 
                 if item['sensor_type'] == 'plot':
@@ -586,14 +652,14 @@ class ProductionProvider(ProductionProviderInterfaceV0):
     @staticmethod
     def gen_ee_scene_list(ee_scenes, order_id):
         """
-            Return formatted list of dictionaries used to insert
-            scene records from EE orders
+        Return formatted list of dictionaries used to insert
+        scene records from EE orders
 
-            ee_scenes = [{'sceneid': xxx , 'unit_num': iii }]
+        ee_scenes = [{'sceneid': xxx , 'unit_num': iii }]
 
-            :param ee_scenes: list of scenes to insert into the db
-            :param order_id: the id of the order the scenes belong to
-            :return: list of dictionaries, used for generating scene records
+        :param ee_scenes: list of scenes to insert into the db
+        :param order_id: the id of the order the scenes belong to
+        :return: list of dictionaries, used for generating scene records
         """
         bulk_ls = []
         for s in ee_scenes:
@@ -686,34 +752,55 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
     @staticmethod
     def update_lta_status(eeorder, unit_num, upd_status, sceneid, order_id):
-        success, msg, status = lta.update_order_status(eeorder,
-                                                       unit_num,
-                                                       upd_status)
+        """
+        Update an EE orders, and products status
+        :param eeorder: the EE order id
+        :param unit_num: the EE scene id
+        :param upd_status: the updated status
+        :param sceneid: the scene name
+        :param order_id: the orderid
+        :return:
+        """
+        try:
+            success, msg, status = lta.update_order_status(eeorder, unit_num, upd_status)
+            if not success:
+                log_msg = ('Error updating lta for '
+                           '[eeorder:{} ee_unit_num:{} scene '
+                           'name:{} order:{} to {} status '
+                           'lta return message: {}'
+                           'lta return status code: {}')
 
-        if not success:
-            log_msg = ('Error updating lta for '
-                       '[eeorder:{} ee_unit_num:{} scene '
-                       'name:{} order:{} to {} status '
-                       'lta return message: {}'
-                       'lta return status code: {}')
+                logger.debug(log_msg.format(eeorder, unit_num, sceneid,
+                                            order_id, upd_status, msg, status))
+        except Exception as e:
+            message = "ERR in update_lta_status\n eeorder: {}, unit_num: {}, upd_status: {}\n" \
+                      "sceneid: {}, order_id: {}\n exception: {}".format(eeorder, unit_num,
+                                                                         upd_status, sceneid, order_id, e)
+            raise ProductionProviderException(message)
 
-            logger.error(log_msg.format(eeorder, unit_num, sceneid,
-                                        order_id, upd_status, msg, status))
+        return True
 
     def handle_retry_products(self):
-        ''' handles all products in retry status '''
-        now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-        sql_and = "retry_after < '{}'".format(now)
+        """
+        Handle all products in retry status
+        :return: True
+        """
+        try:
+            now = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+            sql_and = "retry_after < '{}'".format(now)
 
-        products = Scene.where({'status': 'retry'}, sql_and=sql_and)
+            products = Scene.where({'status': 'retry'}, sql_and=sql_and)
+            if len(products) > 0:
+                Scene.bulk_update([p.id for p in products], {'status': 'submitted', 'note': ''})
+        except Exception as e:
+            raise ProductionProviderException("error with handle_retry_products: {}".format(e))
 
-        if len(products) > 0:
-            Scene.bulk_update([p.id for p in products],
-                              {'status': 'submitted', 'note': ''})
+        return True
 
     def handle_onorder_landsat_products(self):
         """
         Handles landsat products still on order
+        :return: True
         """
         products = Scene.where({'status': 'onorder'}, sql_and='tram_order_id IS NOT NULL')
 
@@ -760,11 +847,19 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         return True
 
     def send_initial_emails(self):
+        """
+        ProductionProvider wrapper for Emails.send_all_initial
+        :return: True
+        """
         return emails.Emails().send_all_initial()
 
-    def get_contactids_for_submitted_landsat_products(self):
+    @staticmethod
+    def get_contactids_for_submitted_landsat_products():
+        """
+        Assembles a list of contactids for submitted landsat products
+        :return: list
+        """
         logger.info("Retrieving contact ids for submitted landsat products")
-
         scenes = Scene.where({'status': 'submitted',
                               'sensor_type': 'landsat'})
 
@@ -778,22 +873,21 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             return []
 
     def update_landsat_product_status(self, contact_id):
-        ''' updates the product status for all landsat products for the
-        ee contact id '''
+        """
+        Updates the product status for all landsat products for the EE contact id
+        :param contact_id:
+        :return: True
+        """
         logger.info("Updating landsat product status")
-
         user = User.where("contactid = '{0}'".format(contact_id))[0]
+
         product_list = Order.get_user_scenes(user.id, "sensor_type = 'landsat' AND status = 'submitted'")[:500]
+        logger.info("Ordering {0} scenes for contact:{1}".format(len(product_list), contact_id))
 
         prod_name_list = [p.name for p in product_list]
-
-        logger.info("Ordering {0} scenes for contact:{1}"
-                     .format(len(product_list), contact_id))
-
         results = lta.order_scenes(prod_name_list, contact_id)
 
-        logger.info("Checking ordering results for contact:{0}"
-                     .format(contact_id))
+        logger.info("Checking ordering results for contact:{0}".format(contact_id))
 
         if 'available' in results and len(results['available']) > 0:
             available_product_ids = [product.id for product in product_list if product.name in results['available']]
@@ -806,71 +900,65 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         if 'invalid' in results and len(results['invalid']) > 0:
             #look to see if they are ee orders.  If true then update the
             #unit status
-
             invalid = [p for p in product_list if p.name in results['invalid']]
-
             self.set_products_unavailable(invalid, 'Not found in landsat archive')
 
         return True
 
     def mark_nlaps_unavailable(self):
-        ''' inner function to support marking nlaps products unavailable '''
+        """
+        Inner function to support marking nlaps products unavailable
+        :return: True
+        """
         logger.info("Looking for submitted landsat products, In mark_nlaps_unavailable")
-        # First things first... filter out all the nlaps scenes
-        landsat_products = Scene.where({'status': 'submitted',
-                                        'sensor_type': 'landsat'})
-        landsat_submitted = [l.name for l in landsat_products]
 
-        logger.info("Found {0} submitted landsat products"
-                     .format(len(landsat_submitted)))
+        # First things first... filter out all the nlaps scenes
+        landsat_products = Scene.where({'status': 'submitted', 'sensor_type': 'landsat'})
+        landsat_submitted = [l.name for l in landsat_products]
+        logger.info("Found {0} submitted landsat products".format(len(landsat_submitted)))
 
         # find all the submitted products that are nlaps and reject them
         logger.info("Checking for TMA data in submitted landsat products")
         landsat_nlaps = nlaps.products_are_nlaps(landsat_submitted)
-
-        landsat_submitted = None
-
         logger.info("Found {0} landsat TMA products".format(len(landsat_nlaps)))
 
         # bulk update the nlaps scenes
         if len(landsat_nlaps) > 0:
             _nlaps = [p for p in landsat_products if p.name in landsat_nlaps]
-            landsat_nlaps = None
             self.set_products_unavailable(_nlaps, 'TMA data cannot be processed')
 
         return True
 
     def handle_submitted_landsat_products(self):
-        ''' handles all submitted landsat products '''
+        """
+        Handles all submitted landsat products
+        :return: True
+        """
         logger.info('Handling submitted landsat products...')
-
-        #Here's the real logic for this handling submitted landsat products
+        # Here's the real logic for this handling submitted landsat products
         self.mark_nlaps_unavailable()
 
         for contact_id in self.get_contactids_for_submitted_landsat_products():
             try:
                 logger.info("Updating landsat_product_status for {0}"
                             .format(contact_id))
-
                 self.update_landsat_product_status(contact_id)
 
             except Exception, e:
                 msg = ('Could not update_landsat_product_status for {0}\n'
                        'Exception:{1}'.format(contact_id, e))
-                logger.exception(msg)
+                logger.debug(msg)
 
         return True
 
     def handle_submitted_modis_products(self):
-        ''' Moves all submitted modis products to oncache if true '''
-
+        """
+        Moves all submitted modis products to oncache if true
+        :return: True
+        """
         logger.info("Handling submitted modis products...")
-
-        modis_products = Scene.where({'status': 'submitted',
-                                      'sensor_type': 'modis'})
-
-        logger.warn("Found {0} submitted modis products"
-                     .format(len(modis_products)))
+        modis_products = Scene.where({'status': 'submitted', 'sensor_type': 'modis'})
+        logger.warn("Found {0} submitted modis products".format(len(modis_products)))
 
         if len(modis_products) > 0:
             lpdaac_ids = []
@@ -882,8 +970,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                     logger.warn('{0} is on cache'.format(product.name))
                 else:
                     nonlp_ids.append(product.id)
-                    logger.warn('{0} was not found in the modis data pool'
-                                 .format(product.name))
+                    logger.warn('{0} was not found in the modis data pool'.format(product.name))
 
             if lpdaac_ids:
                 Scene.bulk_update(lpdaac_ids, {"status": "oncache"})
@@ -893,58 +980,47 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         return True
 
     def handle_submitted_plot_products(self):
-        ''' Moves plot products from submitted to oncache status once all
-            their underlying rasters are complete or unavailable '''
-
+        """
+        Moves plot products from submitted to oncache status once all their underlying rasters are complete
+        or unavailable
+        :return: True
+        """
         logger.info("Handling submitted plot products...")
-
         plot_scenes = Scene.where({'status': 'submitted', 'sensor_type': 'plot'})
         plot_orders = [Order.find(s.order_id) for s in plot_scenes]
-
-        logger.info("Found {0} submitted plot orders"
-                    .format(len(plot_orders)))
+        logger.info("Found {0} submitted plot orders".format(len(plot_orders)))
 
         for order in plot_orders:
-            products = order.scenes()
-            product_count = len(products)
-
-            complete_products = order.scenes({'status': 'complete'})
-            complete_count = len(complete_products)
-
-            unavailable_products = order.scenes({'status': 'unavailable'})
-            unavailable_count = len(unavailable_products)
+            product_count = order.scene_status_count()
+            complete_count = order.scene_status_count('complete')
+            unavailable_count = order.scene_status_count('unavailable')
 
             # if there is only 1 product left that is not done, it must be
             # the plot product. Will verify this in next step.  Plotting
             # cannot run unless everything else is done.
-
-            logger.info("plot product_count = {0}".format(product_count))
-            logger.info("plot unavailable_count = {0}".format(unavailable_count))
-            logger.info("plot complete_count = {0}".format(complete_count))
+            log_msg = "plot product_count = {}\nplot unavailable count = {}\nplot complete count{}"
+            logger.info(log_msg.format(product_count, unavailable_count, complete_count))
 
             if product_count - (unavailable_count + complete_count) == 1:
-
                 if len(plot_scenes) >= 1:
                     for p in plot_scenes:
                         if complete_count == 0:
                             p.status = 'unavailable'
-                            note = 'No input products were available for '\
-                                    'plotting and statistics'
-                            p.note = note
+                            p.note = 'No input products were available for plotting and statistics'
                             logger.info('No input products available for '
-                                         'plotting in order {0}'
-                                         .format(order.orderid))
+                                        'plotting in order {0}'.format(order.orderid))
                         else:
                             p.status = 'oncache'
                             p.note = ''
-                            logger.info("{0} plot is on cache"
-                                         .format(order.orderid))
+                            logger.info("{0} plot is on cache".format(order.orderid))
                         p.save()
         return True
 
     def handle_submitted_products(self):
-        ''' handles all submitted products in the system '''
-
+        """
+        Handles all submitted products in the system
+        :return: True
+        """
         logger.info('Handling submitted products...')
         self.handle_submitted_landsat_products()
         self.handle_submitted_modis_products()
@@ -952,18 +1028,21 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         return True
 
     def send_completion_email(self, order):
-        ''' public interface to send the completion email '''
+        """
+        Public interface to send the completion email
+        :param order: order id
+        :return: True
+        """
         return emails.Emails().send_completion(order)
 
     def update_order_if_complete(self, order_id):
-        '''Method to send out the order completion email
+        """
+        Method to send out the order completion email
         for orders if the completion of a scene
         completes the order
-
-        Keyword args:
-        orderid -- id of the order
-
-        '''
+        :param order_id: the order id
+        :return: True
+        """
         order = order_id if isinstance(order_id, Order) else Order.find(order_id)
 
         if not type(order) == Order:
@@ -974,7 +1053,6 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         scenes = order.scenes(sql_and=("status NOT IN "
                                        "('complete', 'unavailable')"))
         if len(scenes) == 0:
-
             logger.info('Completing order: {0}'.format(order.orderid))
             order.status = 'complete'
             order.completion_date = datetime.datetime.now()
@@ -985,42 +1063,41 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                     sent = None
                     sent = self.send_completion_email(order)
                     if sent is None:
-                        logger.debug('Completeion email not sent for {0}'
-                                         .format(order.orderid))
-                        raise Exception("Completion email not sent")
+                        logger.debug('Completion email not sent for {0}'.format(order.orderid))
+                        raise ProductionProviderException("Completion email not sent from "
+                                                          "update_order_if_complete\nfor order {}".format(order.orderid))
                     else:
                         order.completion_email_sent = datetime.datetime.now()
                         order.save()
                 except Exception, e:
-                    #msg = "Error calling send_completion_email:{0}".format(e)
-                    logger.debug('Error calling send_completion_email')
+                    logger.debug('Error calling send_completion_email\nexception: {}'.format(e))
                     raise e
         return True
 
     def finalize_orders(self):
-        '''Checks all open orders in the system and marks them complete if all
-        required scene processing is done'''
-
+        """
+        Checks all open orders in the system and marks them complete if all
+        required scene processing is done
+        :return: True
+        """
         orders = Order.where({'status': 'ordered'})
         [self.update_order_if_complete(o) for o in orders]
         return True
 
     def purge_orders(self, send_email=False):
-        ''' Will move any orders older than X days to purged status and will also
-        remove the files from disk'''
-
+        """
+        Will move any orders older than X days to purged status and will also
+        remove the files from disk
+        :param send_email: boolean
+        :return: True
+        """
         days = config.get('policy.purge_orders_after')
+        cutoff = datetime.datetime.now() - datetime.timedelta(days=int(days))
+        orders = Order.where({'status': 'complete'}, sql_and="completion_date < '{}'".format(cutoff))
+        start_capacity = onlinecache.capacity()
 
         logger.info('Using purge policy of {0} days'.format(days))
-
-        cutoff = datetime.datetime.now() - datetime.timedelta(days=int(days))
-
-        orders = Order.where({'status': 'complete'}, sql_and="completion_date < '{}'".format(cutoff))
-
-        logger.info('Purging {0} orders from the active record.'
-            .format(len(orders)))
-
-        start_capacity = onlinecache.capacity()
+        logger.info('Purging {0} orders from the active record.'.format(len(orders)))
         logger.info('Starting cache capacity:{0}'.format(start_capacity))
 
         for order in orders:
@@ -1039,12 +1116,11 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
                 # bulk update product status, delete unnecessary field data
                 logger.info('Deleting {0} from online cache disk'.format(order.orderid))
-
                 onlinecache.delete(order.orderid)
             except onlinecache.OnlineCacheException:
                 logger.debug('Could not delete {0} from the online cache'.format(order.orderid))
-            except Exception:
-                logger.debug('Exception purging {0}'.format(order.orderid))
+            except Exception as e:
+                logger.debug('Exception purging {0}\nexception: {1}'.format(order.orderid, e))
 
         end_capacity = onlinecache.capacity()
         logger.info('Ending cache capacity:{0}'.format(end_capacity))
@@ -1056,7 +1132,10 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         return True
 
     def handle_orders(self):
-        '''Logic handler for how we accept orders + products into the system'''
+        """
+        Logic handler for how we accept orders + products into the system
+        :return: True
+        """
         self.send_initial_emails()
         self.handle_onorder_landsat_products()
         self.handle_retry_products()
@@ -1081,9 +1160,15 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             logger.info('Purge lock detected... skipping')
         return True
 
-    def strip_unrelated(self, sceneid, opts):
+    @staticmethod
+    def strip_unrelated(sceneid, opts):
+        """
+        Remove unnecessary keys from options
+        :param sceneid: scene name
+        :param opts: processing options
+        :return: dict
+        """
         opts = copy.deepcopy(opts)
-
         short = sensor.instance(sceneid).shortname
         sen_keys = sensor.SensorCONST.instances.keys()
         opts['products'] = opts[short]['products']
