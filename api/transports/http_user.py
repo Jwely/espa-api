@@ -6,6 +6,7 @@ import memcache
 from api.interfaces.ordering.version0 import API
 from api.domain import api_operations_v0
 from api.system.logger import ilogger as logger
+from api.util import api_cfg
 from api.util import lowercase_all
 from api.domain.user import User
 
@@ -17,9 +18,43 @@ from flask.ext.restful import Resource
 
 from werkzeug.exceptions import BadRequest
 
+from functools import wraps
+
 espa = API()
 auth = HTTPBasicAuth()
 cache = memcache.Client(['127.0.0.1:11211'], debug=0)
+
+
+def greylist(func):
+    """
+    Provide a decorator to enact black and white lists on user endpoints
+
+    References http://flask.pocoo.org/docs/0.11/deploying/wsgi-standalone/#proxy_setups
+    and http://github.com/mattupsate/flask-security
+    """
+    @wraps(func)
+    def decorated(*args, **kwargs):
+        black_ls = api_cfg().get('user_blacklist')
+        white_ls = api_cfg().get('user_whitelist')
+        denied_response = make_response(jsonify({'msg': 'Access Denied'}), 403)
+
+        if 'X-Forwarded-For' in request.headers:
+            remote_addr = request.headers.getlist('X-Forwarded-For')[0].rpartition(' ')[-1]
+        else:
+            remote_addr = request.remote_addr or 'untrackable'
+
+        # prohibited ip's
+        if black_ls:
+            if remote_addr in black_ls.split(','):
+                return denied_response
+
+        # for when were guarding access
+        if white_ls:
+            if remote_addr not in white_ls.split(','):
+                return denied_response
+
+        return func(*args, **kwargs)
+    return decorated
 
 
 @auth.error_handler
@@ -59,14 +94,14 @@ def verify_user(username, password):
 
 
 class Index(Resource):
-    #decorators = [auth.login_required]
+    decorators = [greylist]
 
     def get(self):
         return 'Welcome to the ESPA API, please direct requests to /api'
 
 
 class VersionInfo(Resource):
-    decorators = [auth.login_required]
+    decorators = [auth.login_required, greylist]
 
     def get(self, version=None):
         info_dict = api_operations_v0['user']
@@ -88,7 +123,7 @@ class VersionInfo(Resource):
 
 
 class AvailableProducts(Resource):
-    decorators = [auth.login_required]
+    decorators = [auth.login_required, greylist]
 
     def post(self):
         prod_list = request.get_json(force=True)['inputs']
@@ -99,7 +134,7 @@ class AvailableProducts(Resource):
 
 
 class ListOrders(Resource):
-    decorators = [auth.login_required]
+    decorators = [auth.login_required, greylist]
 
 
     def get(self, email=None):
@@ -124,7 +159,7 @@ class ListOrders(Resource):
 
 
 class ValidationInfo(Resource):
-    decorators = [auth.login_required]
+    decorators = [auth.login_required, greylist]
 
     def get(self):
         param = request.url
@@ -143,7 +178,7 @@ class ValidationInfo(Resource):
 
 
 class Ordering(Resource):
-    decorators = [auth.login_required]
+    decorators = [auth.login_required, greylist]
 
     def get(self, ordernum):
         if 'order-status' in request.url:
@@ -188,20 +223,15 @@ class Ordering(Resource):
 
 
 class UserInfo(Resource):
-    decorators = [auth.login_required]
+    decorators = [auth.login_required, greylist]
 
     def get(self):
         return flask.g.user.as_dict()
 
 
 class ItemStatus(Resource):
-    decorators = [auth.login_required]
+    decorators = [auth.login_required, greylist]
 
     def get(self, orderid, itemnum='ALL'):
         return espa.item_status(orderid, itemnum)
-
-
-
-
-
 
