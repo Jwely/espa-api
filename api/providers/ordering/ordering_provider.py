@@ -74,7 +74,7 @@ class OrderingProvider(ProviderInterfaceV0):
             # All overrides any sensor related dates
             by_date_restr.update(all_by_date)
 
-            outs = pub_prods[sensor_type]['outputs']
+            outs = pub_prods[sensor_type]['products']
             ins = pub_prods[sensor_type]['inputs']
 
             remove_me = []
