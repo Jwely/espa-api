@@ -642,7 +642,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                           'order_date': ts,
                           'priority': 'normal',
                           'email': user.email,
-                          'product_options': 'inlcude_sr: true',
+                          'product_options': 'include_sr: true',
                           'product_opts': Order.get_default_ee_options(scene_info)}
 
             order = Order.create(order_dict)
