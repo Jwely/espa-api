@@ -69,14 +69,14 @@ class TestAPI(unittest.TestCase):
         self.user.update('is_staff', True)
         return_dict = api.available_products(self.staff_product_id, self.staff_user.username)
         for item in self.restricted['all']['role']:
-            self.assertTrue(item in return_dict['etm7']['outputs'])
+            self.assertTrue(item in return_dict['etm7']['products'])
 
     def test_get_available_products_by_public(self):
         # public should not see products listed in api/domain.restricted.yaml
         self.user.update('is_staff', False)
         return_dict = api.available_products(self.staff_product_id, self.user.username)
         for item in self.restricted['all']['role']:
-            self.assertFalse(item in return_dict['etm7']['outputs'])
+            self.assertFalse(item in return_dict['etm7']['products'])
 
     def test_fetch_user_orders_by_email_val(self):
         orders = api.fetch_user_orders(self.user.email)

@@ -213,7 +213,7 @@ class OrderValidatorV0(validictory.SchemaValidator):
 
         prods = []
         for key in avail_prods:
-            prods = [_ for _ in avail_prods[key]['outputs']]
+            prods = [_ for _ in avail_prods[key]['products']]
 
         if not prods:
             return

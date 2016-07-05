@@ -488,7 +488,7 @@ def available_products(input_products):
         input_products (iterable): An iterable of input_product names (str)
 
     Returns:
-        dict: { 'tm5': {'outputs': [output, products],
+        dict: { 'tm5': {'products': [output, products],
                        'inputs': [supplied, input, products]},
                 'etm7': ... }
 
@@ -505,7 +505,7 @@ def available_products(input_products):
             inst = instance(product)
             name = inst.shortname
             if name not in result:
-                result[name] = {'outputs': inst.products,
+                result[name] = {'products': inst.products,
                                 'inputs': [product]}
             else:
                 result[name]['inputs'].append(product)
