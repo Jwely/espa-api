@@ -191,9 +191,9 @@ class Ordering(Resource):
             user = flask.g.user
             order = request.get_json(force=True)
             if not order:
-                message = {"status": 400, "msg": "Unable to parse json data."
-                                           "Please ensure your order follows json conventions and your http call is correct."
-                                           " If you believe this message is in error please email customer service"}
+                message = {"status": 400, "msg": "Unable to parse json data. Please ensure your order follows json "
+                                                 "conventions and your http call is correct. If you believe this "
+                                                 "message is in error please email customer service"}
             else:
                 try:
                     order = lowercase_all(order)

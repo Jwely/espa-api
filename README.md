@@ -1,8 +1,8 @@
 # espa-api
 
-Development branch for API version 0.
-=======
-Demo API for the ESPA ordering & scheduling system.  
+Version 1.0.0
+=============
+API for the ESPA ordering & scheduling system.  
 
 ## Related Pages
 * [API Interface](docs/API-INTERFACE.md)
@@ -18,15 +18,18 @@ ESPA is a system for producing advanced science products from existing products.
 
 ESPA operates on a scene by scene basis and was built to produce many products at once rather than a single product as quickly as possible (multiprocess vs multithreading).  When a product algorithm executes, it only has access to the spatial and temporal context of the observation in question, save any auxiliary data needed such as ozone or water pressure measurements.  The system is therefore highly optimized for single-scene processing but is wholly unsuited for compositing, mosaicing, time-series analysis or any other operation that requires information from a separate observation.
 
-The system is composed of two major subsystems, espa-web and espa-production.
+The system is composed of three major subsystems, espa-api, espa-web and espa-production.
+
+#### espa-api
+espa-api provides all the ordering & scheduling operations for the system, and handles integration with the rest of USGS EROS ordering systems.  This means that espa-api knows how to capture user orders, validate parameters, determine order + product disposition (including placing & monitoring orders for level 1 data), notifying users of completed orders and providing access to download completed products.  It also provides services for espa-production to retrieve production requests and to capture production status updates.
+
+espa-api currently captures user orders from two sources: The http://espa.cr.usgs.gov website (espa-web) and also USGS Earth Explorer.  Orders are obtained from USGS EE via web services hosted by the LTA project.
 
 #### espa-web
-espa-web provides all the ordering & scheduling operations for the system, as well as the majority of the integration with the rest of USGS EROS ordering systems.  This means that espa-web knows how to capture user orders, validate parameters, determine order + product disposition (including placing & monitoring orders for level 1 data), notifying users of completed orders and providing access to download completed products.  It also provides services for espa-production to retrieve production requests and to capture production status updates.
-
-espa-web currently captures user orders from two sources: The http://espa.cr.usgs.gov website and also USGS Earth Explorer.  Orders are obtained from USGS EE via web services hosted by the LTA project.
+espa-web is the web based bulk ordering front end, and relies entirely on the functions provided by espa-api.
 
 #### espa-production
-espa-production is responsible for receiving production requests, validating the requests, locating and using any necessary auxiliary data, transferring level 1 data to a working directory, executing the necessary science algorithms to produce the product, placing the finished product in a distribution location and finally notifying espa-web that the production request is complete.  espa-production is a stateless system, with each production run remaining isolated from any other.
+espa-production is responsible for receiving production requests, validating the requests, locating and using any necessary auxiliary data, transferring level 1 data to a working directory, executing the necessary science algorithms to produce the product, placing the finished product in a distribution location and finally notifying espa-api that the production request is complete.  espa-production is a stateless system, with each production run remaining isolated from any other.
 
 ---
 
@@ -77,4 +80,4 @@ The original system was built as a temporary incubation platform for science pro
 
 New requirements have emerged from the science community that detail the need to perform deep time series analysis against atmospherically corrected observations.  This body of work is being accomplished by the LCMAP project.  LCMAP requires (or will in the near future) the full Landsat archive corrected to surface reflectance, first for the continental United States & Alaska, and later globally.  It will also require any new observations to be corrected so they can be incorporated into its output products.
 
-Currently, ESPA orders may only be placed via web interface: http://espa.cr.usgs.gov and http://earthexplorer.usgs.gov.  This is clearly inadequate to establish an automated pipeline for ongoing analysis as no human wants to manually order, track and transfer millions of scenes. The ESPA system must be modified to provide an application programming interface for downstream systems to gain access to its capabilities.
+Previously, ESPA orders could only be placed via web interface: http://espa.cr.usgs.gov and http://earthexplorer.usgs.gov.  This was clearly inadequate to establish an automated pipeline for ongoing analysis as no human wants to manually order, track and transfer millions of scenes. The ESPA system was re-engineered to provide an application programming interface for downstream systems to gain access to its capabilities.
