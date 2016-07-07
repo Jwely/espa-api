@@ -8,10 +8,12 @@ from api.providers.ordering import ProviderInterfaceV0
 from api.providers.configuration.configuration_provider import ConfigurationProvider
 from api.providers.caching.caching_provider import CachingProvider
 
-import yaml
 import copy
+import json
+import yaml
 
 cache = CachingProvider()
+config = ConfigurationProvider()
 
 
 class OrderingProviderException(Exception):
@@ -316,5 +318,37 @@ class OrderingProvider(ProviderInterfaceV0):
                     'display_system_message': resp_dict['system.display_system_message']}
         else:
             return {'system_message_body': None, 'system_message_title': None}
+
+    def missing_auxiliary_data(self, sensor_group, year=None):
+        _sensor_groups = {'L17': {1978: ['ncep', 'toms']},
+                          'L8': {2013: ['lads']}}
+        _cur_year = datetime.datetime.now().year
+        return_dict = {}
+
+        if sensor_group not in _sensor_groups:
+            return {"msg": "sensor_group must be either %s" % " or ".join(_sensor_groups.keys())}
+
+        _syear = _sensor_groups[sensor_group].keys()[0]
+        if year and year not in range(_syear, _cur_year+1):
+            return {"msg": "auxiliary data is only available from %s to %s" %
+                           (_syear, _cur_year)}
+
+        for k, v in _sensor_groups[sensor_group].items():
+            for report in v:
+                try:
+                    rpt_name = ''.join([config.get("aux_report_path"), report, '_report.txt'])
+                    report_con = open(rpt_name).read()
+                    report_dict = json.loads(report_con.replace("'", "\""))
+                    out_d = {}
+                    for yr in report_dict:
+                        if report_dict[yr] != 0:
+                            out_d[yr] = report_dict[yr]
+                    return_dict[report] = out_d
+                except IOError:
+                    return {"msg": "%s report could not be found" % report}
+
+        return return_dict
+
+
 
 
