@@ -318,11 +318,25 @@ class TestProductionAPI(unittest.TestCase):
         production_provider.load_ee_orders()
 
 
-    @patch('api.external.lta.get_available_orders', lta.get_available_orders_partial1)
+    @patch('api.external.lta.get_available_orders', lta.get_available_orders_partial2)
     @patch('api.external.lta.update_order_status', lta.update_order_status)
     @patch('api.external.lta.get_user_name', lta.get_user_name)
     def test_production_load_ee_orders_partial1(self):
+        order_id = self.mock_order.generate_ee_testing_order(self.user_id, partial=True)
+
+        order = Order.find(order_id)
+        self.assertTrue(order.product_opts == {'format': 'gtiff',
+                                               'etm7': {'inputs': ['LE70900652008327EDC00'],
+                                                        'products': ['sr']}})
+
         production_provider.load_ee_orders()
+        order = Order.find(order_id)
+
+        self.assertTrue(order.product_opts == {'format': 'gtiff',
+                                               'etm7': {'inputs': ['LE70900652008327EDC00'],
+                                                        'products': ['sr']},
+                                               'tm5': {'inputs': ['TM50900652008327EDC00'],
+                                                        'products': ['sr']}})
 
 
     @patch('api.providers.production.production_provider.ProductionProvider.handle_submitted_landsat_products',
