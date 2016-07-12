@@ -54,6 +54,23 @@ def get_available_orders():
                                                'unit_num': 799}]
     return ret
 
+
+def get_available_orders_partial1():
+    ret = {}
+    ret[(125, 'klsmith@usgs.gov', 418781)] = [{'sceneid': 'LE70900652008327EDC00',
+                                               'unit_num': 789}]
+
+    return ret
+
+
+def get_available_orders_partial2():
+    ret = {}
+    ret[(125, 'klsmith@usgs.gov', 418781)] = [{'sceneid': 'LE70900652008327EDC00',
+                                               'unit_num': 789},
+                                              {'sceneid': 'LE70900652008327EDC00',
+                                               'unit_num': 780}]
+
+
 def sample_tram_order_ids():
     return ('0611512239617', '0611512239618', '0611512239619')
 

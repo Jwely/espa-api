@@ -317,6 +317,14 @@ class TestProductionAPI(unittest.TestCase):
     def test_production_load_ee_orders(self):
         production_provider.load_ee_orders()
 
+
+    @patch('api.external.lta.get_available_orders', lta.get_available_orders_partial1)
+    @patch('api.external.lta.update_order_status', lta.update_order_status)
+    @patch('api.external.lta.get_user_name', lta.get_user_name)
+    def test_production_load_ee_orders_partial1(self):
+        production_provider.load_ee_orders()
+
+
     @patch('api.providers.production.production_provider.ProductionProvider.handle_submitted_landsat_products',
            mock_production_provider.respond_true)
     @patch('api.providers.production.production_provider.ProductionProvider.handle_submitted_modis_products',
