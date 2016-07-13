@@ -67,7 +67,7 @@ def get_available_orders_partial2():
     ret = {}
     ret[(125, 'klsmith@usgs.gov', 418781)] = [{'sceneid': 'LE70900652008327EDC00',
                                                'unit_num': 789},
-                                              {'sceneid': 'TM50900652008327EDC00',
+                                              {'sceneid': 'LT50900652008327EDC00',
                                                'unit_num': 780}]
 
     return ret
