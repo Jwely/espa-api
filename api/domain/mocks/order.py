@@ -42,10 +42,7 @@ class MockOrder(object):
         return order.id
 
     def generate_ee_testing_order(self, user_id, partial=False):
-        if partial:
-            ee_order = mock_lta.get_available_orders_partial1()
-        else:
-            ee_order = mock_lta.get_available_orders_partial2()
+        ee_order = mock_lta.get_available_orders_partial(partial)
 
         # Have to emulate a bunch of load_ee_orders
 

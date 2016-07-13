@@ -318,7 +318,7 @@ class TestProductionAPI(unittest.TestCase):
         production_provider.load_ee_orders()
 
 
-    @patch('api.external.lta.get_available_orders', lta.get_available_orders_partial2)
+    @patch('api.external.lta.get_available_orders', lta.get_available_orders_partial)
     @patch('api.external.lta.update_order_status', lta.update_order_status)
     @patch('api.external.lta.get_user_name', lta.get_user_name)
     def test_production_load_ee_orders_partial(self):
