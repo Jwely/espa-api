@@ -612,43 +612,44 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                 # EE order already exists in the system
                 # update the associated scenes
                 self.update_ee_orders(scene_info, eeorder, order.id)
-                continue
+                #continue
 
-            cache_key = '-'.join(['load_ee_orders', str(contactid)])
-            user = cache.get(cache_key)
+            else:
+                cache_key = '-'.join(['load_ee_orders', str(contactid)])
+                user = cache.get(cache_key)
 
-            if user is None:
-                username = lta.get_user_name(contactid)
-                # Find or create the user
-                db_id = User.find_or_create_user(username, email_addr,
-                                                 'from', 'earthexplorer',
-                                                 contactid)
-                user = User.where('id = {}'.format(db_id))[0]
+                if user is None:
+                    username = lta.get_user_name(contactid)
+                    # Find or create the user
+                    db_id = User.find_or_create_user(username, email_addr,
+                                                     'from', 'earthexplorer',
+                                                     contactid)
+                    user = User.where('id = {}'.format(db_id))[0]
 
-                if not user.contactid:
-                    user.update('contactid', contactid)
+                    if not user.contactid:
+                        user.update('contactid', contactid)
 
-                cache.set(cache_key, user, 60)
+                    cache.set(cache_key, user, 60)
 
-            # We have a user now.  Now build the new Order since it
-            # wasn't found
-            ts = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-            order_dict = {'orderid': order_id,
-                          'user_id': user.id,
-                          'order_type': 'level2_ondemand',
-                          'status': 'ordered',
-                          'note': 'EarthExplorer order id: {}'.format(eeorder),
-                          'ee_order_id': eeorder,
-                          'order_source': 'ee',
-                          'order_date': ts,
-                          'priority': 'normal',
-                          'email': user.email,
-                          'product_options': 'include_sr: true',
-                          'product_opts': Order.get_default_ee_options(scene_info)}
+                # We have a user now.  Now build the new Order since it
+                # wasn't found
+                ts = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+                order_dict = {'orderid': order_id,
+                              'user_id': user.id,
+                              'order_type': 'level2_ondemand',
+                              'status': 'ordered',
+                              'note': 'EarthExplorer order id: {}'.format(eeorder),
+                              'ee_order_id': eeorder,
+                              'order_source': 'ee',
+                              'order_date': ts,
+                              'priority': 'normal',
+                              'email': user.email,
+                              'product_options': 'include_sr: true',
+                              'product_opts': Order.get_default_ee_options(scene_info)}
 
-            order = Order.create(order_dict)
-            self.load_ee_scenes(scene_info, order.id)
-            self.update_ee_orders(scene_info, eeorder, order.id)
+                order = Order.create(order_dict)
+                self.load_ee_scenes(scene_info, order.id)
+                self.update_ee_orders(scene_info, eeorder, order.id)
 
     @staticmethod
     def gen_ee_scene_list(ee_scenes, order_id):
@@ -942,16 +943,19 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         # Here's the real logic for this handling submitted landsat products
         self.mark_nlaps_unavailable()
 
-        for contact_id in self.get_contactids_for_submitted_landsat_products():
-            try:
-                logger.info("Updating landsat_product_status for {0}"
-                            .format(contact_id))
-                self.update_landsat_product_status(contact_id)
+        contactids = self.get_contactids_for_submitted_landsat_products()
 
-            except Exception, e:
-                msg = ('Could not update_landsat_product_status for {0}\n'
-                       'Exception:{1}'.format(contact_id, e))
-                logger.debug(msg)
+        if contactids:
+            for contact_id in contactids:
+                try:
+                    logger.info("Updating landsat_product_status for {0}"
+                                .format(contact_id))
+                    self.update_landsat_product_status(contact_id)
+
+                except Exception, e:
+                    msg = ('Could not update_landsat_product_status for {0}\n'
+                           'Exception:{1}'.format(contact_id, e))
+                    logger.debug(msg)
 
         return True
 

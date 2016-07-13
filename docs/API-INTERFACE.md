@@ -11,7 +11,7 @@ Users may also want to specify an output file naming scheme that could be provid
 
 Lists all available versions of the api.
 ```json
-curl --user username:password http://espa.cr.usgs.gov/api
+curl --user username:password https://espa.cr.usgs.gov/api
 
 {
     "versions": {
@@ -26,7 +26,7 @@ curl --user username:password http://espa.cr.usgs.gov/api
 
 Lists all available api operations.
 ```json
-curl --user username:password http://espa.cr.usgs.gov/api/v0
+curl --user username:password https://espa.cr.usgs.gov/api/v0
 {
     "description": "Version 0 of the ESPA API",
     "operations": {
@@ -123,7 +123,7 @@ curl --user username:password http://espa.cr.usgs.gov/api/v0
 
 Returns user information for the authenticated user.
 ```json
-curl --user username:password http://espa.cr.usgs.gov/api/v0/user
+curl --user username:password https://espa.cr.usgs.gov/api/v0/user
 
 {
   "email": "production@email.com",
@@ -141,7 +141,7 @@ curl --user username:password http://espa.cr.usgs.gov/api/v0/user
 
 Lists the available output products for the supplied input.
 ```json
-curl --get --user username:password http://espa.cr.usgs.gov/api/v0/available-products/LE70290302003123EDC00
+curl --get --user username:password https://espa.cr.usgs.gov/api/v0/available-products/LE70290302003123EDC00
 {
     "etm7": {
         "inputs": [
@@ -174,7 +174,7 @@ curl --get --user username:password http://espa.cr.usgs.gov/api/v0/available-pro
 Lists available products for the supplied inputs.  Also classifies the inputs by sensor or lists as 'not implemented' if the values cannot be ordered or determined.
 ```json
 curl  --user username:password -d '{"inputs":["LE70290302003123EDC00",
-               "MOD09A1.A2000073.h12v11.005.2008238080250.hdf", "bad_scene_id"]}' http://espa.cr.usgs.gov/api/v0/available-products
+               "MOD09A1.A2000073.h12v11.005.2008238080250.hdf", "bad_scene_id"]}' https://espa.cr.usgs.gov/api/v0/available-products
 {
     "etm7": {
         "inputs": [
@@ -218,7 +218,7 @@ curl  --user username:password -d '{"inputs":["LE70290302003123EDC00",
 
 Lists and describes available projections.  This is a dump of the schema defined that constrains projection info.
 ```json
-curl --get --user username:password http://espa.cr.usgs.gov/api/v0/projections
+curl --get --user username:password https://espa.cr.usgs.gov/api/v0/projections
 {
     "aea": {
         "properties": {
@@ -341,7 +341,7 @@ curl --get --user username:password http://espa.cr.usgs.gov/api/v0/projections
 
 Lists all available output formats
 ```json
-curl --user username:password http://espa.cr.usgs.gov/api/v0/formats
+curl --user username:password https://espa.cr.usgs.gov/api/v0/formats
 
 {
   "formats": [
@@ -356,7 +356,7 @@ curl --user username:password http://espa.cr.usgs.gov/api/v0/formats
 
 Lists all available resampling methods
 ```json
-curl --user username:password http://espa.cr.usgs.gov/api/v0/resampling-methods
+curl --user username:password https://espa.cr.usgs.gov/api/v0/resampling-methods
 
 {
   "resampling_methods": [
@@ -371,7 +371,7 @@ curl --user username:password http://espa.cr.usgs.gov/api/v0/resampling-methods
 
 List orders for the authenticated user.
 ```json
-curl --user username:password http://espa.cr.usgs.gov/api/v0/orders
+curl --user username:password https://espa.cr.usgs.gov/api/v0/orders
 
 {
   "orders": [
@@ -385,7 +385,7 @@ curl --user username:password http://espa.cr.usgs.gov/api/v0/orders
 
 Lists orders for the supplied email.  Necessary to support user collaboration.
 ```json
-curl --user username:password http://espa.cr.usgs.gov/api/v0/orders/production@email.com
+curl --user username:password https://espa.cr.usgs.gov/api/v0/orders/production@email.com
 
 {
   "orders": [
@@ -398,7 +398,7 @@ curl --user username:password http://espa.cr.usgs.gov/api/v0/orders/production@e
 
 Retrieves a submitted order. Some information may be omitted from this response depending on access privileges.
 ```json
-curl --user username:password http://espa.cr.usgs.gov/api/v0/order/production@usgs.gov-03072016-081013
+curl --user username:password https://espa.cr.usgs.gov/api/v0/order/production@usgs.gov-03072016-081013
 {
   "completion_date": "Mon, 07 Mar 2016 08:11:01 GMT",
   "note": "",
@@ -450,7 +450,7 @@ curl --user username:password -d '{"olitirs8": {
                                                             "datum": "wgs84"
                                                             }
                                                     }
-                                     }' http://espa.cr.usgs.gov/api/v0/order
+                                     }' https://espa.cr.usgs.gov/api/v0/order
 
 Returns:
 {
