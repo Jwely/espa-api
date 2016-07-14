@@ -13,6 +13,7 @@ from api.domain.user import User
 import copy
 import datetime
 import urllib
+import json
 
 from cStringIO import StringIO
 
@@ -749,6 +750,9 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         if missing_scenes:
             # There appear to be scenes in this order which we didn't receive the
             # first go around, try adding them now
+            order = Order.find(order_id)
+            order.update('product_opts', json.dumps(Order.get_default_ee_options(ee_scenes)))
+
             self.load_ee_scenes(missing_scenes, order_id, missed=True)
 
     @staticmethod
