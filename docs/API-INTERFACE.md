@@ -371,7 +371,7 @@ curl --user username:password https://espa.cr.usgs.gov/api/v0/resampling-methods
 
 List orders for the authenticated user.
 ```json
-curl --user username:password https://espa.cr.usgs.gov/api/v0/orders
+curl --user username:password https://espa.cr.usgs.gov/api/v0/list-orders
 
 {
   "orders": [
@@ -385,7 +385,7 @@ curl --user username:password https://espa.cr.usgs.gov/api/v0/orders
 
 Lists orders for the supplied email.  Necessary to support user collaboration.
 ```json
-curl --user username:password https://espa.cr.usgs.gov/api/v0/orders/production@email.com
+curl --user username:password https://espa.cr.usgs.gov/api/v0/list-orders/production@email.com
 
 {
   "orders": [
