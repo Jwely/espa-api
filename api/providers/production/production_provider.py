@@ -191,7 +191,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             # the lta call in a conditional
             for p in products:
                 if p.order_attr('order_source') == 'ee':
-                    lta.update_order_status(p.order.ee_order_id, p.ee_unit_id, 'R')
+                    lta.update_order_status(p.order_attr('ee_order_id'), p.ee_unit_id, 'R')
         except Exception, e:
             message = "ERR set_products_unavailable failure" \
                       "\nexceptio: {}\nproduct_ids: {}\nreason: {}".format(e.message, product_ids, reason)
