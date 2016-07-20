@@ -186,7 +186,7 @@ class TestValidation(unittest.TestCase):
             invalid_list = testorders.InvalidOrders(invalid_order, self.base_schema, abbreviated=True)
 
             for order, test, exc in invalid_list:
-                # issues getting assertRasiesRegExp to work correctly
+                # issues getting assertRaisesRegExp to work correctly
                 with self.assertRaises(exc_type):
                     try:
                         c += 1
