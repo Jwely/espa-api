@@ -450,6 +450,13 @@ curl --user username:password -d '{"olitirs8": {
                                                             "datum": "wgs84"
                                                             }
                                                     }
+                                     "image_extents": {
+                                                        "north": 0.0002695,
+                                                        "south": 0,
+                                                        "east": 0.0002695,
+                                                        "west": 0,
+                                                        "units": 'dd'
+                                                    }
                                      }' https://espa.cr.usgs.gov/api/v0/order
 
 Returns:
