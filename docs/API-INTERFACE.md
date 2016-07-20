@@ -455,7 +455,7 @@ curl --user username:password -d '{"olitirs8": {
                                                         "south": 0,
                                                         "east": 0.0002695,
                                                         "west": 0,
-                                                        "units": 'dd'
+                                                        "units": "dd"
                                                     }
                                      }' https://espa.cr.usgs.gov/api/v0/order
 
