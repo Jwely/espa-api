@@ -449,7 +449,7 @@ curl --user username:password -d '{"olitirs8": {
                                                             "false_northing": 0.0,
                                                             "datum": "wgs84"
                                                             }
-                                                    }
+                                                    },
                                      "image_extents": {
                                                         "north": 0.0002695,
                                                         "south": 0,
