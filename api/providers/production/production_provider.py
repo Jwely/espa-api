@@ -280,52 +280,30 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         :param retry_after: retry after given timestamp
         :param retry_limit: maximum number of tries
         """
-        order_id = Scene.get('order_id', name, orderid)
-        retry_count = Scene.get('retry_count', name, orderid)
+        order = Order.find(orderid)
+        scene = Scene.where({'name': name, 'order_id': order.id})[0]
 
-        if not retry_count:
-            retry_count = 0
+        retry_count = scene.retry_count if scene.retry_count else 0
 
         if not retry_limit:
-            retry_limit = Scene.get('retry_limit', name, orderid)
+            retry_limit = scene.retry_limit
 
         # make sure retry_limit and retry_count are ints
         retry_count = int(retry_count)
         retry_limit = int(retry_limit)
+        new_retry_count = retry_count + 1
 
-        logger.info('set_product_retry - name: {0}, orderid: {1}, '
-                    'processing_loc: {2}, error: {3}, note: {4}, '
-                    'retry_after: {5}, retry_limit: {6}, '
-                    'order_id: {7}, retry_count: {8}, curr_limit: {9}'
-                    .format(name, orderid, processing_loc, error, note,
-                            retry_after, retry_limit, order_id,
-                            retry_count, retry_limit))
+        if new_retry_count > retry_limit:
+            raise ProductionProviderException('Retry limit exceeded, name: {}'.format(name))
 
-        sql = ('update ordering_scene '
-               'set (status, retry_count, retry_after, retry_limit, '
-               'log_file_contents, processing_location, note) = '
-               '(%s, %s, %s, %s, %s, %s, %s) '
-               'where name = %s '
-               'and order_id = %s')
-
-        if retry_count + 1 > retry_limit:
-            raise ProductionProviderException('Retry limit exceeded, '
-                                              'name: {}'.format(name))
-
-        arg_tuple = ('retry', retry_count + 1, retry_after,
-                     retry_limit, error, processing_loc,
-                     note, name, order_id)
-
-        try:
-            with db_instance() as db:
-                sql_log = db.cursor.mogrify(sql, arg_tuple)
-                logger.info(sql_log)
-                db.execute(sql, arg_tuple)
-                db.commit()
-        except DBConnectException as e:
-            raise ProductionProviderException('set_product_retry'
-                                              ' exception: {}\nsql: {}'
-                                              .format(e, sql_log))
+        scene.status = 'retry'
+        scene.retry_count = new_retry_count
+        scene.retry_after = retry_after
+        scene.retry_limit = retry_limit
+        scene.log_file_contents = error
+        scene.processing_location = processing_loc
+        scene.note = note
+        scene.save()
 
         return True
 
