@@ -209,27 +209,15 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         :param status: what the status is to be set to
         :return: True
         """
-        order_id = Scene.get('order_id', scene_name=name, orderid=orderid)
-        sql_list = ["update ordering_scene set "]
-        comm_sep = ""
+        order = Order.find(orderid)
+        scene = Scene.where({'name': name, 'order_id': order.id})[0]
         if processing_loc:
-            sql_list.append(" processing_location = '%s' " % processing_loc)
-            comm_sep = ", "
+            scene.processing_location = processing_loc
         if status:
-            sql_list.append(comm_sep)
-            sql_list.append(" status = '%s'" % status)
-
-        sql_list.append(" where name = '{0}' AND order_id = {1};".format(name, order_id))
-        sql = " ".join(sql_list)
-
-        try:
-            with db_instance() as db:
-                db.execute(sql)
-                db.commit()
-        except DBConnectException, e:
-            message = "DBConnect Exception ordering_provider update_status sql: {0}\nmessage: {1}".format(sql, e.message)
-            raise ProductionProviderException(message)
-
+            scene.status = status
+        scene.save()
+        log_str = "Scene status updated. order: {0}\n scene id/name: {1}/{2}\nstatus:{3}\nprocessing_location{4}\n "
+        logger.info(log_str.format(order.orderid, scene.id, scene.name, scene.status, scene.processing_location))
         return True
 
     def update_product(self, action, name=None, orderid=None,
