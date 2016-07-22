@@ -456,7 +456,8 @@ curl --user username:password -d '{"olitirs8": {
                                                         "east": 0.0002695,
                                                         "west": 0,
                                                         "units": "dd"
-                                                    }
+                                                    },
+                                     "note": "this is going to be sweet..."
                                      }' https://espa.cr.usgs.gov/api/v0/order
 
 Returns:
