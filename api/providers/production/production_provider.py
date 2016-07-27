@@ -14,6 +14,7 @@ import copy
 import datetime
 import urllib
 import json
+import os
 
 from cStringIO import StringIO
 
@@ -1171,16 +1172,39 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
     @staticmethod
     def orphaned_scenes():
-        job_dict = hadoop_handler.job_names_ids()
-        queued_scenes = Scene.where({"status": "queued"})
-        orphans = [i for i in queued_scenes if i.job_name not in job_dict]
+        orphan_file = 'orphan_file.txt'
+        o_time = datetime.datetime.now()
+        strptime_fmt = '%Y-%m-%d %H:%M:%S.%f'
+        response = list()
 
+        def find_orphans():
+            job_dict = hadoop_handler.job_names_ids()
+            queued_scenes = Scene.where({"status": "queued"})
+            return [str(i.id) for i in queued_scenes if i.job_name not in job_dict]
 
+        if os.path.exists(orphan_file):
+            lines = open(orphan_file, 'r').readlines()
+            # list date is the first line in the file
+            d_obj = datetime.datetime.strptime(lines[0].rstrip("\n"), strptime_fmt)
+            # if its more than 7 minutes old compare it to our orphan_ids list
+            if ((o_time - d_obj).seconds / 60) > 7:
+                orphans_new = find_orphans()
+                orphans_pre = lines[1].split(',')
+                orphans = set(orphans_new) & set(orphans_pre)
+                if orphans:
+                    # retrieve the scene objects
+                    int_ids = [int(i) for i in orphans]
+                    response = Scene.find(int_ids)
+                # update the file
+                with open(orphan_file, 'w') as o_file:
+                    o_file.write(str(o_time) + '\n' + ','.join(orphans_new))
+        else:
+            # file is missing, create it
+            orphans_new = find_orphans()
+            with open(orphan_file, 'w') as o_file:
+                o_file.write(str(o_time) + '\n' + ','.join(orphans_new))
+            # don't return anything, due to race conditions, the id must
+            # persist for several minutes before we can be sure its a true orphan
 
-
-
-
-
-
-
+        return response
 
