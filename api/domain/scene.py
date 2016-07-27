@@ -235,6 +235,29 @@ class Scene(object):
         return ret
 
     @classmethod
+    def find(cls, ids):
+        sql = '{} id IN %s;'.format(cls.base_sql)
+        resp = list()
+        if not isinstance(ids, list):
+            raise SceneException("a list of integers is the only valid argument for the find method")
+
+        for item in ids:
+            if not isinstance(item, int):
+                raise SceneException("find method argument item {0} is not an int".format(item))
+
+        with db_instance() as db:
+            db.select(sql, [tuple(ids)])
+
+        if db:
+            for i in db:
+                sd = dict(i)
+                del sd['id']
+                obj = Scene(**sd)
+                resp.append(obj)
+
+        return resp
+
+    @classmethod
     def bulk_update(cls, ids=None, updates=None):
         """
         Update a list of scenes with
