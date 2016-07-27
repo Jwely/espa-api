@@ -5,7 +5,7 @@ from api.providers.configuration.configuration_provider import ConfigurationProv
 from api.util.dbconnect import DBConnectException, db_instance
 from api.providers.production import ProductionProviderInterfaceV0
 from api.providers.caching.caching_provider import CachingProvider
-from api.external import lpdaac, lta, onlinecache, nlaps
+from api.external import lpdaac, lta, onlinecache, nlaps, hadoop
 from api.system import errors
 from api.notification import emails
 from api.domain.user import User
@@ -21,6 +21,7 @@ from api.system.logger import ilogger as logger
 
 config = ConfigurationProvider()
 cache = CachingProvider()
+hadoop_handler = hadoop.HadoopHandler()
 
 
 class ProductionProviderException(Exception):
@@ -1152,3 +1153,34 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                 opts.pop(sen)
 
         return opts
+
+    @staticmethod
+    def production_whitelist():
+        cache_key = 'prod_whitelist'
+        prodlist = cache.get(cache_key)
+        if prodlist is None:
+            logger.info("Regnerating production whitelist...")
+            # timeout in 6 hours
+            timeout = 60 * 60 * 6
+            prodlist = ['127.0.0.1']
+            prodlist.append(hadoop_handler.master_ip())
+            prodlist.extend(hadoop_handler.slave_ips())
+            cache.set(cache_key, prodlist, timeout)
+
+        return prodlist
+
+    @staticmethod
+    def orphaned_scenes():
+        job_dict = hadoop_handler.job_names_ids()
+        queued_scenes = Scene.where({"status": "queued"})
+        orphans = [i for i in queued_scenes if i.job_name not in job_dict]
+
+
+
+
+
+
+
+
+
+

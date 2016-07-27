@@ -132,3 +132,15 @@ class API(object):
             response = default_error_message
 
         return response
+
+    def get_production_whitelist(self):
+        """
+        Returns list of ip addresses in hadoop cluster
+        :return: list of strings
+        """
+        try:
+            response = self.production.production_whitelist()
+        except:
+            logger.debug("ERR failure to generate production whitelist\ntrace: {}".format(traceback.format_exc()))
+            response = default_error_message
+        return response

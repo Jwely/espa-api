@@ -3,8 +3,6 @@ from flask.ext.restful import Api, Resource, reqparse, fields, marshal
 
 from api.interfaces.production.version0 import API
 from api.domain import api_operations_v0
-from api.util import api_cfg
-
 
 espa = API()
 
@@ -17,7 +15,7 @@ def whitelist(func):
     and http://github.com/mattupsate/flask-security
     """
     def decorated(*args, **kwargs):
-        white_ls = api_cfg(section='config').get('production_whitelist').split(',')
+        white_ls = espa.get_production_whitelist()
         if 'X-Forwarded-For' in request.headers:
             remote_addr = request.headers.getlist('X-Forwarded-For')[0].rpartition(' ')[-1]
         else:
