@@ -6,6 +6,8 @@ from api.external import onlinecache
 from api.external.mocks import onlinecache as mockonlinecache
 from api.external import lta
 from api.external.mocks import lta as mocklta
+from api.external.hadoop import HadoopHandler
+
 
 class TestLTA(unittest.TestCase):
     def setUp(self):
@@ -73,3 +75,29 @@ class TestOnlineCache(unittest.TestCase):
     def test_cache_deleteorder(self):
         results = self.cache.delete('bilbo')
         self.assertTrue(results)
+
+
+class TestHadoopHandler(unittest.TestCase):
+    """
+    Tests for the hadoop interaction class
+    """
+    def setUp(self):
+        self.hadoop = HadoopHandler()
+
+    def test_list_jobs(self):
+        resp = self.hadoop.list_jobs()
+        self.assertTrue('stdout' in resp.keys())
+
+    def test_job_names_ids(self):
+        resp = self.hadoop.job_names_ids()
+        self.assertTrue(isinstance(resp, dict))
+
+    def test_slave_ips(self):
+        resp = self.hadoop.slave_ips()
+        self.assertTrue(isinstance(resp, list))
+        self.assertTrue(len(resp) > 0)
+
+    def test_master_ip(self):
+        resp = self.hadoop.master_ip()
+        self.assertTrue(isinstance(resp, str))
+        self.assertTrue(len(resp.split('.')) == 4)

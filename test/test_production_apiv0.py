@@ -8,7 +8,7 @@ from api.domain.mocks.user import MockUser
 from api.domain.order import Order
 from api.domain.scene import Scene
 from api.domain.user import User
-from api.external.mocks import lta, lpdaac, onlinecache, nlaps
+from api.external.mocks import lta, lpdaac, onlinecache, nlaps, hadoop
 from api.interfaces.production.version0 import API
 from api.notification import emails
 from api.providers.production.mocks.production_provider import MockProductionProvider
@@ -19,6 +19,7 @@ from mock import patch
 api = API()
 production_provider = ProductionProvider()
 mock_production_provider = MockProductionProvider()
+
 
 class TestProductionAPI(unittest.TestCase):
     def setUp(self):
@@ -503,7 +504,26 @@ class TestProductionAPI(unittest.TestCase):
         response = api.get_production_key(bad_key)
         self.assertEqual(response.keys(), ['msg'])
 
+    @patch('api.external.hadoop.HadoopHandler.job_names_ids',
+           hadoop.jobs_names_ids)
+    def test_catch_orphaned_scenes(self):
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        # need scenes with statuses of 'queued'
+        self.mock_order.update_scenes(order_id, 'status', ['queued'])
+        response = production_provider.catch_orphaned_scenes()
+        self.assertTrue(response)
 
+        old_time = datetime.datetime.now() - datetime.timedelta(minutes=15)
+
+        for s in Scene.where({'order_id': order_id}):
+            self.assertTrue(s.reported_orphan is not None)
+            s.reported_orphan = old_time
+            s.save()
+
+        response = production_provider.catch_orphaned_scenes()
+        self.assertTrue(response)
+        for s in Scene.where({'order_id': order_id}):
+            self.assertTrue(s.orphaned)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

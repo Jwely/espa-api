@@ -7,7 +7,7 @@ config = ConfigurationProvider()
 class HadoopHandler(object):
 
     def list_jobs(self):
-        return self._remote_cmd(['hadoop', 'job', '-list'])
+        return self._remote_cmd('hadoop job -list')
 
     def kill_job(self, jobid):
         return self._remote_cmd('hadoop job -kill {}'.format(jobid))

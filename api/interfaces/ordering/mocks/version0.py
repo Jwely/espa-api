@@ -12,6 +12,9 @@ class MockAPI(object):
                     }
         return response
 
+    def get_production_whitelist(self):
+        return ['127.0.0.1']
+
 
 
 
