@@ -741,7 +741,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                            'lta return message: {}'
                            'lta return status code: {}')
 
-                logger.debug(log_msg.format(eeorder, unit_num, sceneid,
+                logger.error(log_msg.format(eeorder, unit_num, sceneid,
                                             order_id, upd_status, msg, status))
         except Exception as e:
             message = "ERR in update_lta_status\n eeorder: {}, unit_num: {}, upd_status: {}\n" \
@@ -911,8 +911,8 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         contactids = self.get_contactids_for_submitted_landsat_products()
 
-        if contactids:
-            for contact_id in contactids:
+        for contact_id in contactids:
+            if contact_id:
                 try:
                     logger.info("Updating landsat_product_status for {0}"
                                 .format(contact_id))
