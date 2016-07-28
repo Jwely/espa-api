@@ -439,8 +439,6 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         buff.close()
         logger.warn("QUERY:{0}".format(query))
 
-        #query_results = None
-
         with db_instance() as db:
             db.select(query)
 
@@ -1171,40 +1169,27 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         return prodlist
 
     @staticmethod
-    def orphaned_scenes():
-        orphan_file = 'orphan_file.txt'
+    def catch_orphaned_scenes():
         o_time = datetime.datetime.now()
-        strptime_fmt = '%Y-%m-%d %H:%M:%S.%f'
-        response = list()
 
         def find_orphans():
             job_dict = hadoop_handler.job_names_ids()
             queued_scenes = Scene.where({"status": "queued"})
-            return [str(i.id) for i in queued_scenes if i.job_name not in job_dict]
+            return [scene for scene in queued_scenes if scene.job_name not in job_dict]
 
-        if os.path.exists(orphan_file):
-            lines = open(orphan_file, 'r').readlines()
-            # list date is the first line in the file
-            d_obj = datetime.datetime.strptime(lines[0].rstrip("\n"), strptime_fmt)
-            # if its more than 7 minutes old compare it to our orphan_ids list
-            if ((o_time - d_obj).seconds / 60) > 7:
-                orphans_new = find_orphans()
-                orphans_pre = lines[1].split(',')
-                orphans = set(orphans_new) & set(orphans_pre)
-                if orphans:
-                    # retrieve the scene objects
-                    int_ids = [int(i) for i in orphans]
-                    response = Scene.find(int_ids)
-                # update the file
-                with open(orphan_file, 'w') as o_file:
-                    o_file.write(str(o_time) + '\n' + ','.join(orphans_new))
-        else:
-            # file is missing, create it
-            orphans_new = find_orphans()
-            with open(orphan_file, 'w') as o_file:
-                o_file.write(str(o_time) + '\n' + ','.join(orphans_new))
-            # don't return anything, due to race conditions, the id must
-            # persist for several minutes before we can be sure its a true orphan
+        for scene in find_orphans():
+            if not scene.orphaned:
+                # scenes already marked orphaned can be ignored here
+                if scene.reported_orphan:
+                    # has enough time lapsed to confidently mark it orphaned?
+                    d_time = o_time - scene.reported_orphan
+                    if (d_time.seconds / 60) > 10:
+                        scene.orphaned = True
+                else:
+                    # the scenes been newly reported an orphan, note the time
+                    scene.reported_orphan = o_time
 
-        return response
+                scene.save()
+
+        return True
 

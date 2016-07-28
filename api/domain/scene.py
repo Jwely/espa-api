@@ -27,7 +27,7 @@ class Scene(object):
                  completion_date=None, log_file_contents=None,
                  ee_unit_id=None, tram_order_id=None, sensor_type=None,
                  job_name=None, retry_after=None, retry_limit=None,
-                 retry_count=None):
+                 retry_count=None, reported_orphan=None, orphaned=None):
         """
         Initialize the Scene object with all the information for it
         from the database
@@ -49,9 +49,11 @@ class Scene(object):
         :param tram_order_id: LTA tram
         :param sensor_type: landsat/modis/plot
         :param job_name: Hadoop job name
-        :param retry_after:
-        :param retry_limit:
-        :param retry_count:
+        :param retry_after: when to retry
+        :param retry_limit: max number of retry attempts
+        :param retry_count: retry attempts
+        :param reported_orphan: time reported missing hadoop
+        :param orphaned: missing hadoop job
         """
 
         self.name = name
@@ -72,6 +74,8 @@ class Scene(object):
         self.retry_after = retry_after
         self.retry_limit = retry_limit
         self.retry_count = retry_count
+        self.reported_orphan = reported_orphan
+        self.orphaned = orphaned
 
         with db_instance() as db:
             sql = ('select id '
@@ -236,14 +240,24 @@ class Scene(object):
 
     @classmethod
     def find(cls, ids):
+        """
+        Retrieve scene objects by id
+        :param ids: list of scene ids, or single scene id
+        :return: list
+        """
         sql = '{} id IN %s;'.format(cls.base_sql)
         resp = list()
-        if not isinstance(ids, list):
-            raise SceneException("a list of integers is the only valid argument for the find method")
+        if not isinstance(ids, list) and not isinstance(ids, int):
+            raise SceneException("a list of integers, or a single integer, "
+                                 "are the only valid arguments for Scene.find()")
 
-        for item in ids:
-            if not isinstance(item, int):
-                raise SceneException("find method argument item {0} is not an int".format(item))
+        if isinstance(ids, list):
+            for item in ids:
+                if not isinstance(item, int):
+                    raise SceneException("list members must be of type int for "
+                                         "Scene.find(): {0} is not an int".format(item))
+        else:
+            ids = [ids]
 
         with db_instance() as db:
             db.select(sql, [tuple(ids)])
@@ -262,9 +276,9 @@ class Scene(object):
         """
         Update a list of scenes with
 
-        :param ids:
-        :param updates:
-        :return:
+        :param ids: ids of scenes to update
+        :param updates: attributes to update
+        :return: True
         """
         if not ids:
             ids = ()
@@ -338,7 +352,8 @@ class Scene(object):
                     'note', 'retry_count', 'sensor_type',
                     'product_dload_url', 'tram_order_id',
                     'completion_date', 'ee_unit_id', 'retry_limit',
-                    'cksum_distro_location', 'product_distro_location')
+                    'cksum_distro_location', 'product_distro_location',
+                    'reported_orphan', 'orphaned')
 
         vals = tuple(self.__getattribute__(v) for v in attr_tup)
         cols = '({})'.format(','.join(attr_tup))

@@ -144,3 +144,16 @@ class API(object):
             logger.debug("ERR failure to generate production whitelist\ntrace: {}".format(traceback.format_exc()))
             response = default_error_message
         return response
+
+    def catch_orphaned_scenes(self):
+        """
+        Handler for marking queued scenes with no corresponding job in hadoop
+        :return: true
+        """
+        try:
+            response = self.production.catch_orphaned_scenes()
+        except:
+            logger.debug("ERR handling orphaned scenes\ntrace: {}".format(traceback.format_exc()))
+            response = default_error_message
+        return response
+

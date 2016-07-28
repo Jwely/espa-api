@@ -11,7 +11,7 @@ from api.util import api_cfg
 from http_user import Index, VersionInfo, AvailableProducts, ValidationInfo,\
     ListOrders, Ordering, UserInfo, ItemStatus
 
-from http_production import ProductionVersion, ProductionConfiguration, ProductionOperations
+from http_production import ProductionVersion, ProductionConfiguration, ProductionOperations, ProductionManagement
 
 from http_admin import Reports, SystemStatus
 
@@ -89,6 +89,9 @@ transport_api.add_resource(ProductionOperations,
                            '/production-api/v0/<action>',
                            '/production-api/v0/handle-orders',
                            '/production-api/v0/queue-products')
+
+transport_api.add_resource(ProductionManagement,
+                           '/production-api/v0/handle-orphans')
 
 transport_api.add_resource(ProductionConfiguration,
                            '/production-api/v0/configuration/<key>')
