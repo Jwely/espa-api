@@ -181,12 +181,10 @@ class OrderValidatorV0(validictory.SchemaValidator):
         Validate that requests for stats are accompanied by logical products
         """
         # if stats not enabled, or not requesting stats, return
-        if not stats or 'stats' not in x['products']:
+        if not stats:
             return
 
-        # we only provide L1 for modis products, and stats are valid
-        # this is not required, but this halves test time
-        if path.startswith(('<obj>.mod', '<obj>.myd')):
+        if 'plot_statistics' not in self.data_source:
             return
 
         # path resembles '<obj>.olitirs8.products'
@@ -194,11 +192,9 @@ class OrderValidatorV0(validictory.SchemaValidator):
         if path.split('.')[1] not in stats['sensors']:
             return
 
-        required_set = set(stats['products'])
-        product_set = set(x['products'])
-        if product_set.isdisjoint(required_set):
+        if not set(stats['products']) & set(x['products']):
             self._error('You must request valid products for statistics',
-                        required_set, fieldname, path=path)
+                        stats['products'], fieldname, path=path)
 
     def validate_restricted(self, x, fieldname, schema, path, restricted):
         """Validate that the requested products are available by date or role"""
