@@ -13,6 +13,7 @@ from api.domain.user import User
 import copy
 import datetime
 import urllib
+import json
 
 from cStringIO import StringIO
 
@@ -191,7 +192,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             # the lta call in a conditional
             for p in products:
                 if p.order_attr('order_source') == 'ee':
-                    lta.update_order_status(p.order.ee_order_id, p.ee_unit_id, 'R')
+                    lta.update_order_status(p.order_attr('ee_order_id'), p.ee_unit_id, 'R')
         except Exception, e:
             message = "ERR set_products_unavailable failure" \
                       "\nexceptio: {}\nproduct_ids: {}\nreason: {}".format(e.message, product_ids, reason)
@@ -208,27 +209,15 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         :param status: what the status is to be set to
         :return: True
         """
-        order_id = Scene.get('order_id', scene_name=name, orderid=orderid)
-        sql_list = ["update ordering_scene set "]
-        comm_sep = ""
+        order = Order.find(orderid)
+        scene = Scene.where({'name': name, 'order_id': order.id})[0]
         if processing_loc:
-            sql_list.append(" processing_location = '%s' " % processing_loc)
-            comm_sep = ", "
+            scene.processing_location = processing_loc
         if status:
-            sql_list.append(comm_sep)
-            sql_list.append(" status = '%s'" % status)
-
-        sql_list.append(" where name = '{0}' AND order_id = {1};".format(name, order_id))
-        sql = " ".join(sql_list)
-
-        try:
-            with db_instance() as db:
-                db.execute(sql)
-                db.commit()
-        except DBConnectException, e:
-            message = "DBConnect Exception ordering_provider update_status sql: {0}\nmessage: {1}".format(sql, e.message)
-            raise ProductionProviderException(message)
-
+            scene.status = status
+        scene.save()
+        log_str = "Scene status updated. order: {0}\n scene id/name: {1}/{2}\nstatus:{3}\nprocessing_location{4}\n "
+        logger.info(log_str.format(order.orderid, scene.id, scene.name, scene.status, scene.processing_location))
         return True
 
     def update_product(self, action, name=None, orderid=None,
@@ -291,52 +280,30 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         :param retry_after: retry after given timestamp
         :param retry_limit: maximum number of tries
         """
-        order_id = Scene.get('order_id', name, orderid)
-        retry_count = Scene.get('retry_count', name, orderid)
+        order = Order.find(orderid)
+        scene = Scene.where({'name': name, 'order_id': order.id})[0]
 
-        if not retry_count:
-            retry_count = 0
+        retry_count = scene.retry_count if scene.retry_count else 0
 
         if not retry_limit:
-            retry_limit = Scene.get('retry_limit', name, orderid)
+            retry_limit = scene.retry_limit
 
         # make sure retry_limit and retry_count are ints
         retry_count = int(retry_count)
         retry_limit = int(retry_limit)
+        new_retry_count = retry_count + 1
 
-        logger.info('set_product_retry - name: {0}, orderid: {1}, '
-                    'processing_loc: {2}, error: {3}, note: {4}, '
-                    'retry_after: {5}, retry_limit: {6}, '
-                    'order_id: {7}, retry_count: {8}, curr_limit: {9}'
-                    .format(name, orderid, processing_loc, error, note,
-                            retry_after, retry_limit, order_id,
-                            retry_count, retry_limit))
+        if new_retry_count > retry_limit:
+            raise ProductionProviderException('Retry limit exceeded, name: {}'.format(name))
 
-        sql = ('update ordering_scene '
-               'set (status, retry_count, retry_after, retry_limit, '
-               'log_file_contents, processing_location, note) = '
-               '(%s, %s, %s, %s, %s, %s, %s) '
-               'where name = %s '
-               'and order_id = %s')
-
-        if retry_count + 1 > retry_limit:
-            raise ProductionProviderException('Retry limit exceeded, '
-                                              'name: {}'.format(name))
-
-        arg_tuple = ('retry', retry_count + 1, retry_after,
-                     retry_limit, error, processing_loc,
-                     note, name, order_id)
-
-        try:
-            with db_instance() as db:
-                sql_log = db.cursor.mogrify(sql, arg_tuple)
-                logger.info(sql_log)
-                db.execute(sql, arg_tuple)
-                db.commit()
-        except DBConnectException as e:
-            raise ProductionProviderException('set_product_retry'
-                                              ' exception: {}\nsql: {}'
-                                              .format(e, sql_log))
+        scene.status = 'retry'
+        scene.retry_count = new_retry_count
+        scene.retry_after = retry_after
+        scene.retry_limit = retry_limit
+        scene.log_file_contents = error
+        scene.processing_location = processing_loc
+        scene.note = note
+        scene.save()
 
         return True
 
@@ -611,43 +578,44 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                 # EE order already exists in the system
                 # update the associated scenes
                 self.update_ee_orders(scene_info, eeorder, order.id)
-                continue
+                #continue
 
-            cache_key = '-'.join(['load_ee_orders', str(contactid)])
-            user = cache.get(cache_key)
+            else:
+                cache_key = '-'.join(['load_ee_orders', str(contactid)])
+                user = cache.get(cache_key)
 
-            if user is None:
-                username = lta.get_user_name(contactid)
-                # Find or create the user
-                db_id = User.find_or_create_user(username, email_addr,
-                                                 'from', 'earthexplorer',
-                                                 contactid)
-                user = User.where('id = {}'.format(db_id))[0]
+                if user is None:
+                    username = lta.get_user_name(contactid)
+                    # Find or create the user
+                    db_id = User.find_or_create_user(username, email_addr,
+                                                     'from', 'earthexplorer',
+                                                     contactid)
+                    user = User.where('id = {}'.format(db_id))[0]
 
-                if not user.contactid:
-                    user.update('contactid', contactid)
+                    if not user.contactid:
+                        user.update('contactid', contactid)
 
-                cache.set(cache_key, user, 60)
+                    cache.set(cache_key, user, 60)
 
-            # We have a user now.  Now build the new Order since it
-            # wasn't found
-            ts = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
-            order_dict = {'orderid': order_id,
-                          'user_id': user.id,
-                          'order_type': 'level2_ondemand',
-                          'status': 'ordered',
-                          'note': 'EarthExplorer order id: {}'.format(eeorder),
-                          'ee_order_id': eeorder,
-                          'order_source': 'ee',
-                          'order_date': ts,
-                          'priority': 'normal',
-                          'email': user.email,
-                          'product_options': 'include_sr: true',
-                          'product_opts': Order.get_default_ee_options(scene_info)}
+                # We have a user now.  Now build the new Order since it
+                # wasn't found
+                ts = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+                order_dict = {'orderid': order_id,
+                              'user_id': user.id,
+                              'order_type': 'level2_ondemand',
+                              'status': 'ordered',
+                              'note': 'EarthExplorer order id: {}'.format(eeorder),
+                              'ee_order_id': eeorder,
+                              'order_source': 'ee',
+                              'order_date': ts,
+                              'priority': 'normal',
+                              'email': user.email,
+                              'product_options': 'include_sr: true',
+                              'product_opts': Order.get_default_ee_options(scene_info)}
 
-            order = Order.create(order_dict)
-            self.load_ee_scenes(scene_info, order.id)
-            self.update_ee_orders(scene_info, eeorder, order.id)
+                order = Order.create(order_dict)
+                self.load_ee_scenes(scene_info, order.id)
+                self.update_ee_orders(scene_info, eeorder, order.id)
 
     @staticmethod
     def gen_ee_scene_list(ee_scenes, order_id):
@@ -748,6 +716,9 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         if missing_scenes:
             # There appear to be scenes in this order which we didn't receive the
             # first go around, try adding them now
+            order = Order.find(order_id)
+            order.update('product_opts', json.dumps(Order.get_default_ee_options(ee_scenes)))
+
             self.load_ee_scenes(missing_scenes, order_id, missed=True)
 
     @staticmethod
@@ -770,7 +741,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                            'lta return message: {}'
                            'lta return status code: {}')
 
-                logger.debug(log_msg.format(eeorder, unit_num, sceneid,
+                logger.error(log_msg.format(eeorder, unit_num, sceneid,
                                             order_id, upd_status, msg, status))
         except Exception as e:
             message = "ERR in update_lta_status\n eeorder: {}, unit_num: {}, upd_status: {}\n" \
@@ -938,16 +909,19 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         # Here's the real logic for this handling submitted landsat products
         self.mark_nlaps_unavailable()
 
-        for contact_id in self.get_contactids_for_submitted_landsat_products():
-            try:
-                logger.info("Updating landsat_product_status for {0}"
-                            .format(contact_id))
-                self.update_landsat_product_status(contact_id)
+        contactids = self.get_contactids_for_submitted_landsat_products()
 
-            except Exception, e:
-                msg = ('Could not update_landsat_product_status for {0}\n'
-                       'Exception:{1}'.format(contact_id, e))
-                logger.debug(msg)
+        for contact_id in contactids:
+            if contact_id:
+                try:
+                    logger.info("Updating landsat_product_status for {0}"
+                                .format(contact_id))
+                    self.update_landsat_product_status(contact_id)
+
+                except Exception, e:
+                    msg = ('Could not update_landsat_product_status for {0}\n'
+                           'Exception:{1}'.format(contact_id, e))
+                    logger.debug(msg)
 
         return True
 
