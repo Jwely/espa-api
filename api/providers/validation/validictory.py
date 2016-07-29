@@ -187,6 +187,9 @@ class OrderValidatorV0(validictory.SchemaValidator):
         if 'plot_statistics' not in self.data_source:
             return
 
+        if self.data_source['plot_statistics'] is False:
+            return
+
         # path resembles '<obj>.olitirs8.products'
         stats = self.restricted['stats']
         if path.split('.')[1] not in stats['sensors']:
