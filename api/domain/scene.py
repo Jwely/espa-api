@@ -267,7 +267,7 @@ class Scene(object):
             with db_instance() as db:
                 log_sql = db.cursor.mogrify(sql, (db_extns.AsIs(fields),
                                                   vals, ids))
-                logger.info(log_sql)
+                logger.info('\n*** Bulk Updating scenes: \n' + log_sql + "\n\***\n")
                 db.execute(sql, (db_extns.AsIs(fields), vals, ids))
                 db.commit()
         except DBConnectException as e:
@@ -293,7 +293,7 @@ class Scene(object):
             with db_instance() as db:
                 log_sql = db.cursor.mogrify(sql, (db_extns.AsIs(att),
                                                   val, self.id))
-                logger.info(log_sql)
+                logger.info("\n*** Updating scene: \n" + log_sql + '\n***\n"')
                 db.execute(sql, (db_extns.AsIs(att), val, self.id))
                 db.commit()
         except DBConnectException as e:
@@ -328,8 +328,8 @@ class Scene(object):
 
                 db.execute(sql, (db_extns.AsIs(cols), vals, self.id))
                 db.commit()
-                logger.info('Saved updates to scene id: {}, name:{}\n'
-                            'sql: {}\n args: {}\n'
+                logger.info('\n*** Saved updates to scene id: {}, name:{}\n'
+                            'sql: {}\n args: {}\n***'
                             .format(self.id, self.name,
                                     log_sql, zip(attr_tup, vals)))
         except DBConnectException as e:
