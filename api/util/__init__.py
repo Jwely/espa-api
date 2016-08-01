@@ -78,7 +78,10 @@ def lowercase_all(indata):
     if hasattr(indata, 'iteritems'):
         ret = {}
         for key, val in indata.iteritems():
-            ret[lowercase_all(key)] = lowercase_all(val)
+            if key.lower() == 'note':
+                ret[lowercase_all(key)] = val
+            else:
+                ret[lowercase_all(key)] = lowercase_all(val)
         return ret
 
     elif isinstance(indata, basestring):
