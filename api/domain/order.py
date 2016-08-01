@@ -602,7 +602,7 @@ class Order(object):
         """
         d = datetime.datetime.now()
 
-        return '{}-{}'.format(email, d.strftime('%m%d%Y-%H%M%S'))
+        return '{}-{}-{}'.format(email, d.strftime('%m%d%Y-%H%M%S'), d.strftime('%f')[:3])
 
 
 class OptionsConversion(object):
