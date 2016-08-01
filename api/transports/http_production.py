@@ -2,9 +2,7 @@ from flask import request, make_response, jsonify
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal
 
 from api.interfaces.production.version0 import API
-from api.domain import api_operations_v0
-from api.util import api_cfg
-
+from api.domain import api_operations_v0, default_error_message
 
 espa = API()
 
@@ -17,7 +15,7 @@ def whitelist(func):
     and http://github.com/mattupsate/flask-security
     """
     def decorated(*args, **kwargs):
-        white_ls = api_cfg(section='config').get('production_whitelist').split(',')
+        white_ls = espa.get_production_whitelist()
         if 'X-Forwarded-For' in request.headers:
             remote_addr = request.headers.getlist('X-Forwarded-For')[0].rpartition(' ')[-1]
         else:
@@ -30,39 +28,67 @@ def whitelist(func):
     return decorated
 
 
+def prep_response(response):
+    """
+    return the correct response code, based on response content
+    :param response:
+    :return: response, response code
+    """
+    resp_code = 500 if response == default_error_message else 200
+    return response, resp_code
+
+
 class ProductionVersion(Resource):
     decorators = [whitelist]
-    def get(self):
+
+    @staticmethod
+    def get():
         if 'v0' in request.url:
-            return api_operations_v0['production']
+            resp = api_operations_v0['production']
         else:
-            return espa.api_versions()
+            resp = espa.api_versions()
+
+        return prep_response(resp)
 
 
 class ProductionOperations(Resource):
     decorators = [whitelist]
-    def get(self):
+
+    @staticmethod
+    def get():
         if 'products' in request.url:
-            # request.args is an ImmutableMultiDict
             params = request.args.to_dict(flat=True)
-            return espa.fetch_production_products(params)
+            resp = espa.fetch_production_products(params)
         elif 'handle-orders' in request.url:
-            return espa.handle_orders()
+            resp = espa.handle_orders()
 
+        return prep_response(resp)
 
-    # Probably best to split these up into their own classes
-    def post(self, action=None):
-        # in testing, request.form always empty. post call looks like:
-        # app.post(url, data=json.dumps(data_dict), headers=self.headers)
-        #params = request.form.to_dict(flat=True)
+    @staticmethod
+    def post(action=None):
         params = request.get_json(force=True)
         if 'queue-products' in request.url:
-            return espa.queue_products(**params)
+            resp = espa.queue_products(**params)
         elif action:
-            return espa.update_product_details(action, params)
+            resp = espa.update_product_details(action, params)
+
+        return prep_response(resp)
 
 
 class ProductionConfiguration(Resource):
     decorators = [whitelist]
-    def get(self, key):
-        return espa.get_production_key(key)
+
+    @staticmethod
+    def get(key):
+        resp = espa.get_production_key(key)
+        return prep_response(resp)
+
+
+class ProductionManagement(Resource):
+    decorators = [whitelist]
+
+    @staticmethod
+    def get():
+        if 'handle-orphans' in request.url:
+            resp = espa.catch_orphaned_scenes()
+            return prep_response(resp)

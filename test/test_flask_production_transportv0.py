@@ -60,6 +60,7 @@ class ProductionTransportTestCase(unittest.TestCase):
         self.mock_user.cleanup()
         os.environ['espa_api_testing'] = ''
 
+    @patch('api.interfaces.production.version0.API.get_production_whitelist', api.get_production_whitelist)
     def test_get_production_api(self):
         response = self.app.get('/production-api', environ_base={'REMOTE_ADDR': '127.0.0.1'})
         response_data = json.loads(response.get_data())
@@ -67,6 +68,7 @@ class ProductionTransportTestCase(unittest.TestCase):
         assert response_data.keys() == ['versions']
         assert response_data['versions'].keys() == ["0"]
 
+    @patch('api.interfaces.production.version0.API.get_production_whitelist', api.get_production_whitelist)
     def test_get_production_api_v0(self):
         response = self.app.get('/production-api/v0', environ_base={'REMOTE_ADDR': '127.0.0.1'})
         response_data = json.loads(response.get_data())
@@ -76,6 +78,7 @@ class ProductionTransportTestCase(unittest.TestCase):
 
     @patch('api.providers.production.production_provider.ProductionProvider.get_products_to_process',
            production_provider.get_products_to_process_inputs)
+    @patch('api.interfaces.production.version0.API.get_production_whitelist', api.get_production_whitelist)
     def test_get_production_api_products_modis(self):
         url = "/production-api/v0/products?for_user=bilbo&product_types=modis"
         response = self.app.get(url, environ_base={'REMOTE_ADDR': '127.0.0.1'})
@@ -87,6 +90,7 @@ class ProductionTransportTestCase(unittest.TestCase):
 
     @patch('api.providers.production.production_provider.ProductionProvider.get_products_to_process',
            production_provider.get_products_to_process_inputs)
+    @patch('api.interfaces.production.version0.API.get_production_whitelist', api.get_production_whitelist)
     def test_get_production_api_products_landsat(self):
         url = "/production-api/v0/products?for_user=bilbo&product_types=landsat"
         response = self.app.get(url, environ_base={'REMOTE_ADDR': '127.0.0.1'})
@@ -98,6 +102,7 @@ class ProductionTransportTestCase(unittest.TestCase):
 
     @patch('api.providers.production.production_provider.ProductionProvider.update_status',
            production_provider.update_status_inputs)
+    @patch('api.interfaces.production.version0.API.get_production_whitelist', api.get_production_whitelist)
     def test_post_production_api_update_status(self):
         url = "/production-api/v0/update_status"
         data_dict = {'name': 't10000xyz401', 'orderid': 'kyle@usgs.gov-09222015-123456',
@@ -108,6 +113,7 @@ class ProductionTransportTestCase(unittest.TestCase):
 
     @patch('api.providers.production.production_provider.ProductionProvider.set_product_error',
            production_provider.set_product_error_inputs)
+    @patch('api.interfaces.production.version0.API.get_production_whitelist', api.get_production_whitelist)
     def test_post_production_api_set_product_error(self):
         url = "/production-api/v0/set_product_error"
         data_dict = {'name': 't10000xyz401', 'orderid': 'kyle@usgs.gov-09222015-123456',
@@ -118,6 +124,7 @@ class ProductionTransportTestCase(unittest.TestCase):
 
     @patch('api.providers.production.production_provider.ProductionProvider.set_product_unavailable',
            production_provider.set_product_unavailable_inputs)
+    @patch('api.interfaces.production.version0.API.get_production_whitelist', api.get_production_whitelist)
     def test_post_production_api_set_product_unavailable(self):
         url = "/production-api/v0/set_product_unavailable"
         data_dict = {'name': 't10000xyz401', 'orderid': 'kyle@usgs.gov-09222015-123456',
@@ -128,6 +135,7 @@ class ProductionTransportTestCase(unittest.TestCase):
 
     @patch('api.providers.production.production_provider.ProductionProvider.mark_product_complete',
            production_provider.set_mark_product_complete_inputs)
+    @patch('api.interfaces.production.version0.API.get_production_whitelist', api.get_production_whitelist)
     def test_post_production_api_mark_product_complete(self):
         url = "/production-api/v0/mark_product_complete"
         data_dict = {'name': 't10000xyz401', 'orderid': 'kyle@usgs.gov-09222015-123456',
@@ -141,6 +149,7 @@ class ProductionTransportTestCase(unittest.TestCase):
 
     @patch('api.providers.production.production_provider.ProductionProvider.handle_orders',
            production_provider.respond_true)
+    @patch('api.interfaces.production.version0.API.get_production_whitelist', api.get_production_whitelist)
     def test_post_production_api_handle_orders(self):
         url = "/production-api/v0/handle-orders"
         response = self.app.get(url, data=json.dumps({}), environ_base={'REMOTE_ADDR': '127.0.0.1'})
@@ -149,6 +158,7 @@ class ProductionTransportTestCase(unittest.TestCase):
 
     @patch('api.providers.production.production_provider.ProductionProvider.queue_products',
            production_provider.queue_products_inputs)
+    @patch('api.interfaces.production.version0.API.get_production_whitelist', api.get_production_whitelist)
     def test_post_production_api_queue_products(self):
         url = "/production-api/v0/queue-products"
         data_dict = {'order_name_tuple_list': 'order_name_tuple_list',
@@ -158,6 +168,7 @@ class ProductionTransportTestCase(unittest.TestCase):
         response_data = json.loads(response.get_data())
         assert response_data == data_dict
 
+    @patch('api.interfaces.production.version0.API.get_production_whitelist', api.get_production_whitelist)
     def test_get_production_api_configurations(self):
         url = "/production-api/v0/configuration/system_message_title"
         response = self.app.get(url, environ_base={'REMOTE_ADDR': '127.0.0.1'})

@@ -5,7 +5,7 @@ from api.providers.configuration.configuration_provider import ConfigurationProv
 from api.util.dbconnect import DBConnectException, db_instance
 from api.providers.production import ProductionProviderInterfaceV0
 from api.providers.caching.caching_provider import CachingProvider
-from api.external import lpdaac, lta, onlinecache, nlaps
+from api.external import lpdaac, lta, onlinecache, nlaps, hadoop
 from api.system import errors
 from api.notification import emails
 from api.domain.user import User
@@ -14,6 +14,7 @@ import copy
 import datetime
 import urllib
 import json
+import os
 
 from cStringIO import StringIO
 
@@ -21,6 +22,7 @@ from api.system.logger import ilogger as logger
 
 config = ConfigurationProvider()
 cache = CachingProvider()
+hadoop_handler = hadoop.HadoopHandler()
 
 
 class ProductionProviderException(Exception):
@@ -436,8 +438,6 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         query = buff.getvalue()
         buff.close()
         logger.warn("QUERY:{0}".format(query))
-
-        #query_results = None
 
         with db_instance() as db:
             db.select(query)
@@ -1152,3 +1152,44 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                 opts.pop(sen)
 
         return opts
+
+    @staticmethod
+    def production_whitelist():
+        cache_key = 'prod_whitelist'
+        prodlist = cache.get(cache_key)
+        if prodlist is None:
+            logger.info("Regnerating production whitelist...")
+            # timeout in 6 hours
+            timeout = 60 * 60 * 6
+            prodlist = ['127.0.0.1']
+            prodlist.append(hadoop_handler.master_ip())
+            prodlist.extend(hadoop_handler.slave_ips())
+            cache.set(cache_key, prodlist, timeout)
+
+        return prodlist
+
+    @staticmethod
+    def catch_orphaned_scenes():
+        o_time = datetime.datetime.now()
+
+        def find_orphans():
+            job_dict = hadoop_handler.job_names_ids()
+            queued_scenes = Scene.where({"status": "queued"})
+            return [scene for scene in queued_scenes if scene.job_name not in job_dict]
+
+        for scene in find_orphans():
+            if not scene.orphaned:
+                # scenes already marked orphaned can be ignored here
+                if scene.reported_orphan:
+                    # has enough time lapsed to confidently mark it orphaned?
+                    d_time = o_time - scene.reported_orphan
+                    if (d_time.seconds / 60) > 10:
+                        scene.orphaned = True
+                else:
+                    # the scenes been newly reported an orphan, note the time
+                    scene.reported_orphan = o_time
+
+                scene.save()
+
+        return True
+
