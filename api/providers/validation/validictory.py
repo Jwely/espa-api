@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from decimal import Decimal
 import copy
+import yaml
 
 import validictory
 from validictory.validator import RequiredFieldValidationError, SchemaError, DependencyValidationError
@@ -18,6 +19,8 @@ class OrderValidatorV0(validictory.SchemaValidator):
         self.data_source = None
         self.base_schema = None
         self._itemcount = None
+        with open('api/domain/restricted.yaml') as f:
+            self.restricted = yaml.load(f.read())
 
     def validate(self, data, schema):
         self.data_source = data
@@ -172,6 +175,29 @@ class OrderValidatorV0(validictory.SchemaValidator):
                     if not val_range[0] <= value <= val_range[1]:
                         self._error('Value must fall between {} and {}'.format(val_range[0], val_range[1]),
                                     value, fieldname, path=path)
+
+    def validate_stats(self, x, fieldname, schema, path, stats):
+        """
+        Validate that requests for stats are accompanied by logical products
+        """
+        # if stats not enabled, or not requesting stats, return
+        if not stats:
+            return
+
+        if 'plot_statistics' not in self.data_source:
+            return
+
+        if self.data_source['plot_statistics'] is False:
+            return
+
+        # path resembles '<obj>.olitirs8.products'
+        stats = self.restricted['stats']
+        if path.split('.')[1] not in stats['sensors']:
+            return
+
+        if not set(stats['products']) & set(x['products']):
+            self._error('You must request valid products for statistics',
+                        stats['products'], fieldname, path=path)
 
     def validate_restricted(self, x, fieldname, schema, path, restricted):
         """Validate that the requested products are available by date or role"""
@@ -386,6 +412,7 @@ class BaseValidationSchema(object):
                                                           'uniqueItems': True,
                                                           'required': True,
                                                           'restricted': True,
+                                                          'stats': True,
                                                           'minItems': 1,
                                                           'items': {'type': 'string',
                                                                     'enum': sn.instance(

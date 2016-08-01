@@ -546,6 +546,23 @@ class InvalidOrders(object):
 
         return results
 
+    def invalidate_stats(self, stats, mapping):
+        """
+        If stats restrictions are in place, remove valid stats products from order
+        """
+        results = []
+        if stats:
+            new_order = {}
+            for item in self.valid_order:
+                new_order[item] = self.valid_order[item]
+                if isinstance(new_order[item], dict) and 'inputs' in new_order[item].keys():
+                    new_order[item]['products'] = ['l1', 'stats']
+
+            exc = "You must request valid products for statistics"
+            results.append((new_order, 'stats_required', exc))
+
+        return results
+
     def invalidate_oneormoreobjects(self, keys, mapping):
         """
         Remove any matching keys, so that nothing matches

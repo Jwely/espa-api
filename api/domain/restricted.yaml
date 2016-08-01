@@ -4,6 +4,25 @@ all:
         - swe
         - restricted_prod
 
+stats:
+    sensors:
+        - olitirs8
+        - oli8
+        - tm4
+        - tm5
+        - etm7
+    products:
+        - 'toa'
+        - 'bt'
+        - 'sr'
+        - 'sr_ndvi'
+        - 'sr_evi'
+        - 'sr_savi'
+        - 'sr_msavi'
+        - 'sr_ndmi'
+        - 'sr_nbr'
+        - 'sr_nbr2'
+
 olitirs8:
     role:
         - lst
