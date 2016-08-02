@@ -61,7 +61,8 @@ class AdministrationProvider(AdminProviderInterfaceV0):
 
         return resp
 
-    def get_system_status(self):
+    @staticmethod
+    def get_system_status():
         sql = "select key, value from ordering_configuration where " \
               "key in ('msg.system_message_body', 'msg.system_message_title', 'system.display_system_message');"
         with db_instance() as db:
@@ -75,10 +76,13 @@ class AdministrationProvider(AdminProviderInterfaceV0):
         else:
             return {'system_message_body': None, 'system_message_title': None}
 
-    def update_system_status(self, params):
+    @staticmethod
+    def update_system_status(params):
 
         if params.keys().sort() is not ['system_message_title', 'system_message_body', 'display_system_message'].sort():
-            return {'msg': 'Only 3 params are valid, and they must be present: system_message_title, system_message_body, display_system_message'}
+            return {'msg': 'Only 3 params are valid, and they must be present:'
+                           'system_message_title, system_message_body,'
+                           'display_system_message'}
 
         sql_dict = {'msg.system_message_title': params['system_message_title'],
                     'msg.system_message_body': params['system_message_body'],
@@ -97,5 +101,10 @@ class AdministrationProvider(AdminProviderInterfaceV0):
 
         return True
 
-    def get_system_config(self):
+    @staticmethod
+    def get_system_config():
         return ConfigurationProvider()._retrieve_config()
+
+    @staticmethod
+    def admin_whitelist():
+        return ['127.0.0.1']
