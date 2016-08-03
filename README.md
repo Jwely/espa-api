@@ -2,82 +2,481 @@
 
 Version 1.0.0
 =============
-API for the ESPA ordering & scheduling system.  
+This is an API for interacting with the ESPA ordering system.
 
 ## Related Pages
-* [API Interface](docs/API-INTERFACE.md)
+* [ESPA System Overview] (docs/OVERVIEW.md)
 * [Available Products](docs/AVAILABLE-PRODUCTS.md)
 * [Abbreviations & Definitions](docs/TERMS.md)
 * [ESPA Customizations](docs/CUSTOMIZATION.md)
-* [Requirements & Assumptions](docs/API-REQUIREMENTS.md)
-* [Review Comments](docs/REVIEW-COMMENTS.md)
 
+## User API
+The User API is public facing and available for anyone to code and interact with.  Version 1 provides the minimum functionality necessary to place orders, view order status, and determine available products from a list of inputs. There are endpoints for providing available projections, resampling methods, and output formats.
 
-## ESPA System Overview
-ESPA is a system for producing advanced science products from existing products. It was originally constructed to serve as a temporary production platform for science algorithms under incubation but has since transitioned into a quasi-operational state within USGS EROS, due primarily to the popularity of its products.
+All user interactions with API functions must be accompanied by valid credentials. Accounts are managed in the USGS ERS system https://ers.cr.usgs.gov/register/
 
-ESPA operates on a scene by scene basis and was built to produce many products at once rather than a single product as quickly as possible (multiprocess vs multithreading).  When a product algorithm executes, it only has access to the spatial and temporal context of the observation in question, save any auxiliary data needed such as ozone or water pressure measurements.  The system is therefore highly optimized for single-scene processing but is wholly unsuited for compositing, mosaicing, time-series analysis or any other operation that requires information from a separate observation.
+The api host is https://espa.cr.usgs.gov . 
 
-The system is composed of three major subsystems, espa-api, espa-web and espa-production.
+### User API Operations
 
-#### espa-api
-espa-api provides all the ordering & scheduling operations for the system, and handles integration with the rest of USGS EROS ordering systems.  This means that espa-api knows how to capture user orders, validate parameters, determine order + product disposition (including placing & monitoring orders for level 1 data), notifying users of completed orders and providing access to download completed products.  It also provides services for espa-production to retrieve production requests and to capture production status updates.
+**GET /api**
 
-espa-api currently captures user orders from two sources: The http://espa.cr.usgs.gov website (espa-web) and also USGS Earth Explorer.  Orders are obtained from USGS EE via web services hosted by the LTA project.
+Lists all available versions of the api.
+```json
+curl --user username:password https://espa.cr.usgs.gov/api
 
-#### espa-web
-espa-web is the web based bulk ordering front end, and relies entirely on the functions provided by espa-api.
+{
+    "versions": {
+        "0": {
+            "description": "First release of the ESPA API"
+        }
+    }
+}
+```
 
-#### espa-production
-espa-production is responsible for receiving production requests, validating the requests, locating and using any necessary auxiliary data, transferring level 1 data to a working directory, executing the necessary science algorithms to produce the product, placing the finished product in a distribution location and finally notifying espa-api that the production request is complete.  espa-production is a stateless system, with each production run remaining isolated from any other.
+**GET /api/v0**
 
----
+Lists all available api operations.
+```json
+curl --user username:password https://espa.cr.usgs.gov/api/v0
+{
+    "description": "Version 0 of the ESPA API",
+    "operations": {
+        "/api": {
+            "function": "list versions",
+            "methods": [
+                "HEAD",
+                "GET"
+            ]
+        },
+        "/api/v0": {
+            "function": "list operations",
+            "methods": [
+                "HEAD",
+                "GET"
+            ]
+        },
+        "/api/v0/available-products": {
+            "comments": "sceneids should be delivered in the product_ids parameter, comma separated if more than one",
+            "function": "list available products per sceneid",
+            "methods": [
+                "HEAD",
+                "POST"
+            ]
+        },
+        "/api/v0/available-products/<product_ids>": {
+            "comments": "comma separated ids supported",
+            "function": "list available products per sceneid",
+            "methods": [
+                "HEAD",
+                "GET"
+            ]
+        },
+        "/api/v0/formats": {
+            "function": "list available output formats",
+            "methods": [
+                "HEAD",
+                "GET"
+            ]
+        },
+            "/api/v0/order": {
+            "function": "point for accepting processing requests via HTTP POST with JSON body. Errors are returned to user, successful validation returns an orderid",
+            "methods": [
+                "POST"
+            ]
+        },
+        "/api/v0/order/<ordernum>": {
+            "function": "retrieves a submitted order",
+            "methods": [
+                "HEAD",
+                "GET"
+            ]
+        },
+        "/api/v0/orders": {
+            "function": "list orders for authenticated user",
+            "methods": [
+                "HEAD",
+                "GET"
+            ]
+        },
+        "/api/v0/orders/<email>": {
+            "function": "list orders for supplied email, for user collaboration",
+            "methods": [
+                "HEAD",
+                "GET"
+            ]
+        },
+        "/api/v0/projections": {
+            "function": "list available projections",
+            "methods": [
+                "HEAD",
+                "GET"
+            ]
+        },
+        "/api/v0/request/<ordernum>": {
+            "function": "retrieve order sent to server",
+            "methods": [
+                "HEAD",
+                "GET"
+            ]
+        },
+        "/api/v0/resampling-methods": {
+            "function": "list available resampling methods",
+            "methods": [
+                "HEAD",
+                "GET"
+            ]
+        }
+    }
+}
+```
 
-## General Capabilities (Which May or May Not Be Properly Advertised)
-The ESPA system covers a series of requirements and capabilities that do not seem to belong together at first glance.  For instance, there are a variety of datasets that ESPA cannot perform any additional science against:  MODIS data itself is never enhanced by ESPA in any way.  So why include it then if we can't create derivative products?  The short answer is it can.  Here are the system's overall capabilities.
+**GET /api/v0/user**
 
-* **Climate Data Record & Essential Climate Variable Production**
-  * Landsat inputs only See [available products](docs/AVAILABLE_PRODUCTS.md)
-  * Scenes are input
-  * Additional science algorithms are applied
-  * Derivative products are output
-  
-* **Non-composited Tile Generation**  
-  ESPA can produce stacks of images lined up properly with one another in line/sample space.  When customization is requested for an order, it is applied to every output product whether that be customized input products (level 1), toa, sr or indices.  The only thing that will bypass customization are Original Input Products, which are delivered untouched exactly as they were received from the upstream system(s).
+Returns user information for the authenticated user.
+```json
+curl --user username:password https://espa.cr.usgs.gov/api/v0/user
 
-  No compositing or mosaicing is applied during these operations, thus the outputs from ESPA will be images that are projected and framed as specified but may be sparsely populated, depending on the spatial extent of the input and the requested output extent.
-
-  Users can create non-composited tiles by following these steps:
-  * Request scenes/tiles that contain data within the geographic region of interest (required)
-  * Select Customized Input Products (if MODIS or Landsat Level 1 products should be tiled) and/or CDR/ECV/SI products (required)
-  * Specify output projection with proper parameters (required) [See projections](docs/CUSTOMIZATION.md)  
-  * Specify output extents in meters (required) [See output extents](docs/CUSTOMIZATION.md)  
-  * Specify pixel size (optional) [See pixel resizing](docs/CUSTOMIZATION.md)  
-  * Specify resampling method. (required) [See resampling](docs/CUSTOMIZATION.md)  
+{
+  "email": "production@email.com",
+  "first_name": "Production",
+  "last_name": "Person",
+  "roles": [
+    "user",
+    "production"
+  ],
+  "username": "production"
+}
+```
    
-  Output images from an order that has satisfied these conditions will be properly aligned & framed to one another. 
-  The onus is on the user to maintain and track their grid and tile definitions (projections with parameters & output extents).  **_Simply requesting scenes to be reprojected is not enough to line up the outputs_**.  A fixed set of output spatial extents must be provided to create a consistent output image frame.
+**GET /api/v0/available-products/\<product_id\>**
 
-  It is also worth noting that ESPA will deliver exactly what the request specified insofar as spatial extents are concerned.  It does not 'snap' to the nearest 30 meter pixel for example.
+Lists the available output products for the supplied input.
+```json
+curl --get --user username:password https://espa.cr.usgs.gov/api/v0/available-products/LE70290302003123EDC00
+{
+    "etm7": {
+        "inputs": [
+            "LE70290302003123EDC00"
+        ], 
+        "products": [
+            "source_metadata", 
+            "l1", 
+            "toa", 
+            "bt", 
+            "cloud", 
+            "sr", 
+            "lst", 
+            "swe", 
+            "sr_ndvi", 
+            "sr_evi", 
+            "sr_savi", 
+            "sr_msavi", 
+            "sr_ndmi", 
+            "sr_nbr", 
+            "sr_nbr2", 
+            "stats"
+        ]
+    }
+}
+```
 
-* **Sensor Intercomparison Via Statistics And Plotting**  
-  By choosing coincident observations from different sensors (MODIS 09 + Landsat SR over the same place on the Earth and acquired close to the same time), users are able to plot and compare the performance of each sensor/algorithm in relation to one another.  
+**POST /api/v0/available-products**
 
-  This is particularly useful when users would like to establish levels of confidence in a particular sensor, compare new sensors with old, or normalize measurements obtained from a variety of sources.
-   
-* **Simple format conversion**  
-  Users may alter the file format for output images. Current available formats are binary (envi), hdf-eos2 or geotiff.  Binary BIP (band interleaved by pixel) is in work.  ESPA format converters are pluggable modules so if other formats are desired they can easily be developed and hosted.
-   
-* **Metadata**  
-  Landsat product metadata (which differs from what's available via the Landsat Bulk Metadata Service) is not available to end users without downloading the images as well.  ESPA can deliver the level 1 product metadata without the accompanying rasters by requesting Original Input Metadata.  This was never a driving requirement but more of a no-cost capability made possible by using level 1 data as an input to CDRs and ECVs.
+Lists available products for the supplied inputs.  Also classifies the inputs by sensor or lists as 'not implemented' if the values cannot be ordered or determined.
+```json
+curl  --user username:password -d '{"inputs":["LE70290302003123EDC00",
+               "MOD09A1.A2000073.h12v11.005.2008238080250.hdf", "bad_scene_id"]}' https://espa.cr.usgs.gov/api/v0/available-products
+{
+    "etm7": {
+        "inputs": [
+            "LE70290302003123EDC00"
+        ], 
+        "products": [
+            "source_metadata", 
+            "l1", 
+            "toa", 
+            "bt", 
+            "cloud", 
+            "sr", 
+            "lst", 
+            "swe", 
+            "sr_ndvi", 
+            "sr_evi", 
+            "sr_savi", 
+            "sr_msavi", 
+            "sr_ndmi", 
+            "sr_nbr", 
+            "sr_nbr2", 
+            "stats"
+        ]
+    }, 
+    "mod09a1": {
+        "inputs": [
+            "MOD09A1.A2000073.h12v11.005.2008238080250.hdf"
+        ], 
+        "outputs": [
+            "l1", 
+            "stats"
+        ]
+    }, 
+    "not_implemented": [
+        "bad_scene_id"
+    ]
+}
+```
 
-  ESPA output product metadata (for anything other than Original Input Products/Original Input Metadata) is in a schema constrained XML format.  This means ESPA metadata files can be transformed with standardized tooling like XSLT stylesheets.
-  
-  If end-users are validating the imagery they receive from ESPA with the publicly accessible XML schema, they can be 100% assured that their software is still compatible with ESPA output products.  In fact, ESPA itself uses schema validation internally before distributing products to ensure the integrity of its production pipeline.
+**GET /api/v0/projections**
 
-## Why create an API?
-The original system was built as a temporary incubation platform for science products.  The only real requirement was to produce 450 SR corrections per day, make the outputs available to end users, and to (obviously) accomplish this work as quickly and cheaply as possible.  The system has grown to handle 23,000 SR corrections per day (as of October 2015) and is relied upon as the definitive source for these products.  This situation has been driven purely by demand.
+Lists and describes available projections.  This is a dump of the schema defined that constrains projection info.
+```json
+curl --get --user username:password https://espa.cr.usgs.gov/api/v0/projections
+{
+    "aea": {
+        "properties": {
+            "central_meridian": {
+                "maximum": 180, 
+                "minimum": -180, 
+                "required": true, 
+                "type": "number"
+            }, 
+            "datum": {
+                "enum": [
+                    "wgs84", 
+                    "nad27", 
+                    "nad83"
+                ], 
+                "required": true, 
+                "type": "string"
+            }, 
+            "false_easting": {
+                "required": true, 
+                "type": "number"
+            }, 
+            "false_northing": {
+                "required": true, 
+                "type": "number"
+            }, 
+            "latitude_of_origin": {
+                "maximum": 90, 
+                "minimum": -90, 
+                "required": true, 
+                "type": "number"
+            }, 
+            "standard_parallel_1": {
+                "maximum": 90, 
+                "minimum": -90, 
+                "required": true, 
+                "type": "number"
+            }, 
+            "standard_parallel_2": {
+                "maximum": 90, 
+                "minimum": -90, 
+                "required": true, 
+                "type": "number"
+            }
+        },
+        "type": "object"
+    }, 
+    "lonlat": {
+        "type": "null"
+    }, 
+    "ps": {
+        "properties": {
+            "false_easting": {
+                "required": true, 
+                "type": "number"
+            }, 
+            "false_northing": {
+                "required": true, 
+                "type": "number"
+            }, 
+            "latitude_true_scale": {
+                "abs_rng": [
+                    60, 
+                    90
+                ], 
+                "required": true, 
+                "type": "number"
+            }, 
+            "longitudinal_pole": {
+                "maximum": 180, 
+                "minimum": -180, 
+                "required": true, 
+                "type": "number"
+            }
+        }, 
+        "type": "object"
+    }, 
+    "sinu": {
+        "properties": {
+            "central_meridian": {
+                "maximum": 180, 
+                "minimum": -180, 
+                "required": true, 
+                "type": "number"
+            }, 
+            "false_easting": {
+                "required": true, 
+                "type": "number"
+            }, 
+            "false_northing": {
+                "required": true, 
+                "type": "number"
+            }
+        }, 
+        "type": "object"
+    },
+    "utm": {
+        "properties": {
+            "zone": {
+                "maximum": 60, 
+                "minimum": 1, 
+                "required": true, 
+                "type": "integer"
+            }, 
+            "zone_ns": {
+                "enum": [
+                    "north", 
+                    "south"
+                ], 
+                "required": true, 
+                "type": "string"
+            }
+        }, 
+        "type": "object"
+    }
+}        
+```
 
-New requirements have emerged from the science community that detail the need to perform deep time series analysis against atmospherically corrected observations.  This body of work is being accomplished by the LCMAP project.  LCMAP requires (or will in the near future) the full Landsat archive corrected to surface reflectance, first for the continental United States & Alaska, and later globally.  It will also require any new observations to be corrected so they can be incorporated into its output products.
+**GET /api/v0/formats**
 
-Previously, ESPA orders could only be placed via web interface: http://espa.cr.usgs.gov and http://earthexplorer.usgs.gov.  This was clearly inadequate to establish an automated pipeline for ongoing analysis as no human wants to manually order, track and transfer millions of scenes. The ESPA system was re-engineered to provide an application programming interface for downstream systems to gain access to its capabilities.
+Lists all available output formats
+```json
+curl --user username:password https://espa.cr.usgs.gov/api/v0/formats
+
+{
+  "formats": [
+    "gtiff", 
+    "hdf-eos2", 
+    "envi"
+  ]
+}
+```
+
+**GET /api/v0/resampling-methods**
+
+Lists all available resampling methods
+```json
+curl --user username:password https://espa.cr.usgs.gov/api/v0/resampling-methods
+
+{
+  "resampling_methods": [
+    "nn", 
+    "bil", 
+    "cc"
+  ]
+}
+```
+
+**GET /api/v0/list-orders**
+
+List orders for the authenticated user.
+```json
+curl --user username:password https://espa.cr.usgs.gov/api/v0/list-orders
+
+{
+  "orders": [
+    "production@email.com-101015143201-00132", 
+    "production@email.com-101115143201-00132"
+  ]
+}
+```
+
+**GET /api/v0/list-orders/\<email\>**
+
+Lists orders for the supplied email.  Necessary to support user collaboration.
+```json
+curl --user username:password https://espa.cr.usgs.gov/api/v0/list-orders/production@email.com
+
+{
+  "orders": [
+    "production@email.com-101015143201-00132", 
+    "production@email.com-101115143201-00132"
+  ]
+}
+```
+**GET /api/v0/order/\<ordernum\>**
+
+Retrieves a submitted order. Some information may be omitted from this response depending on access privileges.
+```json
+curl --user username:password https://espa.cr.usgs.gov/api/v0/order/production@usgs.gov-03072016-081013
+{
+  "completion_date": "Mon, 07 Mar 2016 08:11:01 GMT",
+  "note": "",
+  "order_date": "Mon, 07 Mar 2016 08:10:13 GMT",
+  "order_source": "espa",
+  "order_type": "level2_ondemand",
+  "orderid": "production@usgs.gov-03072016-081013",
+  "priority": "normal",
+  "product_options": null,
+  "product_opts": {
+    "format": "gtiff",
+    "tm5": {
+      "inputs": [
+        "LT50380322011299PAC01"
+      ],
+      "products": [
+        "sr"
+      ]
+    }
+  },
+  "status": "complete"
+}
+```
+
+**POST /api/v0/order**
+
+Accepts requests for process from an HTTP POST with a JSON body.  The body is validated and any errors are returned to the caller.  Otherwise, an orderid is returned.
+```json
+
+curl --user username:password -d '{"olitirs8": {
+                                                    "inputs": ["LC8027029201533LGN00"], 
+                                                    "products": ["sr"]
+                                                 }, 
+                                     "format": "gtiff", 
+                                     "resize": {
+                                                "pixel_size": 60, 
+                                                "pixel_size_units": "meters"
+                                                }, 
+                                     "resampling_method": "nn", 
+                                     "plot_statistics": true, 
+                                     "projection": {
+                                                    "aea": {
+                                                            "standard_parallel_1": 29.5,
+                                                            "standard_parallel_2": 45.5,
+                                                            "central_meridian": -96.0,
+                                                            "latitude_of_origin": 23.0,
+                                                            "false_easting": 0.0,
+                                                            "false_northing": 0.0,
+                                                            "datum": "wgs84"
+                                                            }
+                                                    },
+                                     "image_extents": {
+                                                        "north": 0.0002695,
+                                                        "south": 0,
+                                                        "east": 0.0002695,
+                                                        "west": 0,
+                                                        "units": "dd"
+                                                    },
+                                     "note": "this is going to be sweet..."
+                                     }' https://espa.cr.usgs.gov/api/v0/order
+
+Returns:
+{
+    "orderid": "production@email.com-101015143201-00132"
+}
+```
+
+
+
