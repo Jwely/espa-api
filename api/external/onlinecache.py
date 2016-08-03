@@ -83,21 +83,6 @@ class OnlineCache(object):
 
         return ret
 
-    def check_orderid(self, orderid):
-        """
-        Verify the format of the order id given
-
-        :param orderid: name to check
-        :return: True if the id passes, otherwise raise an exception
-        """
-        espa_order = r'[A-Za-z0-9._%+-\\\']+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}-[0-9]{6,8}-[0-9]{3,6}'
-        ee_order = r'[A-Za-z0-9._%+-\\\']+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}-[0-9]{13}'
-
-        if not (re.match(espa_order, orderid) or re.match(ee_order, orderid)):
-            raise OnlineCacheException('Invalid Order ID specified')
-
-        return True
-
     def capacity(self):
         """
         Returns the capacity of the online cache
