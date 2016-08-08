@@ -43,7 +43,7 @@ class TestProductionAPI(unittest.TestCase):
         order_id = self.mock_order.generate_testing_order(self.user_id)
         # need scenes with statuses of 'processing' and 'ordered'
         self.mock_order.update_scenes(order_id, 'status', ['processing', 'ordered', 'oncache'])
-        user = User.where("id = {0}".format(self.user_id))[0]
+        user = User.find(self.user_id)
         params = {'for_user': user.username, 'product_types': ['modis']}
         response = api.fetch_production_products(params)
         self.assertTrue('bilbo' in response[0]['orderid'])
@@ -55,7 +55,7 @@ class TestProductionAPI(unittest.TestCase):
         order_id = self.mock_order.generate_testing_order(self.user_id)
         # need scenes with statuses of 'processing' and 'ordered'
         self.mock_order.update_scenes(order_id, 'status', ['processing','ordered','oncache'])
-        user = User.where("id = {0}".format(self.user_id))[0]
+        user = User.find(self.user_id)
         params = {'for_user': user.username, 'product_types': ['landsat']}
         response = api.fetch_production_products(params)
         self.assertTrue('bilbo' in response[0]['orderid'])
@@ -188,7 +188,7 @@ class TestProductionAPI(unittest.TestCase):
         :return:
         """
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        order = Order.where({'id': order_id})[0]
+        order = Order.find(order_id)
         scene = order.scenes()[0]
         processing_loc = "L8SRLEXAMPLE"
         error = 'GDAL Warp failed to transform'
@@ -203,7 +203,7 @@ class TestProductionAPI(unittest.TestCase):
     @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
     def test_update_product_details_set_product_unavailable(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        order = Order.where({'id': order_id})[0]
+        order = Order.find(order_id)
         scene = order.scenes()[0]
         processing_loc = "L8SRLEXAMPLE"
         error = 'include_dswe is an unavailable product option for OLITIRS'
@@ -218,7 +218,7 @@ class TestProductionAPI(unittest.TestCase):
     @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
     def test_update_product_details_mark_product_complete(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        order = Order.where({'id': order_id})[0]
+        order = Order.find(order_id)
         scene = order.scenes()[0]
         processing_loc = 'L8SRLEXAMPLE'
         file_loc = '/some/loc'
@@ -391,7 +391,7 @@ class TestProductionAPI(unittest.TestCase):
             scene.status = 'submitted'
             scene.sensor_type = 'landsat'
             scene.save()
-        user = User.where("id = {0}".format(self.user_id))[0]
+        user = User.find(self.user_id)
         response = production_provider.update_landsat_product_status(user.contactid)
         self.assertTrue(response)
 

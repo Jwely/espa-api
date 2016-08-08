@@ -136,6 +136,23 @@ api_operations_v0 = {"user": user_api_operations_v0, "production": production_ap
 default_error_message = {"msg": "there's been a problem retrieving your information. admins have been notified"}
 
 
+def format_sql_params(base_sql, params):
+    where_list = list()
+    fields, values = zip(*params.items())
+    for index, value in enumerate(fields):
+        if isinstance(values[index], tuple):
+            _operator = " in "
+        elif " " in value:
+            _operator = ""
+        else:
+            _operator = " = "
+
+        where_list.append(" {} ".format(value) + _operator + " %s ")
+
+    sql = base_sql + " AND ".join(where_list)
+    return sql, values
+
+
 
 
 

@@ -3,6 +3,7 @@
 from api.util.dbconnect import DBConnectException, db_instance
 import psycopg2.extensions as db_extns
 from api.system.logger import ilogger as logger
+from api.domain import format_sql_params
 import datetime
 
 
@@ -192,7 +193,7 @@ class Scene(object):
             raise SceneException(e.message)
 
     @classmethod
-    def where(cls, params, sql_and=None):
+    def where(cls, params):
         """
         Query for a particular row in the ordering_scene table
 
@@ -204,24 +205,15 @@ class Scene(object):
             raise SceneException('Where arguments must be '
                                  'passed as a dictionary')
 
-        fields, values = zip(*params.items())
-        fields = ', '.join(fields)
-
-        sql = '{} (%s) = %s'.format(cls.base_sql)
-
-        if sql_and:
-            sql += ' AND {}'.format(sql_and)
+        sql, values = format_sql_params(cls.base_sql, params)
 
         ret = []
         log_sql = ''
         try:
             with db_instance() as db:
-                log_sql = db.cursor.mogrify(sql, (db_extns.AsIs(fields),
-                                                  values))
+                log_sql = db.cursor.mogrify(sql, values)
                 logger.info('scene.py where sql: {}'.format(log_sql))
-
-                db.select(sql, (db_extns.AsIs(fields), values))
-
+                db.select(sql, values)
                 for i in db:
                     sd = dict(i)
                     del sd['id']
@@ -232,11 +224,14 @@ class Scene(object):
                          'sql: {}'.format(e.message, log_sql))
             raise SceneException(e)
 
-        if not ret:
-            logger.warning('Error where returned no results\n'
-                           'sql: {}'.format(log_sql))
-
         return ret
+
+    @classmethod
+    def by_name_orderid(cls, name, order_id):
+        try:
+            return cls.where({'name': name, 'order_id': order_id})[0]
+        except IndexError:
+            return None
 
     @classmethod
     def find(cls, ids):
@@ -252,11 +247,13 @@ class Scene(object):
                                  "are the only valid arguments for Scene.find()")
 
         if isinstance(ids, list):
+            _single = False
             for item in ids:
                 if not isinstance(item, int):
                     raise SceneException("list members must be of type int for "
                                          "Scene.find(): {0} is not an int".format(item))
         else:
+            _single = True
             ids = [ids]
 
         with db_instance() as db:
@@ -269,7 +266,10 @@ class Scene(object):
                 obj = Scene(**sd)
                 resp.append(obj)
 
-        return resp
+        if _single:
+            return resp[0]
+        else:
+            return resp
 
     @classmethod
     def bulk_update(cls, ids=None, updates=None):

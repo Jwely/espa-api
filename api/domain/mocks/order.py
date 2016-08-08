@@ -32,7 +32,7 @@ class MockOrder(object):
         return "MockOrder:{0}".format(self.__dict__)
 
     def generate_testing_order(self, user_id):
-        user = User.where("id = {0}".format(user_id))[0]
+        user = User.find(user_id)
         # need to monkey with the email, otherwise we get collisions with each
         # test creating a new scratch order with the same user
         rand = str(random.randint(1, 99))
@@ -50,7 +50,7 @@ class MockOrder(object):
             order_id = Order.generate_ee_order_id(email_addr, eeorder)
             scene_info = ee_order[eeorder, email_addr, contactid]
 
-            user = User.where('id = {}'.format(user_id))[0]
+            user = User.find(user_id)
             ts = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
 
             order_dict = {'orderid': order_id,

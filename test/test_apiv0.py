@@ -32,16 +32,16 @@ class TestAPI(unittest.TestCase):
         self.mock_order = MockOrder()
         user_id = self.mock_user.add_testing_user()
         order_id = self.mock_order.generate_testing_order(user_id)
-        self.order = Order.where({'id': order_id})[0]
-        self.user = User.where("id = {0}".format(user_id))[0]
+        self.order = Order.find(order_id)
+        self.user = User.find(user_id)
         self.product_id = 'LT50150401987120XXX02'
         self.staff_product_id = 'LE70450302003206EDC01'
 
         staff_user_id = self.mock_user.add_testing_user()
-        self.staff_user = User.where("id = {0}".format(staff_user_id))[0]
+        self.staff_user = User.find(staff_user_id)
         self.staff_user.update('is_staff', True)
         staff_order_id = self.mock_order.generate_testing_order(staff_user_id)
-        staff_order = Order.where({'id': staff_order_id})[0]
+        staff_order = Order.find(staff_order_id)
         staff_scene = staff_order.scenes()[0]
         staff_scene.update('name', self.staff_product_id)
         user_scene = self.order.scenes()[0]
