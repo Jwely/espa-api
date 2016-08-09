@@ -1,10 +1,10 @@
 from flask import request, make_response, jsonify
 from flask.ext.restful import Api, Resource, reqparse, fields, marshal
 
-from api.interfaces.production.version0 import API
-from api.domain import api_operations_v0, default_error_message
+from api.interfaces.production.version1 import API as APIv1
+from api.domain import production_api_operations, default_error_message
 
-espa = API()
+espa = APIv1()
 
 
 def whitelist(func):
@@ -28,6 +28,21 @@ def whitelist(func):
     return decorated
 
 
+def version_filter(func):
+    """
+    Provide a decorator to enact a version filter on all endpoints
+    """
+    def decorated(*args, **kwargs):
+        versions = production_api_operations.keys()
+        url_version = request.url.split('/')[4].replace('v','')
+        if url_version in versions:
+            return func(*args, **kwargs)
+        else:
+            msg = 'Invalid API version %s' % url_version
+            return make_response(jsonify({'msg': msg}), 404)
+    return decorated
+
+
 def prep_response(response):
     """
     return the correct response code, based on response content
@@ -42,9 +57,17 @@ class ProductionVersion(Resource):
     decorators = [whitelist]
 
     @staticmethod
-    def get():
-        if 'v0' in request.url:
-            resp = api_operations_v0['production']
+    def get(version=None):
+        info_dict = production_api_operations
+
+        if version:
+            if version in info_dict:
+                resp = info_dict[version]
+            else:
+                ver_str = ", ".join(info_dict.keys())
+                err_msg = "%s is not a valid api version, these are: %s" % (version, ver_str)
+                response = {"errmsg": err_msg}
+                return response, 404
         else:
             resp = espa.api_versions()
 
@@ -52,10 +75,10 @@ class ProductionVersion(Resource):
 
 
 class ProductionOperations(Resource):
-    decorators = [whitelist]
+    decorators = [whitelist, version_filter]
 
     @staticmethod
-    def get():
+    def get(version):
         if 'products' in request.url:
             params = request.args.to_dict(flat=True)
             resp = espa.fetch_production_products(params)
@@ -65,7 +88,7 @@ class ProductionOperations(Resource):
         return prep_response(resp)
 
     @staticmethod
-    def post(action=None):
+    def post(version, action=None):
         params = request.get_json(force=True)
         if 'queue-products' in request.url:
             resp = espa.queue_products(**params)
@@ -76,19 +99,19 @@ class ProductionOperations(Resource):
 
 
 class ProductionConfiguration(Resource):
-    decorators = [whitelist]
+    decorators = [whitelist, version_filter]
 
     @staticmethod
-    def get(key):
+    def get(version, key):
         resp = espa.get_production_key(key)
         return prep_response(resp)
 
 
 class ProductionManagement(Resource):
-    decorators = [whitelist]
+    decorators = [whitelist, version_filter]
 
     @staticmethod
-    def get():
+    def get(version):
         if 'handle-orphans' in request.url:
             resp = espa.catch_orphaned_scenes()
             return prep_response(resp)

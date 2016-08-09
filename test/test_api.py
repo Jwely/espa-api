@@ -3,7 +3,7 @@ import unittest
 import yaml
 import copy
 
-from api.interfaces.ordering.version0 import API
+from api.interfaces.ordering.version1 import API as APIv1
 from api.util import lowercase_all
 from api.util.dbconnect import db_instance
 import version0_testorders as testorders
@@ -19,7 +19,7 @@ from api.providers.production.mocks.production_provider import MockProductionPro
 from api.providers.production.production_provider import ProductionProvider
 
 
-api = API()
+api = APIv1()
 production_provider = ProductionProvider()
 mock_production_provider = MockProductionProvider()
 
@@ -59,7 +59,7 @@ class TestAPI(unittest.TestCase):
         os.environ['espa_api_testing'] = ''
 
     def test_api_versions_key_val(self):
-        self.assertEqual(api.api_versions().keys()[0], 'versions')
+        self.assertEqual(set(api.api_versions().keys()), set(['0', '1']))
 
     def test_get_available_products_key_val(self):
         self.assertEqual(api.available_products(self.product_id, self.user.username).keys()[0], "tm5")

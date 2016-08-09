@@ -181,7 +181,10 @@ class OrderingProvider(ProviderInterfaceV0):
             db.select(sql, (str(ordernum)))
             if db:
                 for key, val in db[0].iteritems():
-                    out_dict[key] = val
+                    if isinstance(val, datetime.datetime):
+                        out_dict[key] = val.isoformat()
+                    else:
+                        out_dict[key] = val
                 opts_str = db[0]['product_options']
                 opts_str = opts_str.replace("\n", "")
                 opts_dict = yaml.load(opts_str)
@@ -255,12 +258,11 @@ class OrderingProvider(ProviderInterfaceV0):
             id = items[0]['orderid']
             response['orderid'] = {id: []}
             for item in items:
-                ts = ''
                 try:
-                    # Not always present
-                    ts = item['completion_date'].strftime('%m-%d-%Y %H:%M:%S')
-                except:
-                    pass
+                    ts = item['completion_date'].isoformat()
+                except AttributeError:
+                    # completion_date not yet set
+                    ts = ''
 
                 i = {'scene_id': item['scene_id'],
                      'name': item['name'],

@@ -1,9 +1,9 @@
 import unittest
 import os
 
-from api.interfaces.admin import version0
+from api.interfaces.admin import version1
 
-espa = version0.API()
+espa = version1.API()
 
 
 class TestAdminConfiguration(unittest.TestCase):

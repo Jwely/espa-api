@@ -35,66 +35,66 @@ transport_api.add_resource(VersionInfo,
                            '/api/v<version>')
 
 transport_api.add_resource(AvailableProducts,
-                           '/api/v0/available-products/<prod_id>',
-                           '/api/v0/available-products')
+                           '/api/v<version>/available-products/<prod_id>',
+                           '/api/v<version>/available-products')
 
 transport_api.add_resource(ValidationInfo,
-                           '/api/v0/projections',
-                           '/api/v0/formats',
-                           '/api/v0/resampling-methods',
-                           '/api/v0/order-schema')
+                           '/api/v<version>/projections',
+                           '/api/v<version>/formats',
+                           '/api/v<version>/resampling-methods',
+                           '/api/v<version>/order-schema')
 
 transport_api.add_resource(ListOrders,
-                           '/api/v0/list-orders',
-                           '/api/v0/list-orders/',
-                           '/api/v0/list-orders/<email>',
-                           '/api/v0/list-orders-ext',
-                           '/api/v0/list-orders-ext/',
-                           '/api/v0/list-orders-ext/<email>',
-                           '/api/v0/list-orders-feed/<email>')
+                           '/api/v<version>/list-orders',
+                           '/api/v<version>/list-orders/',
+                           '/api/v<version>/list-orders/<email>',
+                           '/api/v<version>/list-orders-ext',
+                           '/api/v<version>/list-orders-ext/',
+                           '/api/v<version>/list-orders-ext/<email>',
+                           '/api/v<version>/list-orders-feed/<email>')
 
 transport_api.add_resource(Ordering,
-                           '/api/v0/order',
-                           '/api/v0/order/',
-                           '/api/v0/order/<ordernum>',
-                           '/api/v0/order-status/<ordernum>')
+                           '/api/v<version>/order',
+                           '/api/v<version>/order/',
+                           '/api/v<version>/order/<ordernum>',
+                           '/api/v<version>/order-status/<ordernum>')
 
 transport_api.add_resource(UserInfo,
-                           '/api/v0/user',
-                           '/api/v0/user/')
+                           '/api/v<version>/user',
+                           '/api/v<version>/user/')
 
 transport_api.add_resource(ItemStatus,
-                           '/api/v0/item-status/<orderid>',
-                           '/api/v0/item-status/<orderid>/<itemnum>')
+                           '/api/v<version>/item-status/<orderid>',
+                           '/api/v<version>/item-status/<orderid>/<itemnum>')
 
 transport_api.add_resource(Reports,
-                           '/api/v0/reports/',
-                           '/api/v0/reports/<name>/',
-                           '/api/v0/statistics/',
-                           '/api/v0/statistics/<name>')
+                           '/api/v<version>/reports/',
+                           '/api/v<version>/reports/<name>/',
+                           '/api/v<version>/statistics/',
+                           '/api/v<version>/statistics/<name>')
 
 transport_api.add_resource(SystemStatus,
-                           '/api/v0/system-status',
-                           '/api/v0/system-status-update',
-                           '/api/v0/system/config')
+                           '/api/v<version>/system-status',
+                           '/api/v<version>/system-status-update',
+                           '/api/v<version>/system/config')
 
 
 # PRODUCTION facing functionality
 transport_api.add_resource(ProductionVersion,
                            '/production-api',
-                           '/production-api/v0')
+                           '/production-api/v<version>')
 
 transport_api.add_resource(ProductionOperations,
-                           '/production-api/v0/products',
-                           '/production-api/v0/<action>',
-                           '/production-api/v0/handle-orders',
-                           '/production-api/v0/queue-products')
+                           '/production-api/v<version>/products',
+                           '/production-api/v<version>/<action>',
+                           '/production-api/v<version>/handle-orders',
+                           '/production-api/v<version>/queue-products')
 
 transport_api.add_resource(ProductionManagement,
-                           '/production-api/v0/handle-orphans')
+                           '/production-api/v<version>/handle-orphans')
 
 transport_api.add_resource(ProductionConfiguration,
-                           '/production-api/v0/configuration/<key>')
+                           '/production-api/v<version>/configuration/<key>')
 
 
 if __name__ == '__main__':
