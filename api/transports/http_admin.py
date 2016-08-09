@@ -4,9 +4,9 @@ import flask
 import memcache
 import traceback
 
-from api.domain import default_error_message
+from api.domain import default_error_message, admin_api_operations
 
-from api.interfaces.admin.version0 import API
+from api.interfaces.admin.version1 import API as APIv1
 from api.system.logger import ilogger as logger
 from api.domain.user import User
 
@@ -17,9 +17,45 @@ from flask.ext.httpauth import HTTPBasicAuth
 from flask.ext.restful import Resource
 
 
-espa = API()
+espa = APIv1()
 auth = HTTPBasicAuth()
 cache = memcache.Client(['127.0.0.1:11211'], debug=0)
+
+
+def whitelist(func):
+    """
+    Provide a decorator to enact a white filter on an endpoint
+
+    References http://flask.pocoo.org/docs/0.11/deploying/wsgi-standalone/#proxy_setups
+    and http://github.com/mattupsate/flask-security
+    """
+    def decorated(*args, **kwargs):
+        white_ls = espa.get_admin_whitelist()
+        if 'X-Forwarded-For' in request.headers:
+            remote_addr = request.headers.getlist('X-Forwarded-For')[0].rpartition(' ')[-1]
+        else:
+            remote_addr = request.remote_addr or 'untrackable'
+
+        if remote_addr in white_ls:
+            return func(*args, **kwargs)
+        else:
+            return make_response(jsonify({'msg': 'Access Denied'}), 403)
+    return decorated
+
+
+def version_filter(func):
+    """
+    Provide a decorator to enact a version filter on all endpoints
+    """
+    def decorated(*args, **kwargs):
+        versions = admin_api_operations.keys()
+        url_version = request.url.split('/')[4].replace('v','')
+        if url_version in versions:
+            return func(*args, **kwargs)
+        else:
+            msg = 'Invalid API version %s' % url_version
+            return make_response(jsonify({'msg': msg}), 404)
+    return decorated
 
 
 @auth.error_handler
@@ -58,9 +94,10 @@ def verify_user(username, password):
 
 
 class Reports(Resource):
-    decorators = [auth.login_required]
+    decorators = [auth.login_required, whitelist, version_filter]
 
-    def get(self, name=None):
+    @staticmethod
+    def get(version, name=None):
         if 'report' in request.url:
             if name:
                 return espa.get_report(name)
@@ -75,15 +112,17 @@ class Reports(Resource):
 
 
 class SystemStatus(Resource):
-    decorators = [auth.login_required]
+    decorators = [auth.login_required, whitelist, version_filter]
 
-    def get(self):
+    @staticmethod
+    def get(version):
         if 'config' in request.url:
             return jsonify(espa.get_system_config())
         else:
             return jsonify(espa.get_system_status())
 
-    def post(self):
+    @staticmethod
+    def post(version):
         data = request.get_json(force=True)
         try:
             response = espa.update_system_status(data)

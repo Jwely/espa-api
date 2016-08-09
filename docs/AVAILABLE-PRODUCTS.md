@@ -1,3 +1,6 @@
+## Determining product availability by input is best done by making
+## a request to api/v1/available-products
+
 ## Output Product Availability By Input Type
 ### Level 1 Data
 |  | Original Level 1 Data | Original Level 1 Metadata | Customized Level 1 Data |

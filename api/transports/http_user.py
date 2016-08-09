@@ -3,8 +3,8 @@
 import flask
 import memcache
 
-from api.interfaces.ordering.version0 import API
-from api.domain import api_operations_v0
+from api.interfaces.ordering.version1 import API as APIv1
+from api.domain import user_api_operations
 from api.system.logger import ilogger as logger
 from api.util import api_cfg
 from api.util import lowercase_all
@@ -20,7 +20,7 @@ from werkzeug.exceptions import BadRequest
 
 from functools import wraps
 
-espa = API()
+espa = APIv1()
 auth = HTTPBasicAuth()
 cache = memcache.Client(['127.0.0.1:11211'], debug=0)
 
@@ -54,6 +54,21 @@ def greylist(func):
                 return denied_response
 
         return func(*args, **kwargs)
+    return decorated
+
+
+def version_filter(func):
+    """
+    Provide a decorator to enact a version filter on all endpoints
+    """
+    def decorated(*args, **kwargs):
+        versions = user_api_operations.keys()
+        url_version = request.url.split('/')[4].replace('v', '')
+        if url_version in versions:
+            return func(*args, **kwargs)
+        else:
+            msg = 'Invalid API version %s' % url_version
+            return make_response(jsonify({'msg', msg}), 404)
     return decorated
 
 
@@ -96,7 +111,8 @@ def verify_user(username, password):
 class Index(Resource):
     decorators = [greylist]
 
-    def get(self):
+    @staticmethod
+    def get():
         return 'Welcome to the ESPA API, please direct requests to /api'
 
 
@@ -104,7 +120,7 @@ class VersionInfo(Resource):
     decorators = [auth.login_required, greylist]
 
     def get(self, version=None):
-        info_dict = api_operations_v0['user']
+        info_dict = user_api_operations
 
         if version:
             if version in info_dict:
@@ -123,21 +139,23 @@ class VersionInfo(Resource):
 
 
 class AvailableProducts(Resource):
-    decorators = [auth.login_required, greylist]
+    decorators = [auth.login_required, greylist, version_filter]
 
-    def post(self):
+    @staticmethod
+    def post(version):
         prod_list = request.get_json(force=True)['inputs']
         return espa.available_products(prod_list, auth.username())
 
-    def get(self, prod_id):
+    @staticmethod
+    def get(version, prod_id):
         return espa.available_products(prod_id, auth.username())
 
 
 class ListOrders(Resource):
-    decorators = [auth.login_required, greylist]
+    decorators = [auth.login_required, greylist, version_filter]
 
-
-    def get(self, email=None):
+    @staticmethod
+    def get(version, email=None):
         try:
             filters = request.get_json(force=True)
         except:
@@ -159,9 +177,10 @@ class ListOrders(Resource):
 
 
 class ValidationInfo(Resource):
-    decorators = [auth.login_required, greylist]
+    decorators = [auth.login_required, greylist, version_filter]
 
-    def get(self):
+    @staticmethod
+    def get(version):
         param = request.url
         response = None
 
@@ -178,15 +197,17 @@ class ValidationInfo(Resource):
 
 
 class Ordering(Resource):
-    decorators = [auth.login_required, greylist]
+    decorators = [auth.login_required, greylist, version_filter]
 
-    def get(self, ordernum):
+    @staticmethod
+    def get(version, ordernum):
         if 'order-status' in request.url:
             return espa.order_status(ordernum)
         else:
             return jsonify(espa.fetch_order(ordernum))
 
-    def post(self):
+    @staticmethod
+    def post(version):
         try:
             user = flask.g.user
             order = request.get_json(force=True)
@@ -223,15 +244,17 @@ class Ordering(Resource):
 
 
 class UserInfo(Resource):
-    decorators = [auth.login_required, greylist]
+    decorators = [auth.login_required, greylist, version_filter]
 
-    def get(self):
+    @staticmethod
+    def get(version):
         return flask.g.user.as_dict()
 
 
 class ItemStatus(Resource):
-    decorators = [auth.login_required, greylist]
+    decorators = [auth.login_required, greylist, version_filter]
 
-    def get(self, orderid, itemnum='ALL'):
+    @staticmethod
+    def get(version, orderid, itemnum='ALL'):
         return espa.item_status(orderid, itemnum)
 
