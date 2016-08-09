@@ -545,7 +545,7 @@ Returns:
 **GET /api/v0/order-schema**
  
 Retrieves order schema definition
-```json
+```javascript
 curl --user username:password https://espa.cr.usgs.gov/api/v0/order-schema
 
 {"oneormoreobjects": ["myd09gq",
