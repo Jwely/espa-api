@@ -417,9 +417,9 @@ Retrieves details for a submitted order. Some information may be omitted from th
 ```json
 curl --user username:password https://espa.cr.usgs.gov/api/v0/order/production@usgs.gov-03072016-081013
 {
-  "completion_date": "Mon, 07 Mar 2016 08:11:01 GMT",
+  "completion_date": "2016-08-01T14:47:08.589621",
   "note": "",
-  "order_date": "Mon, 07 Mar 2016 08:10:13 GMT",
+  "order_date": "2016-08-01T14:17:48.589621",
   "order_source": "espa",
   "order_type": "level2_ondemand",
   "orderid": "production@usgs.gov-03072016-081013",
@@ -451,7 +451,7 @@ curl --user username:password https://espa.cr.usgs.gov/api/v0/item-status/produc
              "production@usgs.gov-07282016-135122": [
                 {
                        "cksum_download_url": "http://espa.cr.usgs.gov/orders/production@usgs.gov-07282016-135122/LO82111132014063-SC20160728135757.md5",
-                       "completion_date": "07-28-2016 14:06:54",
+                       "completion_date": "2016-08-01T14:17:08.589621",
                        "log_file_contents": "",
                        "name": "LO82111132014063LGN00",
                        "note": "",
@@ -460,7 +460,7 @@ curl --user username:password https://espa.cr.usgs.gov/api/v0/item-status/produc
                 },
                 {
                        "cksum_download_url": "http://espa.cr.usgs.gov/orders/production@usgs.gov-08042016-120321-382/LT50190392010051-SC20160804121126.md5",
-                       "completion_date": "08-04-2016 12:15:04",
+                       "completion_date": "2016-08-01T14:17:08.589621",
                        "log_file_contents": "",
                        "name": "LT50190392010051GNC01",
                        "note": "",
@@ -485,7 +485,7 @@ curl --user username:password https://espa.cr.usgs.gov/api/v0/item-status/produc
              "production@usgs.gov-07282016-135122": [
                 {
                        "cksum_download_url": "http://espa.cr.usgs.gov/orders/production@usgs.gov-07282016-135122/LO82111132014063-SC20160728135757.md5",
-                       "completion_date": "07-28-2016 14:06:54",
+                       "completion_date": "2016-08-01T14:17:08.589621",
                        "log_file_contents": "",
                        "name": "LO82111132014063LGN00",
                        "note": "",
