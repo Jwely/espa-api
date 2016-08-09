@@ -1075,7 +1075,7 @@ curl --user username:password https://espa.cr.usgs.gov/api/v0/order-schema
                                                         "restricted": True,
                                                         "stats": True,
                                                         "type": "array",
-                                                        "uniqueItems": True}},
+                                                        "uniqueItems": "True"}},
                           "type": "object"}},
  "set_ItemCount": ["inputs", 5000],
  "type": "object"}
