@@ -127,42 +127,6 @@ class OrderingProvider(ProviderInterfaceV0):
         out_dict['orders'] = orders
         return out_dict
 
-        # with db_instance() as db:
-        #     user_sql = "select id, username, email from auth_user where " \
-        #                "email = %s OR username = %s;"
-        #     db.select(user_sql, (uid, uid))
-        #     # username uniqueness enforced on the db
-        #     # not the case for emails though
-        #     if db:
-        #         user_ids = [db[ind][0] for ind, val in enumerate(db)]
-        #     else:
-        #         return {"msg": "sorry, no user matched {0}".format(uid)}
-        #
-        #     if user_ids:
-        #         user_tup = tuple([str(idv) for idv in user_ids])
-        #
-        #         sql = "select orderid from ordering_order where user_id in %(user_tup)s"
-        #         params = {'user_tup': user_tup}
-        #
-        #         if filters:
-        #             for key, val in filters.iteritems():
-        #                 if isinstance(val, list):
-        #                     val = tuple([v for v in val])
-        #                     op = " IN "
-        #                 else:
-        #                     op = " = "
-        #
-        #                 params[key] = val
-        #                 sql += " AND {0} {1} %({0})s ".format(key, op)
-        #
-        #         db.select(sql + ' order by order_date desc', params)
-        #
-        #         if db:
-        #             order_list = [item[0] for item in db]
-        #
-        # out_dict["orders"] = order_list
-        # return out_dict
-
     def fetch_user_orders_ext(self, uid, filters={}):
         orders = self.fetch_user_orders(uid, filters=filters)
         if 'orders' not in orders.keys():
