@@ -198,7 +198,6 @@ class Scene(object):
         Query for a particular row in the ordering_scene table
 
         :param params: dictionary of column: value parameter to select on
-        :param sql_and: custom query parameter for anything besides =
         :return: list of matching Scene objects
         """
         if not isinstance(params, dict):
