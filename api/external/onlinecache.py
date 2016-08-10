@@ -63,7 +63,7 @@ class OnlineCache(object):
         except OnlineCacheException:
             # in the event /lustre is mounted to an NFS system
             logger.info("onlinecache delete, chattr error, attempting chmod instead...")
-            self.execute_command('sudo chmod -R 644 {0};rm -rf {0}'.format(path))
+            self.execute_command('chmod -R 644 {0};rm -rf {0}'.format(path))
 
         return True
 
