@@ -58,8 +58,12 @@ class OnlineCache(object):
 
         # this should be the dir where the order is held
         logger.info('Deleting {} from online cache'.format(path))
-
-        self.execute_command('sudo chattr -fR -i {0};rm -rf {0}'.format(path))
+        try:
+            self.execute_command('sudo chattr -fR -i {0};rm -rf {0}'.format(path))
+        except OnlineCacheException:
+            # in the event /lustre is mounted to an NFS system
+            logger.info("onlinecache delete, chattr error, attempting chmod instead...")
+            self.execute_command('sudo chmod -R 644 {0};rm -rf {0}'.format(path))
 
         return True
 
