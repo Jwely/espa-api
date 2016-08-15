@@ -592,9 +592,6 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                                                      contactid)
                     user = User.where('id = {}'.format(db_id))[0]
 
-                    if not user.contactid:
-                        user.update('contactid', contactid)
-
                     cache.set(cache_key, user, 60)
 
                 # We have a user now.  Now build the new Order since it
