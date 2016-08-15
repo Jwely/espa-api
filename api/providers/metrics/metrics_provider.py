@@ -1,4 +1,5 @@
 import re
+import os
 import datetime
 import urllib2
 import gzip
@@ -17,9 +18,12 @@ class MetricsProviderException(Exception):
 
 
 class MetricsProvider(MetricsProviderInterface):
-    config = ConfigurationProvider()
-    sensor_keys = SensorCONST.instances.keys()
-    log_file = 'espa.cr.usgs.gov-access_log-{}.gz'
+    def __init__(self):
+        self.config = ConfigurationProvider()
+        self.sensor_keys = SensorCONST.instances.keys()
+
+        self.user = self.config.get('landsatds.username')
+        self.pw = self.config.get('landsatds.password')
 
     def previous_month(self):
         """
@@ -30,17 +34,14 @@ class MetricsProvider(MetricsProviderInterface):
         sender = self.config.get('email.espa_address').split(',')
 
         msg = ''
-        rng = self.date_range()
-        subject = 'LSRD ESPA Metrics for {0} to {1}'.format(rng[0], rng[1])
+        begin_date, end_date = self.date_range()
+        subject = 'LSRD ESPA Metrics for {0} to {1}'.format(begin_date,
+                                                            end_date)
 
         try:
-            # Fetch the web log
-
-            utils.fetch_web_log(cfg, REMOTE_LOG, LOCAL_LOG, env)
-
-            # Process the web log file
-            infodict, order_paths = calc_dlinfo(LOCAL_LOG, rng[0], rng[1])
-            msg = self.download_boiler(infodict)
+            # Fetch and process the web logs
+            infodict, order_paths = self.process_weblogs(begin_date,
+                                                         end_date)
 
             # Downloads by Product
             orders_scenes = self.extract_orderid(order_paths)
@@ -76,6 +77,46 @@ class MetricsProvider(MetricsProviderInterface):
 
             if os.path.exists(LOCAL_LOG):
                 os.remove(LOCAL_LOG)
+
+    def process_weblogs(self, begin_date, end_date):
+        """
+        Retrieve the weblogs from the remote servers, then process them
+        to determine what and how much was downloaded
+
+        :return:
+        """
+        infodict = {'tot_dl': 0,
+                    'tot_vol': 0.0}
+        order_paths = []
+
+        logs = self.config.url_for('weblogs').split(',')
+        local_path = self.config.url_for('tmp')
+        for log in logs:
+            host, remote_path = log.split(':')
+            remote_log = remote_path.format(datetime.datetime
+                                            .today()
+                                            .replace(day=1)
+                                            .strftime('%Y%m01'))
+
+            local_log = os.path.join(local_path,
+                                     os.path.split(remote_log)[-1])
+
+            with RemoteHost(host=host, user=self.user, pw=self.pw) as r:
+                r.get(remote_log, local_log)
+
+            info, order_p = self.calc_dlinfo(local_log,
+                                                     begin_date,
+                                                     end_date)
+
+            for k in infodict:
+                infodict[k] += info[k]
+
+            order_paths.extend(order_p)
+
+            os.remove(local_log)
+
+        return infodict, order_paths
+
 
     @staticmethod
     def download_boiler(info):
