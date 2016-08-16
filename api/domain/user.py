@@ -3,20 +3,21 @@ import time
 import traceback
 import datetime
 
-
-from api.external import lta
-from api.util.dbconnect import db_instance, DBConnectException
-from api.domain import format_sql_params
+from passlib.hash import pbkdf2_sha256
 from validate_email import validate_email
 
+from api.domain import format_sql_params
+from api.domain.order import Order
+from api.domain.scene import Scene
+from api.external import lta
 from api.providers.configuration.configuration_provider import ConfigurationProvider
-
-from passlib.hash import pbkdf2_sha256
-
 from api.system.logger import ilogger as logger
+from api.util.dbconnect import db_instance, DBConnectException
+
 
 class UserException(Exception):
     pass
+
 
 class User(object):
 
@@ -260,4 +261,8 @@ class User(object):
                 "last_name": self.last_name,
                 "username": self.username,
                 "roles": self.role_list()}
+
+    def active_hadoop_job_names(self):
+        order_ids = tuple([o.id for o in Order.where({'status': 'ordered', 'user_id': self.id})])
+        return [s.job_name for s in Scene.where({'status': ('processing', 'queued'), 'order_id': order_ids})]
 
