@@ -43,6 +43,7 @@ class Errors(object):
         self.conditions.append(self.sixs_errors)
         self.conditions.append(self.ssh_errors)
         self.conditions.append(self.warp_errors)
+        self.conditions.append(self.node_space_errors)
 
         #construct the named tuple for the return value of this module
         self.resolution = collections.namedtuple('ErrorResolution',
@@ -257,6 +258,13 @@ class Errors(object):
         status = 'unavailable'
         reason = 'Scene partially or completely outside NARR data bounds'
         return self.__find_error(error_message, keys, status, reason)
+
+    def node_space_errors(self, error_message):
+        keys = ['Error: write_raw_binary', 'Error writing the output']
+        status = 'retry'
+        reason = 'Error writing to disk on processing node, retrying'
+        extras = self.__add_retry('node_space_errors')
+        return self.__find_error(error_message, keys, status, reason, extras)
 
 
 def resolve(error_message, name):
