@@ -23,6 +23,7 @@ from api.providers.ordering.mocks.ordering_provider import MockOrderingProvider
 mock_api = MockAPI()
 mock_ordering_provider = MockOrderingProvider()
 
+
 class TransportTestCase(unittest.TestCase):
 
     def setUp(self):
@@ -30,8 +31,8 @@ class TransportTestCase(unittest.TestCase):
         # create a user
         self.mock_user = MockUser()
         self.mock_order = MockOrder()
-        self.user_id = self.mock_user.add_testing_user()
-        self.order_id = self.mock_order.generate_testing_order(self.user_id)
+        self.user = User.find(self.mock_user.add_testing_user())
+        self.order_id = self.mock_order.generate_testing_order(self.user.id)
 
         cfg = ConfigurationProvider()
         self.app = http.app.test_client()
@@ -39,13 +40,9 @@ class TransportTestCase(unittest.TestCase):
 
         self.sceneids = self.mock_order.scene_names_list(self.order_id)[0:2]
 
-        self.user = User.where("id = {0}".format(self.user_id))[0]
-
         token = ''.format(self.user.username, 'foo')
         auth_string = "Basic {}".format(base64.b64encode(token))
         self.headers = {"Authorization": auth_string}
-
-        self.user.email
 
         with db_instance() as db:
             uidsql = "select user_id, orderid from ordering_order limit 1;"

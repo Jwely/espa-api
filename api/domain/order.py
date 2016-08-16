@@ -6,7 +6,7 @@ import copy
 from api.util.dbconnect import DBConnectException, db_instance
 import psycopg2.extensions as db_extns
 from api.domain.scene import Scene, SceneException
-from api.domain import sensor
+from api.domain import sensor, format_sql_params
 from api.system.logger import ilogger as logger
 from psycopg2.extras import Json
 
@@ -183,35 +183,27 @@ class Order(object):
         return order
 
     @classmethod
-    def where(cls, params, sql_and=None):
+    def where(cls, params):
         """
         Query for a particular row in the ordering_oder table
 
         :param params: dictionary of column: value parameter to select on
-        :param sql_and: custom query parameter for anything besides =
         :return: list of matching Order objects
         """
         if not isinstance(params, dict):
             raise OrderException('Where arguments must be '
                                  'passed as a dictionary')
 
-        fields, values = zip(*params.items())
-        fields = ', '.join(fields)
-
-        sql = '{} (%s) = %s'.format(cls.base_sql)
-
-        if sql_and:
-            sql += ' AND {}'.format(sql_and)
+        sql, values = format_sql_params(cls.base_sql, params)
 
         ret = []
         log_sql = ''
         try:
             with db_instance() as db:
-                log_sql = db.cursor.mogrify(sql, (db_extns.AsIs(fields),
-                                                  values))
+                log_sql = db.cursor.mogrify(sql, values)
                 logger.info('order.py where sql: {}'.format(log_sql))
 
-                db.select(sql, (db_extns.AsIs(fields), values))
+                db.select(sql, values)
 
                 for i in db:
                     od = dict(i)
@@ -259,7 +251,7 @@ class Order(object):
         scene_list = []
         user_orders = Order.where({'user_id': user_id})
         for order in user_orders:
-            scenes = order.scenes(sql_and=params)
+            scenes = order.scenes(params)
             if scenes:
                 for i in scenes:
                     scene_list.append(i)
@@ -544,13 +536,12 @@ class Order(object):
 
         return self.__getattribute__(att)
 
-    def scenes(self, sql_dict=None, sql_and=None):
+    def scenes(self, sql_dict=None):
         """
         Retrieve a list of Scene objects related to this
         initialized Order object
 
         :param sql_dict: dictionary object for sql parameters
-        :param sql_and: additional query parameters
         :return: list of Scene objects
         """
         if sql_dict:
@@ -558,7 +549,7 @@ class Order(object):
         else:
             sql_dict = {'order_id': self.id}
 
-        return Scene.where(sql_dict, sql_and=sql_and)
+        return Scene.where(sql_dict)
 
     def scene_status_count(self, status=None):
         sql = "select count(id) from ordering_scene where order_id = %s"

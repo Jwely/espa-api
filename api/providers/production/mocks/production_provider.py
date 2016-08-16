@@ -23,7 +23,7 @@ class MockProductionProvider(object):
         return True
 
     def contact_ids_list(self):
-        users = User.where("id > 0")
+        users = User.where({'id >': 0})
         return [u.contactid for u in users]
 
     def get_products_to_process_inputs(self, record_limit=500,
