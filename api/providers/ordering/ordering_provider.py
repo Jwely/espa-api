@@ -104,8 +104,6 @@ class OrderingProvider(ProviderInterfaceV0):
         # deal with unicode uid
         if isinstance(uid, basestring):
             uid = str(uid)
-        order_list = []
-        out_dict = {}
 
         try:
             user = User.where({'username': uid}).pop()
@@ -123,9 +121,7 @@ class OrderingProvider(ProviderInterfaceV0):
         else:
             params = {'user_id': user.id}
 
-        orders = Order.where(params)
-        out_dict['orders'] = orders
-        return out_dict
+        return {'orders': [o.orderid for o in Order.where(params)]}
 
     def fetch_user_orders_ext(self, uid, filters={}):
         orders = self.fetch_user_orders(uid, filters=filters)

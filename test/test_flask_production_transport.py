@@ -27,15 +27,12 @@ class ProductionTransportTestCase(unittest.TestCase):
         self.mock_user = MockUser()
         self.mock_order = MockOrder()
         self.user = User.find(self.mock_user.add_testing_user())
-        #self.user_id = self.mock_user.add_testing_user()
         self.order_id = self.mock_order.generate_testing_order(self.user.id)
 
         self.app = http.app.test_client()
         self.app.testing = True
 
         self.sceneids = self.mock_order.scene_names_list(self.order_id)[0:2]
-
-        #self.user = User.find(self.user_id)
 
         with db_instance() as db:
             uidsql = "select user_id, orderid from ordering_order limit 1;"
@@ -108,7 +105,6 @@ class ProductionTransportTestCase(unittest.TestCase):
                     'processing_loc': 'update_status', 'status': 'updated'}
         response = self.app.post(url, data=json.dumps(data_dict), environ_base={'REMOTE_ADDR': '127.0.0.1'})
         response_data = json.loads(response.get_data())
-        print "** response_data", response_data
         assert response_data == data_dict
 
     @patch('api.providers.production.production_provider.ProductionProvider.set_product_error',

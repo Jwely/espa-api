@@ -111,9 +111,7 @@ class TransportTestCase(unittest.TestCase):
         # email param comes in as unicode
         url = "/api/v1/list-orders/" + str(self.user.email)
         response = self.app.get(url, headers=self.headers, environ_base={'REMOTE_ADDR': '127.0.0.1'})
-        print "** response: ", response
         resp_json = json.loads(response.get_data())
-        print "** resp_json: ", resp_json
         assert resp_json.keys() == ['orders']
 
     @patch('api.domain.user.User.get', MockUser.get)

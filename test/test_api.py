@@ -198,7 +198,7 @@ class TestValidation(unittest.TestCase):
                         self.fail('\n{} Exception was not raised\n'
                                   '\nExpected exception message:\n{}\n'
                                   '\nUsing test: {}'.format(exc_type, str(exc), test))
-        print c  # For initial debugging
+        #print c  # For initial debugging
 
 
 class TestInventory(unittest.TestCase):

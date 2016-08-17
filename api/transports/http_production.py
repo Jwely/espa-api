@@ -21,9 +21,6 @@ def whitelist(func):
         else:
             remote_addr = request.remote_addr or 'untrackable'
 
-        print "** remote_addr", remote_addr
-        print "** white_ls", white_ls
-
         if remote_addr in white_ls:
             return func(*args, **kwargs)
         else:
