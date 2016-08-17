@@ -171,7 +171,9 @@ class ListOrders(Resource):
             return espa.fetch_user_orders_feed(email)
         else:
             if email:
-                return espa.fetch_user_orders(str(email))
+                r = espa.fetch_user_orders(str(email))
+                print "** r: ", r
+                return r
             else:
                 return espa.fetch_user_orders(auth.username())
 

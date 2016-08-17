@@ -95,6 +95,7 @@ class API(object):
         """
         try:
             response = self.ordering.fetch_user_orders(user_id, filters=filters)
+            print "** response: ", response
         except:
             logger.debug("ERR version1 fetch_user_orders arg: {0}\nexception {1}".format(user_id, traceback.format_exc()))
             response = default_error_message

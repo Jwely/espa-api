@@ -17,7 +17,6 @@ from api.domain.mocks.order import MockOrder
 from api.domain.mocks.user import MockUser
 
 from api.interfaces.ordering.mocks.version0 import MockAPI
-from api.providers.configuration.configuration_provider import ConfigurationProvider
 from api.providers.ordering.mocks.ordering_provider import MockOrderingProvider
 
 mock_api = MockAPI()
@@ -34,7 +33,6 @@ class TransportTestCase(unittest.TestCase):
         self.user = User.find(self.mock_user.add_testing_user())
         self.order_id = self.mock_order.generate_testing_order(self.user.id)
 
-        cfg = ConfigurationProvider()
         self.app = http.app.test_client()
         self.app.testing = True
 
@@ -113,7 +111,9 @@ class TransportTestCase(unittest.TestCase):
         # email param comes in as unicode
         url = "/api/v1/list-orders/" + str(self.user.email)
         response = self.app.get(url, headers=self.headers, environ_base={'REMOTE_ADDR': '127.0.0.1'})
+        print "** response: ", response
         resp_json = json.loads(response.get_data())
+        print "** resp_json: ", resp_json
         assert resp_json.keys() == ['orders']
 
     @patch('api.domain.user.User.get', MockUser.get)

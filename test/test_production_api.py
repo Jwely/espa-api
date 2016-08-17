@@ -187,17 +187,13 @@ class TestProductionAPI(unittest.TestCase):
         Set a scene status to error
         :return:
         """
-        order_id = self.mock_order.generate_testing_order(self.user_id)
-        order = Order.find(order_id)
+        order = Order.find(self.mock_order.generate_testing_order(self.user_id))
         scene = order.scenes()[0]
-        processing_loc = "L8SRLEXAMPLE"
-        error = 'GDAL Warp failed to transform'
-        response = production_provider.update_product('set_product_error',
-                                                      name=scene.name, orderid=order.orderid,
-                                                      processing_loc=processing_loc, error=error)
-
-        new = Scene.get('ordering_scene.status', scene.name, order.orderid)
-        self.assertTrue('error' == new)
+        production_provider.update_product('set_product_error',
+                                           name=scene.name, orderid=order.orderid,
+                                           processing_loc="L8SRLEXAMPLE",
+                                           error='GDAL Warp failed to transform')
+        self.assertTrue(Scene.find(scene.id).status == 'error')
 
     @patch('api.external.lta.update_order_status', lta.update_order_status)
     @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
