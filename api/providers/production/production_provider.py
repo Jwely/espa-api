@@ -59,7 +59,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             product_tup = tuple(str(p) for p in orders[order])
             order = Order.find(order)
 
-            scenes = {'order_id': order.id, 'name': product_tup}
+            scenes = Scene.where({'order_id': order.id, 'name': product_tup})
             updates = {"status": "queued",
                        "processing_location": processing_location,
                        "log_file_contents": "''",
