@@ -16,7 +16,7 @@ from api.domain.user import User
 from api.domain.mocks.order import MockOrder
 from api.domain.mocks.user import MockUser
 
-from api.interfaces.ordering.mocks.version0 import MockAPI
+from api.interfaces.ordering.mocks.version1 import MockAPI
 from api.providers.ordering.mocks.ordering_provider import MockOrderingProvider
 
 mock_api = MockAPI()

@@ -363,7 +363,15 @@ default_error_message = {"msg": "there's been a problem retrieving your informat
 
 def format_sql_params(base_sql, params):
     where_list = list()
+
+    # params coming in as lists from espa-web (json)
+    # need to be converted to a tuple
+    for key, val in params.iteritems():
+        if isinstance(val, list):
+            params[key] = tuple(val)
+
     fields, values = zip(*params.items())
+
     for index, value in enumerate(fields):
         if isinstance(values[index], tuple):
             _operator = " in "

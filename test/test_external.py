@@ -22,7 +22,7 @@ class TestLTA(unittest.TestCase):
         #    self.assertTrue(resp[item])
 
     @patch('api.external.lta.OrderUpdateServiceClient.update_order', mocklta.return_update_order_resp)
-    @patch('api.external.lta.SoapClient.getAvailableOrders', mocklta.get_available_orders)
+    #@patch('api.external.lta.SoapClient.getAvailableOrders', mocklta.get_available_orders)
     def test_get_available_orders(self):
         pass
         #resp = lta.get_available_orders()

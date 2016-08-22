@@ -9,7 +9,7 @@ from api.domain.order import Order
 from api.domain.scene import Scene
 from api.domain.user import User
 from api.external.mocks import lta, lpdaac, onlinecache, nlaps, hadoop
-from api.interfaces.production.version0 import API
+from api.interfaces.production.version1 import API
 from api.notification import emails
 from api.providers.production.mocks.production_provider import MockProductionProvider
 from api.providers.production.production_provider import ProductionProvider

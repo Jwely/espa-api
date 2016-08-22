@@ -1145,7 +1145,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         cache_key = 'prod_whitelist'
         prodlist = cache.get(cache_key)
         if prodlist is None:
-            logger.info("Regnerating production whitelist...")
+            logger.info("Regenerating production whitelist...")
             # timeout in 6 hours
             timeout = 60 * 60 * 6
             prodlist = list(['127.0.0.1', socket.gethostbyname(socket.gethostname())])
