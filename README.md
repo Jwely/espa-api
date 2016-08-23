@@ -460,7 +460,6 @@ curl --user username:password https://espa.cr.usgs.gov/api/v0/item-status/produc
                 {
                        "cksum_download_url": "http://espa.cr.usgs.gov/orders/production@usgs.gov-08042016-120321-382/LT50190392010051-SC20160804121126.md5",
                        "completion_date": "2016-08-01T14:17:08.589621",
-                       "log_file_contents": "",
                        "name": "LT50190392010051GNC01",
                        "note": "",
                        "product_dload_url": "http://espa.cr.usgs.gov/orders/production@usgs.gov-08042016-120321-382/LT50190392010051-SC20160804121126.tar.gz",
@@ -485,7 +484,6 @@ curl --user username:password https://espa.cr.usgs.gov/api/v0/item-status/produc
                 {
                        "cksum_download_url": "http://espa.cr.usgs.gov/orders/production@usgs.gov-07282016-135122/LO82111132014063-SC20160728135757.md5",
                        "completion_date": "2016-08-01T14:17:08.589621",
-                       "log_file_contents": "",
                        "name": "LO82111132014063LGN00",
                        "note": "",
                        "product_dload_url": "http://espa.cr.usgs.gov/orders/production@usgs.gov-07282016-135122/LO82111132014063-SC20160728135757.tar.gz",
