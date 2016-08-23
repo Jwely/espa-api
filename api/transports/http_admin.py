@@ -66,7 +66,7 @@ def unauthorized():
 @auth.verify_password
 def verify_user(username, password):
     try:
-        cache_key = '{}-credentials'.format(username)
+        cache_key = '{}-credentials'.format(username.replace(' ', '_espa_cred_insert_'))
         cache_entry = cache.get(cache_key)
 
         if cache_entry:

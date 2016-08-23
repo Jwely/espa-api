@@ -233,12 +233,14 @@ class OrderingProvider(ProviderInterfaceV0):
 
         return response
 
-    def item_status(self, orderid, itemid='ALL'):
+    def item_status(self, orderid, itemid='ALL', username=None):
         response = {}
         sql = "select oo.orderid, os.id scene_id, os.name, os.status, os.completion_date, os.note, " \
               "os.product_dload_url, os.cksum_download_url, os.log_file_contents " \
               "from ordering_order oo left join ordering_scene os on oo.id = " \
               "os.order_id where oo.orderid = %s"
+        user = User.by_username(username)
+
         if itemid is not "ALL":
             argtup = (orderid, itemid)
             sql += " AND os.name = %s;"
@@ -266,8 +268,11 @@ class OrderingProvider(ProviderInterfaceV0):
                      'completion_date': ts,
                      'note': item['note'],
                      'product_dload_url': item['product_dload_url'],
-                     'cksum_download_url': item['cksum_download_url'],
-                     'log_file_contents': item['log_file_contents']}
+                     'cksum_download_url': item['cksum_download_url']}
+
+                if user and user.is_staff():
+                    i['log_file_contents'] = item['log_file_contents']
+
                 response['orderid'][id].append(i)
         else:
             response['msg'] = 'sorry, no items matched orderid %s , itemid %s' % (orderid, itemid)

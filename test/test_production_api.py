@@ -181,7 +181,7 @@ class TestProductionAPI(unittest.TestCase):
 
     @patch('api.external.lta.update_order_status', lta.update_order_status)
     @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
-    # @patch('api.external.onlinecache.capacity', onlinecache.capacity)
+    @patch('api.external.onlinecache.capacity', onlinecache.capacity)
     def test_update_product_details_set_product_error(self):
         """
         Set a scene status to error
