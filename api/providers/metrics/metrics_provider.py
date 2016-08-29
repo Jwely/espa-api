@@ -5,12 +5,15 @@ import urllib2
 import gzip
 import calendar
 from collections import defaultdict
+import traceback
 
 from api.providers.metrics import MetricsProviderInterface
 from api.providers.configuration.configuration_provider import ConfigurationProvider
 from api.util.dbconnect import db_instance
 from api.domain.sensor import SensorCONST
 from api.util.sshcmd import RemoteHost
+from api.system.logger import ilogger as logger
+from api import util
 
 
 class MetricsProviderException(Exception):
@@ -18,6 +21,8 @@ class MetricsProviderException(Exception):
 
 
 class MetricsProvider(MetricsProviderInterface):
+    _order_sources = ('espa', 'ee')
+
     def __init__(self):
         self.config = ConfigurationProvider()
         self.sensor_keys = SensorCONST.instances.keys()
@@ -30,7 +35,7 @@ class MetricsProvider(MetricsProviderInterface):
         Put together metrics for the previous month then
         email the results out
         """
-        recieve = self.config.get('email.stats_notification').split(',')
+        receive = self.config.get('email.stats_notification').split(',')
         sender = self.config.get('email.espa_address').split(',')
 
         msg = ''
@@ -49,34 +54,30 @@ class MetricsProvider(MetricsProviderInterface):
             if not orders_scenes:
                 raise ValueError
 
-            prod_opts = self.db_dl_prodinfo(cfg, orders_scenes)
+            prod_opts = self.db_dl_prodinfo(orders_scenes)
             infodict = self.tally_product_dls(orders_scenes, prod_opts)
             msg += self.prod_boiler(infodict)
 
             # On-Demand users and orders placed information
-            for source in self.ORDER_SOURCES:
-                infodict = self.db_orderstats(source, rng[0], rng[1], cfg)
-                infodict.update(self.db_scenestats(source, rng[0], rng[1], cfg))
-                infodict['tot_unique'] = self.db_uniquestats(source, rng[0], rng[1], cfg)
+            for source in self._order_sources:
+                infodict = self.db_orderstats(source, begin_date, end_date)
+                infodict.update(self.db_scenestats(source, begin_date, end_date))
+                infodict['tot_unique'] = self.db_uniquestats(source, begin_date, end_date)
                 infodict['who'] = source.upper()
                 msg += self.ondemand_boiler(infodict)
 
             # Orders by Product
-            infodict = self.db_prodinfo(cfg, rng[0], rng[1])
+            infodict = self.db_prodinfo(begin_date, end_date)
             msg += self.prod_boiler(infodict)
 
         except Exception:
-            exc_msg = str(traceback.format_exc()) + '\n\n' + msg
-            utils.send_email(sender, debug, subject, exc_msg)
+            logger.debug('Metrics failed\nException:\n{0}'
+                         .format(str(traceback.format_exc())))
             msg = ('There was an error with statistics processing.\n'
                    'The following have been notified of the error: {0}.'
                    .format(', '.join(debug)))
-            raise
         finally:
-            utils.send_email(sender, receive, subject, msg)
-
-            if os.path.exists(LOCAL_LOG):
-                os.remove(LOCAL_LOG)
+            util.send_email(sender, receive, subject, msg)
 
     def process_weblogs(self, begin_date, end_date):
         """
@@ -204,13 +205,11 @@ class MetricsProvider(MetricsProviderInterface):
                              cloud=info.get('cloud', 0),
                              plot=info.get('plot_statistics', 0))
 
-    def db_prodinfo(self, dbinfo, begin_date, end_date):
+    def db_prodinfo(self, begin_date, end_date):
         """
         Queries the database to build the ordered product counts
         dates are given as ISO 8601 'YYYY-MM-DD'
 
-        :param dbinfo: Database connection information
-        :type dbinfo: dict
         :param begin_date: Date to start the counts on
         :type begin_date: str
         :param end_date: Date to end the counts on
@@ -227,7 +226,7 @@ class MetricsProvider(MetricsProviderInterface):
         with db_instance() as db:
             db.select(sql, (begin_date, end_date))
             results = reduce(self.counts_prodopts,
-                             map(self.process_db_prodopts, [(_[0], _[1], dbinfo) for _ in db]),
+                             map(self.process_db_prodopts, [(_[0], _[1]) for _ in db]),
                              init)
         results['title'] = 'What was Ordered'
         return results
@@ -235,7 +234,6 @@ class MetricsProvider(MetricsProviderInterface):
     def process_db_prodopts(self, args):
         opts = args[0]
         order_id = args[1]
-        dbinfo = args[2]
         ret = defaultdict(int)
 
         with db_instance() as db:
@@ -244,7 +242,6 @@ class MetricsProvider(MetricsProviderInterface):
                       'where order_id = {} '
                       'and name != \'plot\''
                       .format(order_id))
-            count = int(db[0][0])
 
         for key in opts:
             if key in self.sensor_keys:
@@ -260,8 +257,6 @@ class MetricsProvider(MetricsProviderInterface):
                         ret['customized_source_data'] += num
                     else:
                         ret[prod] += num
-        if ret['total'] != count:
-            NOT_COUNTED.append((order_id, count, ret['total']))
         return ret
 
     @staticmethod
@@ -272,7 +267,7 @@ class MetricsProvider(MetricsProviderInterface):
                 ret[k] += v
         return dict(ret)
 
-    def db_dl_prodinfo(self, dbinfo, orders_scenes):
+    def db_dl_prodinfo(self, orders_scenes):
         """
         Queries the database to get the associated product options
 
@@ -403,7 +398,7 @@ class MetricsProvider(MetricsProviderInterface):
             return False
 
     @staticmethod
-    def db_scenestats(source, begin_date, end_date, dbinfo):
+    def db_scenestats(source, begin_date, end_date):
         """
         Queries the database for the number of scenes ordered
         separated by USGS and non-USGS emails
@@ -415,8 +410,6 @@ class MetricsProvider(MetricsProviderInterface):
         :type begin_date: str
         :param end_date: Date to stop the count on
         :type end_date: str
-        :param dbinfo: Database connection information
-        :type dbinfo: dict
         :return: Dictionary of the counts
         """
         sql = ('''select COUNT(*)
@@ -454,7 +447,7 @@ class MetricsProvider(MetricsProviderInterface):
         return counts
 
     @staticmethod
-    def db_orderstats(source, begin_date, end_date, dbinfo):
+    def db_orderstats(source, begin_date, end_date):
         """
         Queries the database to get the total number of orders
         separated by USGS and non-USGS emails
@@ -501,7 +494,7 @@ class MetricsProvider(MetricsProviderInterface):
         return counts
 
     @staticmethod
-    def db_uniquestats(source, begin_date, end_date, dbinfo):
+    def db_uniquestats(source, begin_date, end_date):
         """
         Queries the database to get the total number of unique users
         dates are given as ISO 8601 'YYYY-MM-DD'
@@ -512,8 +505,6 @@ class MetricsProvider(MetricsProviderInterface):
         :type begin_date: str
         :param end_date: Date to stop the count on
         :type end_date: str
-        :param dbinfo: Database connection information
-        :type dbinfo: dict
         :return: Dictionary of the count
         """
         sql = '''select count(distinct(split_part(orderid, '-', 1)))
