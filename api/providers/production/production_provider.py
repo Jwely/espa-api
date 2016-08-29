@@ -767,7 +767,11 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         """
         products = Scene.where({'status': 'onorder', 'tram_order_id IS NOT': None})
 
-        product_tram_ids = [product.tram_order_id for product in products]
+        # lets control how many scenes were going to ping LTA for status updates
+        # every 7 (currently) minutes
+        # tram_order_id is sequential (looks like a timestamp), so we can sort
+        # by that, running with the 'oldest' orders assuming they process FIFO
+        product_tram_ids = sorted([product.tram_order_id for product in products])[:500]
 
         rejected = []
         available = []
