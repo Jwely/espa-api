@@ -776,7 +776,8 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         rejected = []
         available = []
 
-        for tid in product_tram_ids:
+        # converting to a set eliminates duplicate calls to lta
+        for tid in set(product_tram_ids):
             order_status = lta.get_order_status(tid)
 
             # There are a variety of product statuses that come back from tram
