@@ -8,6 +8,8 @@ from api.external.hadoop import HadoopHandler
 from api.system.logger import ilogger as logger
 from api.util.dbconnect import db_instance
 from api.util.dbconnect import DBConnectException
+from api.domain.order import Order
+from api.domain.scene import SceneException
 
 
 class AdministrationProvider(AdminProviderInterfaceV0):
@@ -60,6 +62,23 @@ class AdministrationProvider(AdminProviderInterfaceV0):
             resp = HadoopHandler().kill_job(jobid)
 
         return resp
+
+    def error_to(self, orderid, state):
+        order = Order.find(orderid)
+        err_scenes = order.scenes({'status': 'error'})
+        try:
+            for scene in err_scenes:
+                scene.update('status', state)
+
+            if state == 'submitted':
+                order.status = 'ordered'
+                order.completion_email_sent = None
+                order.save()
+
+            return True
+        except SceneException as e:
+            logger.debug('ERR admin provider error_to\ntrace: {}'.format(e.message))
+            raise AdministrationProviderException('ERR updating with error_to')
 
     @staticmethod
     def get_system_status():

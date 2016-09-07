@@ -771,13 +771,14 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         # every 7 (currently) minutes
         # tram_order_id is sequential (looks like a timestamp), so we can sort
         # by that, running with the 'oldest' orders assuming they process FIFO
-        product_tram_ids = sorted([product.tram_order_id for product in products])[:500]
+        product_tram_ids = set([product.tram_order_id for product in products])
+        sorted_tram_ids = sorted(product_tram_ids)[:500]
 
         rejected = []
         available = []
 
         # converting to a set eliminates duplicate calls to lta
-        for tid in set(product_tram_ids):
+        for tid in sorted_tram_ids:
             order_status = lta.get_order_status(tid)
 
             # There are a variety of product statuses that come back from tram

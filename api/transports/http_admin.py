@@ -142,3 +142,16 @@ class SystemStatus(Resource):
             resp = jsonify(message)
             resp.status_code = 500
             return resp
+
+
+class OrderResets(Resource):
+    decorators = [auth.login_required, whitelist, version_filter]
+
+    @staticmethod
+    def put(version, orderid):
+        # eg 'error_to_unavailable'
+        _to_whole = request.url.split('/')[-2]
+        # eg 'unavailable'
+        _to_state = _to_whole.split('_')[-1]
+        return espa.error_to(orderid, _to_state)
+

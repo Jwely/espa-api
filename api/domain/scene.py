@@ -279,11 +279,6 @@ class Scene(object):
         :param updates: attributes to update
         :return: True
         """
-        if not ids:
-            ids = ()
-        if not updates:
-            updates = {}
-
         if not isinstance(ids, (list, tuple)):
             raise TypeError('Scene.bulk_update ids should be a list')
         if not isinstance(updates, dict):
