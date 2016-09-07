@@ -21,7 +21,7 @@ class Scene(object):
                 'FROM ordering_scene '
                 'WHERE ')
 
-    def __init__(self, name=None, note=None, order_id=None,
+    def __init__(self, id=None, name=None, note=None, order_id=None,
                  product_distro_location=None, product_dload_url=None,
                  cksum_distro_location=None, cksum_download_url=None,
                  status=None, processing_location=None,
@@ -78,17 +78,21 @@ class Scene(object):
         self.reported_orphan = reported_orphan
         self.orphaned = orphaned
 
-        with db_instance() as db:
-            sql = ('select id '
-                   'from ordering_scene where '
-                   'name = %s '
-                   'and order_id = %s')
-            db.select(sql, (self.name, self.order_id))
+        if id:
+            # no need to query the DB again
+            self.id = id
+        else:
+            with db_instance() as db:
+                sql = ('select id '
+                       'from ordering_scene where '
+                       'name = %s '
+                       'and order_id = %s')
+                db.select(sql, (self.name, self.order_id))
 
-            if db:
-                self.id = db[0]['id']
-            else:
-                self.id = None
+                if db:
+                    self.id = db[0]['id']
+                else:
+                    self.id = None
 
     def __repr__(self):
         return 'Scene: {}'.format(self.__dict__)
@@ -215,7 +219,6 @@ class Scene(object):
                 db.select(sql, values)
                 for i in db:
                     sd = dict(i)
-                    del sd['id']
                     obj = Scene(**sd)
                     ret.append(obj)
         except DBConnectException as e:
@@ -261,7 +264,6 @@ class Scene(object):
         if db:
             for i in db:
                 sd = dict(i)
-                del sd['id']
                 obj = Scene(**sd)
                 resp.append(obj)
 

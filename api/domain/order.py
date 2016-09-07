@@ -25,7 +25,7 @@ class Order(object):
     valid_statuses = ('complete', 'queued', 'oncache', 'onorder', 'purged',
                       'processing', 'error', 'unavailable', 'submitted')
 
-    def __init__(self, orderid=None, status=None, order_source=None,
+    def __init__(self, id=None, orderid=None, status=None, order_source=None,
                  order_type=None, product_options=None,
                  product_opts=None, initial_email_sent=None,
                  completion_email_sent=None, note=None,
@@ -69,13 +69,17 @@ class Order(object):
         self.email = email
         self.priority = priority
 
-        with db_instance() as db:
-            sql = 'select id from ordering_order where orderid = %s'
-            db.select(sql, orderid)
-            if db:
-                self.id = db[0]['id']
-            else:
-                self.id = None
+        if id:
+            # no need to query the DB again
+            self.id = id
+        else:
+            with db_instance() as db:
+                sql = 'select id from ordering_order where orderid = %s'
+                db.select(sql, orderid)
+                if db:
+                    self.id = db[0]['id']
+                else:
+                    self.id = None
 
     def __repr__(self):
         return 'Order: {}'.format(self.__dict__)
@@ -207,7 +211,6 @@ class Order(object):
 
                 for i in db:
                     od = dict(i)
-                    del od['id']
                     obj = Order(**od)
                     ret.append(obj)
         except DBConnectException as e:
