@@ -22,10 +22,10 @@ class MetricsProviderException(Exception):
 
 class MetricsProvider(MetricsProviderInterface):
     _order_sources = ('espa', 'ee')
+    sensor_keys = SensorCONST.instances.keys()
 
     def __init__(self):
         self.config = ConfigurationProvider()
-        self.sensor_keys = SensorCONST.instances.keys()
 
         self.user = self.config.get('landsatds.username')
         self.pw = self.config.get('landsatds.password')
@@ -35,8 +35,10 @@ class MetricsProvider(MetricsProviderInterface):
         Put together metrics for the previous month then
         email the results out
         """
-        receive = self.config.get('email.stats_notification').split(',')
+        # receive = self.config.get('email.stats_notification').split(',')
+        receive = ['kelcy.smith.ctr@usgs.gov']
         sender = self.config.get('email.espa_address').split(',')
+        debug = self.config.get('email.stats_debug').split(',')
 
         msg = ''
         begin_date, end_date = self.date_range()
@@ -47,6 +49,8 @@ class MetricsProvider(MetricsProviderInterface):
             # Fetch and process the web logs
             infodict, order_paths = self.process_weblogs(begin_date,
                                                          end_date)
+
+            msg += self.download_boiler(infodict)
 
             # Downloads by Product
             orders_scenes = self.extract_orderid(order_paths)
@@ -91,7 +95,8 @@ class MetricsProvider(MetricsProviderInterface):
         order_paths = []
 
         logs = self.config.url_for('weblogs').split(',')
-        local_path = self.config.url_for('tmp')
+        # local_path = self.config.url_for('tmp')
+        local_path = '/home/klsmith/tmp'
         for log in logs:
             host, remote_path = log.split(':')
             remote_log = remote_path.format(datetime.datetime
@@ -102,22 +107,25 @@ class MetricsProvider(MetricsProviderInterface):
             local_log = os.path.join(local_path,
                                      os.path.split(remote_log)[-1])
 
-            with RemoteHost(host=host, user=self.user, pw=self.pw) as r:
-                r.get(remote_log, local_log)
+            try:
+                with RemoteHost(host=host, user=self.user, pw=self.pw) as r:
+                    r.get(remote_log, local_log)
 
-            info, order_p = self.calc_dlinfo(local_log,
-                                                     begin_date,
-                                                     end_date)
+                info, order_p = self.calc_dlinfo(local_log,
+                                                         begin_date,
+                                                         end_date)
 
-            for k in infodict:
-                infodict[k] += info[k]
+                for k in infodict:
+                    infodict[k] += info[k]
 
-            order_paths.extend(order_p)
+                order_paths.extend(order_p)
 
-            os.remove(local_log)
+                os.remove(local_log)
+            except:
+                logger.debug('Unable to access: {0}\nOn: {1}'
+                             .format(remote_log, host))
 
         return infodict, order_paths
-
 
     @staticmethod
     def download_boiler(info):
@@ -312,7 +320,12 @@ class MetricsProvider(MetricsProviderInterface):
         results = defaultdict(int)
 
         for orderid, scene in orders_scenes:
-            opts = prod_options[urllib2.unquote(orderid)]
+            oid = urllib2.unquote(orderid)
+
+            if oid not in prod_options:
+                continue
+
+            opts = prod_options[oid]
 
             if 'plot_statistics' in opts and opts['plot_statistics']:
                 results['plot_statistics'] += 1
