@@ -6,6 +6,13 @@ Author: David V. Hill
 
 import re
 from api import ProductNotImplemented
+import yaml
+
+# Grab details on product restrictions
+# Do it here, vs during object instantiation,
+# to avoid needless repetition
+with open('api/domain/restricted.yaml') as f:
+    restricted = yaml.load(f.read())
 
 
 class SensorProduct(object):
@@ -227,6 +234,20 @@ class Landsat(SensorProduct):
         self.doy = product_id[13:16]
         self.station = product_id[16:19]
         self.version = product_id[19:21]
+
+    # SR based products are not available for those
+    # dates where we are missing auxiliary data
+    def sr_date_restricted(self):
+        if self.sensor_name:
+            # ['< 2016151 | > 2016164']
+            _rdstr = restricted[self.sensor_name]['by_date']['sr']
+            _yd = "".join([self.year, self.doy])
+            for rng in _rdstr:
+                _rds = rng.split("|")
+                if not eval(" ".join([_yd, _rds[0], 'and', _yd, _rds[1]])):
+                    return True
+        else:
+            return False
 
 
 class LandsatTM(Landsat):
