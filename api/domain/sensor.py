@@ -244,10 +244,12 @@ class Landsat(SensorProduct):
             _yd = "".join([self.year, self.doy])
             for rng in _rdstr:
                 _rds = rng.split("|")
-                if not eval(" ".join([_yd, _rds[0], 'and', _yd, _rds[1]])):
-                    return True
-        else:
-            return False
+                if not eval(" ".join([_yd, _rds[0]])):
+                    # _yd is greater than lower bound
+                    if not eval(" ".join([_yd, _rds[1]])):
+                        # _yd is less than upper bound
+                        return True
+        return False
 
 
 class LandsatTM(Landsat):

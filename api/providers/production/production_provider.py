@@ -637,8 +637,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             status = 'submitted'
             note = ''
             # All EE orders are for SR, require auxiliary data
-            _ps = sensor.instance(product.product_id)
-            if _ps.sr_date_restricted():
+            if product.sr_date_restricted():
                 status = 'unavailable'
                 note = 'auxiliary data unavailable for' \
                        'this scenes acquisition date'
