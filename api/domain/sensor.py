@@ -6,6 +6,7 @@ Author: David V. Hill
 
 import re
 from api import ProductNotImplemented
+from api.util import julian_date_check
 import yaml
 
 # Grab details on product restrictions
@@ -232,23 +233,16 @@ class Landsat(SensorProduct):
         self.row = product_id[6:9].lstrip('0')
         self.year = product_id[9:13]
         self.doy = product_id[13:16]
+        self.julian = product_id[9:16]
         self.station = product_id[16:19]
         self.version = product_id[19:21]
 
     # SR based products are not available for those
     # dates where we are missing auxiliary data
     def sr_date_restricted(self):
-        if self.sensor_name:
-            # ['< 2016151 | > 2016164']
-            _rdstr = restricted[self.sensor_name]['by_date']['sr']
-            _yd = "".join([self.year, self.doy])
-            for rng in _rdstr:
-                _rds = rng.split("|")
-                if not eval(" ".join([_yd, _rds[0]])):
-                    # _yd is greater than lower bound
-                    if not eval(" ".join([_yd, _rds[1]])):
-                        # _yd is less than upper bound
-                        return True
+        if self.sensor_name in restricted:
+            if not julian_date_check(self.julian, restricted[self.sensor_name]['by_date']['sr']):
+                return True
         return False
 
 
