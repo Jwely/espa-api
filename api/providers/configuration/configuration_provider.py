@@ -1,5 +1,6 @@
 import os
 import datetime
+import yaml
 
 from api.util.dbconnect import db_instance
 from api.providers.configuration import ConfigurationProviderInterfaceV0
@@ -129,6 +130,32 @@ class ConfigurationProvider(ConfigurationProviderInterfaceV0):
                 f.write(line.format(key, value))
 
         return path
+
+    def switch_ee_environment(self, environment):
+        if environment not in ('dev', 'tst', 'ops'):
+            raise ConfigurationProviderException('invalid argument value for switch_ee_environment')
+
+        print "****\nWARNING:\nSwitching backend EE/LTA service environments " \
+              "from {} to {}\n****\n".format(self.mode, environment)
+
+        try:
+            with open(self.explorer_yaml) as f:
+                _edict = yaml.load(f.read())
+
+            for key in _edict['env_urls']:
+                _up_key = 'url.' + self.mode + '.' + key
+                _up_val = _edict['env_urls'][key][environment]
+                print _up_key + ' to: ' + _up_val
+                _resp = self.put(_up_key, _up_val)
+                if _resp == {_up_key: _up_val}:
+                    print 'update successful'
+                else:
+                    print 'there was a problem, return value was: {}'.format(_resp)
+        except AttributeError as e:
+            raise ConfigurationProviderException("explorer_yaml not defined in .cfgnfo")
+        except IOError as e:
+            raise ConfigurationProviderException("{} as defined by explorer_yaml in "
+                                                 ".cfgnfo not found".format(self.explorer_yaml))
 
     @staticmethod
     def _retrieve_config():

@@ -8,6 +8,8 @@ from api.external.hadoop import HadoopHandler
 from api.system.logger import ilogger as logger
 from api.util.dbconnect import db_instance
 from api.util.dbconnect import DBConnectException
+from api.domain.order import Order
+from api.domain.scene import SceneException
 
 
 class AdministrationProvider(AdminProviderInterfaceV0):
@@ -61,7 +63,25 @@ class AdministrationProvider(AdminProviderInterfaceV0):
 
         return resp
 
-    def get_system_status(self):
+    def error_to(self, orderid, state):
+        order = Order.find(orderid)
+        err_scenes = order.scenes({'status': 'error'})
+        try:
+            for scene in err_scenes:
+                scene.update('status', state)
+
+            if state == 'submitted':
+                order.status = 'ordered'
+                order.completion_email_sent = None
+                order.save()
+
+            return True
+        except SceneException as e:
+            logger.debug('ERR admin provider error_to\ntrace: {}'.format(e.message))
+            raise AdministrationProviderException('ERR updating with error_to')
+
+    @staticmethod
+    def get_system_status():
         sql = "select key, value from ordering_configuration where " \
               "key in ('msg.system_message_body', 'msg.system_message_title', 'system.display_system_message');"
         with db_instance() as db:
@@ -75,10 +95,13 @@ class AdministrationProvider(AdminProviderInterfaceV0):
         else:
             return {'system_message_body': None, 'system_message_title': None}
 
-    def update_system_status(self, params):
+    @staticmethod
+    def update_system_status(params):
 
         if params.keys().sort() is not ['system_message_title', 'system_message_body', 'display_system_message'].sort():
-            return {'msg': 'Only 3 params are valid, and they must be present: system_message_title, system_message_body, display_system_message'}
+            return {'msg': 'Only 3 params are valid, and they must be present:'
+                           'system_message_title, system_message_body,'
+                           'display_system_message'}
 
         sql_dict = {'msg.system_message_title': params['system_message_title'],
                     'msg.system_message_body': params['system_message_body'],
@@ -97,5 +120,10 @@ class AdministrationProvider(AdminProviderInterfaceV0):
 
         return True
 
-    def get_system_config(self):
+    @staticmethod
+    def get_system_config():
         return ConfigurationProvider()._retrieve_config()
+
+    @staticmethod
+    def admin_whitelist():
+        return ['127.0.0.1']

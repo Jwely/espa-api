@@ -58,8 +58,12 @@ class OnlineCache(object):
 
         # this should be the dir where the order is held
         logger.info('Deleting {} from online cache'.format(path))
-
-        self.execute_command('sudo chattr -fR -i {0};rm -rf {0}'.format(path))
+        try:
+            self.execute_command('sudo chattr -fR -i {0};rm -rf {0}'.format(path))
+        except OnlineCacheException:
+            # in the event /lustre is mounted to an NFS system
+            logger.info("onlinecache delete, chattr error, attempting chmod instead...")
+            self.execute_command('chmod -R 644 {0};rm -rf {0}'.format(path))
 
         return True
 
@@ -82,21 +86,6 @@ class OnlineCache(object):
         ret = tuple(x.rstrip() for x in result['stdout'])
 
         return ret
-
-    def check_orderid(self, orderid):
-        """
-        Verify the format of the order id given
-
-        :param orderid: name to check
-        :return: True if the id passes, otherwise raise an exception
-        """
-        espa_order = r'[A-Za-z0-9._%+-\\\']+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}-[0-9]{6,8}-[0-9]{3,6}'
-        ee_order = r'[A-Za-z0-9._%+-\\\']+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}-[0-9]{13}'
-
-        if not (re.match(espa_order, orderid) or re.match(ee_order, orderid)):
-            raise OnlineCacheException('Invalid Order ID specified')
-
-        return True
 
     def capacity(self):
         """

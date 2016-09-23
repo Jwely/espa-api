@@ -8,8 +8,8 @@ from api.domain.mocks.user import MockUser
 from api.domain.order import Order
 from api.domain.scene import Scene
 from api.domain.user import User
-from api.external.mocks import lta, lpdaac, onlinecache, nlaps
-from api.interfaces.production.version0 import API
+from api.external.mocks import lta, lpdaac, onlinecache, nlaps, hadoop
+from api.interfaces.production.version1 import API
 from api.notification import emails
 from api.providers.production.mocks.production_provider import MockProductionProvider
 from api.providers.production.production_provider import ProductionProvider
@@ -19,6 +19,7 @@ from mock import patch
 api = API()
 production_provider = ProductionProvider()
 mock_production_provider = MockProductionProvider()
+
 
 class TestProductionAPI(unittest.TestCase):
     def setUp(self):
@@ -42,7 +43,7 @@ class TestProductionAPI(unittest.TestCase):
         order_id = self.mock_order.generate_testing_order(self.user_id)
         # need scenes with statuses of 'processing' and 'ordered'
         self.mock_order.update_scenes(order_id, 'status', ['processing', 'ordered', 'oncache'])
-        user = User.where("id = {0}".format(self.user_id))[0]
+        user = User.find(self.user_id)
         params = {'for_user': user.username, 'product_types': ['modis']}
         response = api.fetch_production_products(params)
         self.assertTrue('bilbo' in response[0]['orderid'])
@@ -54,7 +55,7 @@ class TestProductionAPI(unittest.TestCase):
         order_id = self.mock_order.generate_testing_order(self.user_id)
         # need scenes with statuses of 'processing' and 'ordered'
         self.mock_order.update_scenes(order_id, 'status', ['processing','ordered','oncache'])
-        user = User.where("id = {0}".format(self.user_id))[0]
+        user = User.find(self.user_id)
         params = {'for_user': user.username, 'product_types': ['landsat']}
         response = api.fetch_production_products(params)
         self.assertTrue('bilbo' in response[0]['orderid'])
@@ -180,29 +181,25 @@ class TestProductionAPI(unittest.TestCase):
 
     @patch('api.external.lta.update_order_status', lta.update_order_status)
     @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
-    # @patch('api.external.onlinecache.capacity', onlinecache.capacity)
+    @patch('api.external.onlinecache.capacity', onlinecache.capacity)
     def test_update_product_details_set_product_error(self):
         """
         Set a scene status to error
         :return:
         """
-        order_id = self.mock_order.generate_testing_order(self.user_id)
-        order = Order.where({'id': order_id})[0]
+        order = Order.find(self.mock_order.generate_testing_order(self.user_id))
         scene = order.scenes()[0]
-        processing_loc = "L8SRLEXAMPLE"
-        error = 'GDAL Warp failed to transform'
-        response = production_provider.update_product('set_product_error',
-                                                      name=scene.name, orderid=order.orderid,
-                                                      processing_loc=processing_loc, error=error)
-
-        new = Scene.get('ordering_scene.status', scene.name, order.orderid)
-        self.assertTrue('error' == new)
+        production_provider.update_product('set_product_error',
+                                           name=scene.name, orderid=order.orderid,
+                                           processing_loc="L8SRLEXAMPLE",
+                                           error='GDAL Warp failed to transform')
+        self.assertTrue(Scene.find(scene.id).status == 'error')
 
     @patch('api.external.lta.update_order_status', lta.update_order_status)
     @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
     def test_update_product_details_set_product_unavailable(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        order = Order.where({'id': order_id})[0]
+        order = Order.find(order_id)
         scene = order.scenes()[0]
         processing_loc = "L8SRLEXAMPLE"
         error = 'include_dswe is an unavailable product option for OLITIRS'
@@ -217,7 +214,7 @@ class TestProductionAPI(unittest.TestCase):
     @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
     def test_update_product_details_mark_product_complete(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
-        order = Order.where({'id': order_id})[0]
+        order = Order.find(order_id)
         scene = order.scenes()[0]
         processing_loc = 'L8SRLEXAMPLE'
         file_loc = '/some/loc'
@@ -317,6 +314,28 @@ class TestProductionAPI(unittest.TestCase):
     def test_production_load_ee_orders(self):
         production_provider.load_ee_orders()
 
+
+    @patch('api.external.lta.get_available_orders', lta.get_available_orders_partial)
+    @patch('api.external.lta.update_order_status', lta.update_order_status)
+    @patch('api.external.lta.get_user_name', lta.get_user_name)
+    def test_production_load_ee_orders_partial(self):
+        order_id = self.mock_order.generate_ee_testing_order(self.user_id, partial=True)
+
+        order = Order.find(order_id)
+        self.assertTrue(order.product_opts == {'format': 'gtiff',
+                                               'etm7': {'inputs': ['LE70900652008327EDC00'],
+                                                        'products': ['sr']}})
+
+        production_provider.load_ee_orders()
+        order = Order.find(order_id)
+
+        self.assertTrue(order.product_opts == {'format': 'gtiff',
+                                               'etm7': {'inputs': ['LE70900652008327EDC00'],
+                                                        'products': ['sr']},
+                                               'tm5': {'inputs': ['LT50900652008327EDC00'],
+                                                        'products': ['sr']}})
+
+
     @patch('api.providers.production.production_provider.ProductionProvider.handle_submitted_landsat_products',
            mock_production_provider.respond_true)
     @patch('api.providers.production.production_provider.ProductionProvider.handle_submitted_modis_products',
@@ -368,7 +387,7 @@ class TestProductionAPI(unittest.TestCase):
             scene.status = 'submitted'
             scene.sensor_type = 'landsat'
             scene.save()
-        user = User.where("id = {0}".format(self.user_id))[0]
+        user = User.find(self.user_id)
         response = production_provider.update_landsat_product_status(user.contactid)
         self.assertTrue(response)
 
@@ -481,7 +500,26 @@ class TestProductionAPI(unittest.TestCase):
         response = api.get_production_key(bad_key)
         self.assertEqual(response.keys(), ['msg'])
 
+    @patch('api.external.hadoop.HadoopHandler.job_names_ids',
+           hadoop.jobs_names_ids)
+    def test_catch_orphaned_scenes(self):
+        order_id = self.mock_order.generate_testing_order(self.user_id)
+        # need scenes with statuses of 'queued'
+        self.mock_order.update_scenes(order_id, 'status', ['queued'])
+        response = production_provider.catch_orphaned_scenes()
+        self.assertTrue(response)
 
+        old_time = datetime.datetime.now() - datetime.timedelta(minutes=15)
+
+        for s in Scene.where({'order_id': order_id}):
+            self.assertTrue(s.reported_orphan is not None)
+            s.reported_orphan = old_time
+            s.save()
+
+        response = production_provider.catch_orphaned_scenes()
+        self.assertTrue(response)
+        for s in Scene.where({'order_id': order_id}):
+            self.assertTrue(s.orphaned)
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)

@@ -9,11 +9,6 @@ class ProviderInterfaceV0(object):
         return
 
     @abc.abstractmethod
-    def fetch_user(username):
-        """Returns list of user details given a username"""
-        return
-
-    @abc.abstractmethod
     def available_products(self, product_id, username):
         """Returns list of products available for a give user"""
         return

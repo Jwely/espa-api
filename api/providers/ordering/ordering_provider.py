@@ -2,6 +2,7 @@ import datetime
 
 from api.domain import sensor
 from api.domain.order import Order
+from api.domain.user import User
 from api.util.dbconnect import db_instance, DBConnectException
 from api.util import julian_date_check
 from api.providers.ordering import ProviderInterfaceV0
@@ -31,16 +32,6 @@ class OrderingProvider(ProviderInterfaceV0):
 
         return sensor.available_products(prod_list)
 
-    @staticmethod
-    def fetch_user(username):
-        with db_instance() as db:
-            # username uniqueness enforced on auth_user table at database
-            user_sql = "select id, username, email, is_staff, is_active, " \
-                       "is_superuser from auth_user where username = %s;"
-            db.select(user_sql, (username))
-
-        return db[0]
-
     def available_products(self, product_id, username):
         """
         Check to see what products are available to user based on
@@ -50,15 +41,13 @@ class OrderingProvider(ProviderInterfaceV0):
         :param username: username
         :return: dictionary
         """
-        userlist = OrderingProvider.fetch_user(username)
+        user = User.by_username(username)
         pub_prods = copy.deepcopy(OrderingProvider.sensor_products(product_id))
 
         with open('api/domain/restricted.yaml') as f:
                 restricted = yaml.load(f.read())
 
-        role = True
-        if userlist['is_staff']:
-            role = False
+        role = False if user.is_staff() else True
 
         restrict_all = restricted.get('all', {})
         all_role = restrict_all.get('role', [])
@@ -113,48 +102,28 @@ class OrderingProvider(ProviderInterfaceV0):
 
         return pub_prods
 
-    def fetch_user_orders(self, uid, filters={}):
+    def fetch_user_orders(self, uid, filters=None):
         # deal with unicode uid
         if isinstance(uid, basestring):
             uid = str(uid)
-        order_list = []
-        out_dict = {}
 
-        with db_instance() as db:
-            user_sql = "select id, username, email from auth_user where " \
-                       "email = %s OR username = %s;"
-            db.select(user_sql, (uid, uid))
-            # username uniqueness enforced on the db
-            # not the case for emails though
-            if db:
-                user_ids = [db[ind][0] for ind, val in enumerate(db)]
-            else:
-                return {"msg": "sorry, no user matched {0}".format(uid)}
+        try:
+            user = User.where({'username': uid}).pop()
+        except IndexError:
+            try:
+                user = User.where({'email': uid}).pop()
+            except IndexError:
+                return {'msg': 'sorry, no user matched {0}'.format(uid)}
 
-            if user_ids:
-                user_tup = tuple([str(idv) for idv in user_ids])
+        if filters and not isinstance(filters, dict):
+            raise OrderingProviderException('filters param must be of type dict')
+        elif filters:
+            params = dict(filters)
+            params.update({'user_id': user.id})
+        else:
+            params = {'user_id': user.id}
 
-                sql = "select orderid from ordering_order where user_id in %(user_tup)s"
-                params = {'user_tup': user_tup}
-
-                if filters:
-                    for key, val in filters.iteritems():
-                        if isinstance(val, list):
-                            val = tuple([v for v in val])
-                            op = " IN "
-                        else:
-                            op = " = "
-
-                        params[key] = val
-                        sql += " AND {0} {1} %({0})s ".format(key, op)
-
-                db.select(sql + ' order by order_date desc', params)
-
-                if db:
-                    order_list = [item[0] for item in db]
-
-        out_dict["orders"] = order_list
-        return out_dict
+        return {'orders': [o.orderid for o in Order.where(params)]}
 
     def fetch_user_orders_ext(self, uid, filters={}):
         orders = self.fetch_user_orders(uid, filters=filters)
@@ -210,7 +179,10 @@ class OrderingProvider(ProviderInterfaceV0):
             db.select(sql, (str(ordernum)))
             if db:
                 for key, val in db[0].iteritems():
-                    out_dict[key] = val
+                    if isinstance(val, datetime.datetime):
+                        out_dict[key] = val.isoformat()
+                    else:
+                        out_dict[key] = val
                 opts_str = db[0]['product_options']
                 opts_str = opts_str.replace("\n", "")
                 opts_dict = yaml.load(opts_str)
@@ -263,12 +235,14 @@ class OrderingProvider(ProviderInterfaceV0):
 
         return response
 
-    def item_status(self, orderid, itemid='ALL'):
+    def item_status(self, orderid, itemid='ALL', username=None):
         response = {}
         sql = "select oo.orderid, os.id scene_id, os.name, os.status, os.completion_date, os.note, " \
               "os.product_dload_url, os.cksum_download_url, os.log_file_contents " \
               "from ordering_order oo left join ordering_scene os on oo.id = " \
               "os.order_id where oo.orderid = %s"
+        user = User.by_username(username)
+
         if itemid is not "ALL":
             argtup = (orderid, itemid)
             sql += " AND os.name = %s;"
@@ -284,12 +258,11 @@ class OrderingProvider(ProviderInterfaceV0):
             id = items[0]['orderid']
             response['orderid'] = {id: []}
             for item in items:
-                ts = ''
                 try:
-                    # Not always present
-                    ts = item['completion_date'].strftime('%m-%d-%Y %H:%M:%S')
-                except:
-                    pass
+                    ts = item['completion_date'].isoformat()
+                except AttributeError:
+                    # completion_date not yet set
+                    ts = ''
 
                 i = {'scene_id': item['scene_id'],
                      'name': item['name'],
@@ -297,8 +270,11 @@ class OrderingProvider(ProviderInterfaceV0):
                      'completion_date': ts,
                      'note': item['note'],
                      'product_dload_url': item['product_dload_url'],
-                     'cksum_download_url': item['cksum_download_url'],
-                     'log_file_contents': item['log_file_contents']}
+                     'cksum_download_url': item['cksum_download_url']}
+
+                if user and user.is_staff():
+                    i['log_file_contents'] = item['log_file_contents']
+
                 response['orderid'][id].append(i)
         else:
             response['msg'] = 'sorry, no items matched orderid %s , itemid %s' % (orderid, itemid)

@@ -15,7 +15,8 @@ class API(object):
         self.admin = self.providers.administration
         self.reporting = self.providers.reporting
 
-    def api_versions(self):
+    @staticmethod
+    def api_versions():
         """
         Provides list of available api versions
 
@@ -24,8 +25,8 @@ class API(object):
 
         Example:
             {
-                "0":
-                    "description": "Demo access points for development",
+                "1":
+                    "description": "access points for development",
                 }
             }
         """
@@ -46,7 +47,7 @@ class API(object):
         try:
             response = self.admin.access_configuration(key=key, value=value, delete=delete)
         except:
-            logger.debug('ERR version0 configuration_management:'
+            logger.debug('ERR version1 configuration_management:'
                          ' {}\ntrace: {}\n'.format(','.join([key, value, delete]),
                                                    traceback.format_exc()))
             response = default_error_message
@@ -57,7 +58,7 @@ class API(object):
         try:
             response = self.admin.restore_configuration(filepath)
         except:
-            logger.debug('ERR version0 load_configuration: '
+            logger.debug('ERR version1 load_configuration: '
                          '{}\ntrace: {}\n'.format(filepath, traceback.format_exc()))
             response = default_error_message
 
@@ -67,7 +68,7 @@ class API(object):
         try:
             response = self.admin.backup_configuration(filepath)
         except:
-            logger.debug('ERR version0 backup_configuration: '
+            logger.debug('ERR version1 backup_configuration: '
                          '{}\ntrace: {}\n'.format(filepath, traceback.format_exc()))
             response = default_error_message
 
@@ -82,7 +83,7 @@ class API(object):
         try:
             response = str(self.reporting.run(name))
         except:
-            logger.debug("ERR version0 get_report name {0}\ntraceback {1}".format(name, traceback.format_exc()))
+            logger.debug("ERR version1 get_report name {0}\ntraceback {1}".format(name, traceback.format_exc()))
             response = default_error_message
 
         return response
@@ -95,7 +96,7 @@ class API(object):
         try:
             response = self.reporting.listing()
         except:
-            logger.debug("ERR version0 available_reports traceback {0}".format(traceback.format_exc()))
+            logger.debug("ERR version1 available_reports traceback {0}".format(traceback.format_exc()))
             response = default_error_message
 
         return response
@@ -108,7 +109,7 @@ class API(object):
         try:
             response = self.admin.get_system_status()
         except:
-            logger.debug("ERR version0 get_system_status. traceback {0}".format(traceback.format_exc()))
+            logger.debug("ERR version1 get_system_status. traceback {0}".format(traceback.format_exc()))
             response = default_error_message
 
         return response
@@ -146,7 +147,7 @@ class API(object):
         try:
             response = self.reporting.stat_list()
         except:
-            logger.debug("ERR version0 available_stats traceback {0}".format(traceback.format_exc()))
+            logger.debug("ERR version1 available_stats traceback {0}".format(traceback.format_exc()))
             response = default_error_message
 
         return response
@@ -159,6 +160,33 @@ class API(object):
         try:
             response = self.reporting.get_stat(name)
         except:
-            logger.debug("ERR version0 get_stat name: {0}, traceback: {1}".format(name, traceback.format_exc()))
+            logger.debug("ERR version1 get_stat name: {0}, traceback: {1}".format(name, traceback.format_exc()))
+            response = default_error_message
+        return response
+
+    def get_admin_whitelist(self):
+        """
+        Returns list of ip addresses in hadoop cluster
+        :return: list of strings
+        """
+        try:
+            response = self.admin.admin_whitelist()
+        except:
+            logger.debug("ERR failure to generate production whitelist\ntrace: {}".format(traceback.format_exc()))
+            response = default_error_message
+        return response
+
+    def error_to(self, orderid, state):
+        """
+        flip scenes in error for given order to provided state
+        :param orderid: order to work with
+        :param state: value to set to
+        :return: True
+        """
+        try:
+            response = self.admin.error_to(orderid, state)
+        except:
+            logger.debug("ERR failure to reset to {} error scenes for {}\ntrace: {}".format(state, orderid,
+                                                                                            traceback.format_exc()))
             response = default_error_message
         return response

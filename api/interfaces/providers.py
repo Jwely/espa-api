@@ -13,11 +13,6 @@ from api.providers.administration.administration_provider import AdministrationP
 
 
 class DefaultProviders(object):
-    api_versions = {"versions":
-                        {"0":
-                            {"description": "First release of the ESPA API"}
-                        }
-                    }
 
     ordering = OrderingProvider()
 
@@ -34,6 +29,7 @@ class DefaultProviders(object):
     reporting = ReportingProvider()
 
     administration = AdministrationProvider()
+
 
 class MockProviders(object):
     ordering = MockOrderingProvider()
