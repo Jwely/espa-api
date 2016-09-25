@@ -41,56 +41,69 @@ class OrderValidatorV0(validictory.SchemaValidator):
                      'res_pixel': None,
                      'proj_units': None}
 
-        if 'projection' in self.data_source:
-            pass
-
-
+        # Potential sources that would affect the extent calculations
         # Since we can't predict which validation methods are called
         # first we need to make sure that all the values are present
         # and are of the correct type, let the other built-in
         # validations handle the actual error output for most failures
-        if self.validate_type_object(params):
-            if not set(params.keys()).symmetric_difference(set(required_params)):
-                if 'projection' not in x or not x['projection']:
-                    return
-                if not self.validate_type_number(params['east']):
-                    return
-                if not self.validate_type_number(params['north']):
-                    return
-                if not self.validate_type_number(params['west']):
-                    return
-                if not self.validate_type_number(params['south']):
-                    return
-                if not self.validate_type_string(params['units']):
-                    return
-                if not params['units'] in schema['properties']['units']['enum']:
-                    return
-                if 'lonlat' in x['projection'] and params['units'] != 'dd':
-                    self._error('must be "dd" for projection "lonlat"', params['units'], fieldname, path=path)
-                    return
+        if 'projection' in self.data_source:
+            if not self.validate_type_object(self.data_source['projection']):
+                return
 
-                if 'resize' in x and 'pixel_resize_units' in x['resize'] and 'pixel_size' in x['resize']:
-                    if self.validate_type_string(x['resize']['pixel_resize_units']):
-                        if self.validate_type_number(x['resize']['pixel_size']):
-                            if x['resize']['pixel_size'] <= 0:
-                                return
-                            else:
-                                calc_args['res_pixel'] = x['resize']['pixel_size']
-                                calc_args['res_units'] = x['resize']['pixel_resize_units']
+        if 'resize' in self.data_source:
+            if not self.validate_type_object(self.data_source['resize']):
+                return
+            if set(self.data_source['image_extents'].keys()).symmetric_difference(
+                    {'pixel_resize_units', 'pixel_size'}):
+                return
+            if not self.validate_type_string(self.data_source['resize']['pixel_resize_units']):
+                return
+            if not self.validate_type_number(self.data_source['resize']['pixel_size']):
+                return
+            if self.data_source['resize']['pixel_size'] <= 0:
+                return
 
-                calc_args['xmax'] = params['east']
-                calc_args['ymax'] = params['north']
-                calc_args['xmin'] = params['west']
-                calc_args['ymin'] = params['south']
-                calc_args['ext_units'] = params['units']
+            calc_args['res_pixel'] = self.data_source['resize']['pixel_size']
+            calc_args['res_units'] = self.data_source['resize']['pixel_resize_units']
 
-                count = self.calc_extent(**calc_args)
-                if count > pixel_count:
-                    self._error(': pixel count value is greater than maximum size of {} pixels'.format(pixel_count),
-                                count, fieldname, path=path)
-                elif count < 1:
-                    self._error(': pixel count value falls below acceptable threshold, check extent parameters',
-                                count, fieldname, path=path)
+        if 'image_extents' in self.data_source:
+            if not self.validate_type_object(self.data_source['image_extents']):
+                return
+            if set(self.data_source['image_extents'].keys()).symmetric_difference(
+                    {'north', 'south', 'east', 'west', 'units'}):
+                return
+            if 'projection' not in x or not x['projection']:
+                return
+            if not self.validate_type_number(self.data_source['image_extents']['east']):
+                return
+            if not self.validate_type_number(self.data_source['image_extents']['north']):
+                return
+            if not self.validate_type_number(self.data_source['image_extents']['west']):
+                return
+            if not self.validate_type_number(self.data_source['image_extents']['south']):
+                return
+            if not self.validate_type_string(self.data_source['image_extents']['units']):
+                return
+
+            calc_args['xmax'] = self.data_source['image_extents']['east']
+            calc_args['ymax'] = self.data_source['image_extents']['north']
+            calc_args['xmin'] = self.data_source['image_extents']['west']
+            calc_args['ymin'] = self.data_source['image_extents']['south']
+            calc_args['ext_units'] = self.data_source['image_extents']['units']
+
+        if 'lonlat' in self.data_source['projection']:
+            if 'image_extents' in self.data_source and self.data_source['image_extents']['units'] != 'dd':
+                self._error('must be "dd" for projection "lonlat"', self.data_source['image_extents']['units'],
+                            fieldname, path=path)
+                return
+
+        count = self.calc_extent(**calc_args)
+        if count > pixel_count:
+            self._error(': pixel count value is greater than maximum size of {} pixels'.format(pixel_count),
+                        count, fieldname, path=path)
+        elif count < 1:
+            self._error(': pixel count value falls below acceptable threshold, check extent parameters',
+                        count, fieldname, path=path)
 
     @staticmethod
     def calc_extent(xmax, ymax, xmin, ymin, ext_units, res_units=None, res_pixel=None):
