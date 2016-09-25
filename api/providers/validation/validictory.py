@@ -38,12 +38,17 @@ class OrderValidatorV0(validictory.SchemaValidator):
                      'ymin': None,
                      'ext_units': None,
                      'res_units': None,
-                     'res_pixel': None}
+                     'res_pixel': None,
+                     'proj_units': None}
 
-        # Since we can't predict which validation methods are called first
-        # we need to make sure that all the values are present and are of
-        # the correct type, let the other built-in validations handle the actual
-        # error output for most failures
+        if 'projection' in self.data_source:
+            pass
+
+
+        # Since we can't predict which validation methods are called
+        # first we need to make sure that all the values are present
+        # and are of the correct type, let the other built-in
+        # validations handle the actual error output for most failures
         if self.validate_type_object(params):
             if not set(params.keys()).symmetric_difference(set(required_params)):
                 if 'projection' not in x or not x['projection']:
@@ -89,7 +94,8 @@ class OrderValidatorV0(validictory.SchemaValidator):
 
     @staticmethod
     def calc_extent(xmax, ymax, xmin, ymin, ext_units, res_units=None, res_pixel=None):
-        """Calculate a good estimate of the number of pixels contained in an extent"""
+        """Calculate a good estimate of the number of pixels contained
+         in an extent"""
         xdif = 0
         ydif = 0
 
@@ -376,12 +382,12 @@ class BaseValidationSchema(object):
 
     request_schema = {'type': 'object',
                       'set_ItemCount': ('inputs', 5000),
+                      'extents': 200000000,
                       'properties': {'projection': {'properties': projections,
                                                     'type': 'object',
                                                     # 'enum_keys': self.projections.keys(),
                                                     'single_obj': True},
-                                     'image_extents': {'extents': 200000000,
-                                                       'type': 'object',
+                                     'image_extents': {'type': 'object',
                                                        'properties': extents,
                                                        # 'enum_keys': self.extents.keys(),
                                                        'dependencies': ['projection']},
