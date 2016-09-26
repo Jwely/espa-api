@@ -29,17 +29,13 @@ class OrderValidatorV0(validictory.SchemaValidator):
         super(OrderValidatorV0, self).validate(data, schema)
 
     def validate_extents(self, x, fieldname, schema, path, pixel_count=200000000):
-        params = x.get(fieldname)
-        required_params = ['north', 'south', 'east', 'west', 'units']
-
         calc_args = {'xmax': None,
                      'ymax': None,
                      'xmin': None,
                      'ymin': None,
                      'ext_units': None,
                      'res_units': None,
-                     'res_pixel': None,
-                     'proj_units': None}
+                     'res_pixel': None}
 
         # Potential sources that would affect the extent calculations
         # Since we can't predict which validation methods are called
@@ -49,6 +45,11 @@ class OrderValidatorV0(validictory.SchemaValidator):
         if 'projection' in self.data_source:
             if not self.validate_type_object(self.data_source['projection']):
                 return
+            if 'lonlat' in self.data_source['projection']:
+                if 'image_extents' in self.data_source and self.data_source['image_extents']['units'] != 'dd':
+                    self._error('must be "dd" for projection "lonlat"', self.data_source['image_extents']['units'],
+                                fieldname, path=path)
+                    return
 
         if 'resize' in self.data_source:
             if not self.validate_type_object(self.data_source['resize']):
@@ -91,13 +92,8 @@ class OrderValidatorV0(validictory.SchemaValidator):
             calc_args['ymin'] = self.data_source['image_extents']['south']
             calc_args['ext_units'] = self.data_source['image_extents']['units']
 
-        if 'lonlat' in self.data_source['projection']:
-            if 'image_extents' in self.data_source and self.data_source['image_extents']['units'] != 'dd':
-                self._error('must be "dd" for projection "lonlat"', self.data_source['image_extents']['units'],
-                            fieldname, path=path)
-                return
-
         count = self.calc_extent(**calc_args)
+
         if count > pixel_count:
             self._error(': pixel count value is greater than maximum size of {} pixels'.format(pixel_count),
                         count, fieldname, path=path)
@@ -106,9 +102,11 @@ class OrderValidatorV0(validictory.SchemaValidator):
                         count, fieldname, path=path)
 
     @staticmethod
-    def calc_extent(xmax, ymax, xmin, ymin, ext_units, res_units=None, res_pixel=None):
+    def calc_extent(xmax, ymax, xmin, ymin, ext_units, res_units, res_pixel):
         """Calculate a good estimate of the number of pixels contained
          in an extent"""
+        max_count = 0
+
         xdif = 0
         ydif = 0
 
