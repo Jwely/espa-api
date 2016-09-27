@@ -77,7 +77,8 @@ REPORTS = {
                      s.processing_location "Machine",
                      s.status "Status",
                      s.note "Note" ,
-                     s.retry_after "Retry After"
+                     s.retry_after "Retry After",
+                     '/ordering/order-status/' || o.orderid || '/' as "Order Link"
                      FROM ordering_scene s
                      JOIN ordering_order o ON
                      o.id = s.order_id
