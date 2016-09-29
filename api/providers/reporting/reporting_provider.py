@@ -3,11 +3,18 @@ from api.providers.reporting import ReportingProviderInterfaceV0
 from api.system.logger import ilogger as logger
 from api.providers.reporting import REPORTS
 from api.providers.reporting import STATS
+from api.providers.configuration.configuration_provider import ConfigurationProvider
 
 import copy
+import datetime
+import json
+
+config = ConfigurationProvider()
+
 
 class ReportingProviderException(Exception):
     pass
+
 
 class ReportingProvider(ReportingProviderInterfaceV0):
 
@@ -72,4 +79,36 @@ class ReportingProvider(ReportingProviderInterfaceV0):
 
         return stat
 
+    def missing_auxiliary_data(self, sensor_group, year=None):
+        _sensor_groups = {'L17': {1978: ['ncep', 'toms']},
+                          'L8': {2013: ['lads']}}
+        _cur_year = datetime.datetime.now().year
+        return_dict = {}
 
+        if sensor_group not in _sensor_groups:
+            return {"msg": "sensor_group must be either %s" % " or ".join(_sensor_groups.keys())}
+
+        _syear = _sensor_groups[sensor_group].keys()[0]
+        if year and int(year) not in range(_syear, _cur_year + 1):
+            return {"msg": "auxiliary data is only available from %s to %s" %
+                           (_syear, _cur_year)}
+
+        for k, v in _sensor_groups[sensor_group].items():
+            for report in v:
+                try:
+                    rpt_name = ''.join([config.get("aux_report_path"), report, '_report.txt'])
+                    report_con = open(rpt_name).read()
+                    report_dict = json.loads(report_con.replace("'", "\""))
+                    out_d = {}
+                    for yr in report_dict:
+                        if report_dict[yr] != 0:
+                            if not year:
+                                out_d[yr] = report_dict[yr]
+                            else:
+                                if yr == year:
+                                    out_d[yr] = report_dict[yr]
+                    return_dict[report] = out_d
+                except IOError:
+                    return {"msg": "%s report could not be found" % report}
+
+        return return_dict

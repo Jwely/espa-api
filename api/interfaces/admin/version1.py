@@ -190,3 +190,17 @@ class API(object):
                                                                                             traceback.format_exc()))
             response = default_error_message
         return response
+
+    def get_aux_report(self, group, year):
+        """
+        get data on gaps in available auxiliary data
+        :param group: sensor group, L17 or L8
+        :param year: year to report on
+        :return: dict of missing days by year
+        """
+        try:
+            response = self.reporting.missing_auxiliary_data(group, year)
+        except:
+            logger.debug("ERR retrieving auxiliary report for {} group, year {}\ntrace: {}".format(group, year, traceback.format_exc()))
+            response = default_error_message
+        return response

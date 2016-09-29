@@ -71,7 +71,9 @@ transport_api.add_resource(Reports,
                            '/api/v<version>/reports/',
                            '/api/v<version>/reports/<name>/',
                            '/api/v<version>/statistics/',
-                           '/api/v<version>/statistics/<name>')
+                           '/api/v<version>/statistics/<name>',
+                           '/api/v<version>/aux_report/<group>/',
+                           '/api/v<version>/aux_report/<group>/<year>')
 
 transport_api.add_resource(SystemStatus,
                            '/api/v<version>/system-status',

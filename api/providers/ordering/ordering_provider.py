@@ -9,10 +9,12 @@ from api.providers.ordering import ProviderInterfaceV0
 from api.providers.configuration.configuration_provider import ConfigurationProvider
 from api.providers.caching.caching_provider import CachingProvider
 
-import yaml
 import copy
+import json
+import yaml
 
 cache = CachingProvider()
+config = ConfigurationProvider()
 
 
 class OrderingProviderException(Exception):
@@ -292,5 +294,3 @@ class OrderingProvider(ProviderInterfaceV0):
                     'display_system_message': resp_dict['system.display_system_message']}
         else:
             return {'system_message_body': None, 'system_message_title': None}
-
-
