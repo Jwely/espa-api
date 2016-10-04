@@ -7,6 +7,7 @@ from flask.ext.restful import Api, Resource, reqparse, fields, marshal
 
 from api.providers.configuration.configuration_provider import ConfigurationProvider
 from api.util import api_cfg
+from api.system.scheduling import Scheduling
 
 from http_user import Index, VersionInfo, AvailableProducts, ValidationInfo,\
     ListOrders, Ordering, UserInfo, ItemStatus
@@ -15,10 +16,25 @@ from http_production import ProductionVersion, ProductionConfiguration, Producti
 
 from http_admin import Reports, SystemStatus, OrderResets
 
+from broker_production import ProductionConsumer
+
 config = ConfigurationProvider()
 
 app = Flask(__name__)
 app.secret_key = api_cfg('config').get('key')
+
+##################################
+## Scheduled asynchronous tasks ##
+##################################
+scheduler = Scheduling()
+scheduler.init_app(app)
+scheduler.start()
+
+###############################################
+## RabbitMQ Consumer for Production Messages ##
+###############################################
+production_consumer = ProductionConsumer()
+production_consumer.consume()
 
 errors = {'NotFound': {'message': 'The requested URL was not found on the server.',
                        'status': 404}}
@@ -26,7 +42,6 @@ errors = {'NotFound': {'message': 'The requested URL was not found on the server
 transport_api = Api(app, errors=errors, catch_all_404s=True)
 
 # USER facing functionality
-
 transport_api.add_resource(Index, '/')
 
 transport_api.add_resource(VersionInfo,
@@ -107,4 +122,5 @@ if __name__ == '__main__':
     debug = False
     if 'ESPA_DEBUG' in os.environ and os.environ['ESPA_DEBUG'] == 'True':
         debug = True
-    app.run(debug=debug)
+        app.run(debug=debug)
+

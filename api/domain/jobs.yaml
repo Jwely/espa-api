@@ -1,0 +1,11 @@
+---
+jobs:
+  products_to_process:
+    interval: 1
+    units: 'minutes'
+  plots_to_process:
+    interval: 6
+    units: 'minutes'
+  handle_orders:
+    interval: 7
+    units: 'minutes'

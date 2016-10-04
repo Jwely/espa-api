@@ -1079,7 +1079,6 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         for order in orders:
             try:
-                #with transaction.atomic():
                 order.update('status', 'purged')
                 for product in order.scenes():
                     product.status = 'purged'

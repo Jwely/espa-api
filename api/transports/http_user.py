@@ -113,6 +113,7 @@ class Index(Resource):
 
     @staticmethod
     def get():
+        #task = send_async_email.apply_async(countdown=30, expires=120)
         return 'Welcome to the ESPA API, please direct requests to /api'
 
 

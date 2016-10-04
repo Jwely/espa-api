@@ -28,3 +28,4 @@ cov-core
 nose2
 nose2-cov
 passlib
+pika
