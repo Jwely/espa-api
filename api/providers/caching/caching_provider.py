@@ -16,7 +16,11 @@ class CachingProvider(CachingProviderInterfaceV0):
     def get(self, cache_key):
         return self.cache.get(cache_key)
 
-    def set(self, cache_key, value, expirey=None):
-        timeout = expirey or self.timeout
+    def set(self, cache_key, value, expiry=None):
+        timeout = expiry or self.timeout
         self.cache.set(cache_key, value, timeout)
+        return True
+
+    def delete(self, cache_key):
+        self.cache.delete(cache_key)
         return True

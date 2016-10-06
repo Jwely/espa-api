@@ -16,6 +16,10 @@ from http_production import ProductionVersion, ProductionConfiguration, Producti
 
 from http_admin import Reports, SystemStatus, OrderResets
 
+from celery import Celery
+from celery import current_app
+from celery.bin import worker
+
 from broker_production import ProductionConsumer
 
 config = ConfigurationProvider()
@@ -33,8 +37,19 @@ scheduler.start()
 ###############################################
 ## RabbitMQ Consumer for Production Messages ##
 ###############################################
-production_consumer = ProductionConsumer()
-production_consumer.consume()
+_broker = 'amqp://test:test@localhost:5671'
+_cel_options = {'broker': _broker}
+celery = Celery(app.name, backend='amqp://',
+                broker=_broker)
+celery.conf.update(BROKER_USE_SSL=True)
+cel_app = current_app._get_current_object()
+worker = worker.worker(app=cel_app)
+
+@celery.task
+def run_production_consumer():
+    production_consumer = ProductionConsumer()
+    production_consumer.consume()
+
 
 errors = {'NotFound': {'message': 'The requested URL was not found on the server.',
                        'status': 404}}
@@ -122,5 +137,7 @@ if __name__ == '__main__':
     debug = False
     if 'ESPA_DEBUG' in os.environ and os.environ['ESPA_DEBUG'] == 'True':
         debug = True
-        app.run(debug=debug)
 
+    app.run(debug=debug)
+    worker.run(**{'broker': _broker})
+    consumer_task = run_production_consumer.apply_async()

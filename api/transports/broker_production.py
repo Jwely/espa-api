@@ -17,7 +17,7 @@ class ProductionConsumer(object):
         channel.basic_ack(method.delivery_tag)
 
     def consume(self):
-        for queue in ('test', 'home'):
+        for queue in ('test', 'home', 'products_to_process'):
             self.channel.queue_declare(queue=queue, durable=True,
                                        exclusive=False, auto_delete=False)
             self.channel.basic_consume(self._on_message, queue=queue)
