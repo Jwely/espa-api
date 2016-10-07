@@ -289,7 +289,15 @@ STATS = {
                      WHERE s.status = 'complete'
                      AND completion_date > now() - interval '24 hours' '''
     },
+    'stat_onorder_depth': {
+        'display_name': 'Products \'onorder\'',
+        'description': 'Current count for products onorder',
+        'query': r'''SELECT COUNT(id) "statistic"
+                     FROM ordering_scene s
+                     WHERE s.status = 'onorder' '''
+    },
 }
+
 
 class ReportingProviderInterfaceV0(object):
     __metaclass__ = abc.ABCMeta
