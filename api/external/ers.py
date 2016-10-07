@@ -36,6 +36,9 @@ class ERSApi(object):
             token = auth_resp['data']['authToken']
             header = {'X-AuthToken': token}
             user_resp = self._api_get('/me', header).json()
-            return user_resp
+            if not user_resp['errors']:
+                return user_resp['data']
+            else:
+                raise ERSApiException('Error retrieving user {} details. message {}'.format(username, user_resp['errors']))
         else:
             raise ERSApiException('Error authenticating {}. message: {}'.format(username, auth_resp['errors']))

@@ -91,10 +91,8 @@ class User(object):
                 raise UserException("ERR validating espa_admin, traceback: {0}".format(traceback.format_exc()))
         else:
             try:
-                ers_user = ers.get_user_info(username, password)
-                ed = ers_user['data']
-                return str(ed['username']), str(ed['email']), str(ed['firstName']), \
-                       str(ed['lastName']), str(ed['contact_id'])
+                eu = ers.get_user_info(username, password)
+                return eu['username'], eu['email'], eu['firstName'], eu['lastName'], eu['contact_id']
             except ERSApiException, e:
                 raise UserException("Error authenticating user in get() with ERS. "
                                     "message:{}".format(e.message))
