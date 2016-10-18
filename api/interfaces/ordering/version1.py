@@ -239,3 +239,19 @@ class API(object):
             response = default_error_message
 
         return response
+
+    def mark_scene_download(self, orderid, filename, headers, remote_addr):
+        """
+        capture product download details
+        :param orderid:
+        :param filename:
+        :param headers:
+        :param remote_addr:
+        :return:
+        """
+        try:
+            self.ordering.mark_product_download(orderid, filename, headers, remote_addr)
+        except:
+            logger.debug("ERR version1 get_system_status. traceback {0}".format(traceback.format_exc()))
+
+        return True

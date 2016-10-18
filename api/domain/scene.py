@@ -28,7 +28,8 @@ class Scene(object):
                  completion_date=None, log_file_contents=None,
                  ee_unit_id=None, tram_order_id=None, sensor_type=None,
                  job_name=None, retry_after=None, retry_limit=None,
-                 retry_count=None, reported_orphan=None, orphaned=None):
+                 retry_count=None, reported_orphan=None, orphaned=None,
+                 download_size=None):
         """
         Initialize the Scene object with all the information for it
         from the database
@@ -55,6 +56,7 @@ class Scene(object):
         :param retry_count: retry attempts
         :param reported_orphan: time reported missing hadoop
         :param orphaned: missing hadoop job
+        :param download_size: product download file size
         """
 
         self.name = name
@@ -77,6 +79,7 @@ class Scene(object):
         self.retry_count = retry_count
         self.reported_orphan = reported_orphan
         self.orphaned = orphaned
+        self.download_size = download_size
 
         if id:
             # no need to query the DB again
@@ -410,3 +413,4 @@ class Scene(object):
                                  .format(e.message))
 
         return ret
+

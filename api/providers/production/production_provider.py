@@ -15,6 +15,7 @@ import datetime
 import urllib
 import json
 import socket
+import os
 import yaml
 
 from cStringIO import StringIO
@@ -109,6 +110,10 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         scene.log_file_contents = log_file_contents
         scene.product_dload_url = product_dload_url
         scene.cksum_download_url = cksum_download_url
+        try:
+            scene.download_size = os.path.getsize(completed_file_location)
+        except OSError, e:
+            raise ProductionProviderException('Could not find completed file location')
 
         if order_source == 'ee':
             # update EE

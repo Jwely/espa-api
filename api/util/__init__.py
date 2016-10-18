@@ -5,6 +5,7 @@ import os
 import subprocess
 import datetime
 
+
 def get_cfg(cfgfile=".cfgnfo"):
     """
     Retrieve the configuration information from the .cfgnfo file
@@ -28,9 +29,11 @@ def get_cfg(cfgfile=".cfgnfo"):
 
     return cfg_info
 
+
 def api_cfg(section='config', cfgfile=".cfgnfo"):
     config = get_cfg(cfgfile)[section]
     return config
+
 
 def send_email(sender, recipient, subject, body):
     """
@@ -59,6 +62,7 @@ def send_email(sender, recipient, subject, body):
     smtp.sendmail(sender, recipient, msg.as_string())
     smtp.quit()
 
+
 def backup_cron():
     """
     Make a backup of the current user's crontab
@@ -73,6 +77,7 @@ def backup_cron():
 
     with open(os.path.join(bk_path, cron_file), 'w') as f:
         subprocess.call(['crontab', '-l'], stdout=f)
+
 
 def lowercase_all(indata):
     if hasattr(indata, 'iteritems'):
@@ -96,6 +101,7 @@ def lowercase_all(indata):
     else:
         return indata
 
+
 def date_from_doy(year, doy):
     '''Returns a python date object given a year and day of year'''
 
@@ -106,6 +112,7 @@ def date_from_doy(year, doy):
                         (doy, year))
     else:
         return d
+
 
 def chunkify(lst, n):
     """Divides your list into "n" parts
