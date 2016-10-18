@@ -114,7 +114,13 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             # update EE
             ee_order_id = Scene.get('ee_order_id', name, orderid)
             ee_unit_id = Scene.get('ee_unit_id', name, orderid)
-            lta.update_order_status(ee_order_id, ee_unit_id, 'C')
+            try:
+                lta.update_order_status(ee_order_id, ee_unit_id, 'C')
+            except Exception, e:
+                # perhaps this doesn't need to be elevated to 'debug' status
+                # as its a fairly regular occurrence
+                logger.debug('Problem updating LTA order: {}'.format(e))
+                scene.failed_lta_status_update = 'C'
 
         try:
             scene.save()
@@ -152,7 +158,13 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             # update EE
             ee_order_id = Scene.get('ee_order_id', name, orderid)
             ee_unit_id = Scene.get('ee_unit_id', name, orderid)
-            lta.update_order_status(ee_order_id, ee_unit_id, 'R')
+            try:
+                lta.update_order_status(ee_order_id, ee_unit_id, 'R')
+            except Exception, e:
+                # perhaps this doesn't need to be elevated to 'debug' status
+                # as its a fairly regular occurrence
+                logger.debug('Problem updating LTA order: {}'.format(e))
+                scene.failed_lta_status_update = 'R'
 
         try:
             scene.save()
@@ -172,29 +184,22 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         :param reason: user facing explanation for why request was rejected
         :return: True
         """
-        product_ids = []
-        for p in products:
-            if isinstance(p, Scene):
-                product_ids.append(p.id)
-            else:
-                raise TypeError()
-
-        attrs = {'status': 'unavailable',
-                 'completion_date': datetime.datetime.now(),
-                 'note': reason}
-
         try:
-            Scene.bulk_update(product_ids, attrs)
-            # an exception will be raised in bulk_update
-            # if it fails, so we shouldn't need to wrap
-            # the lta call in a conditional
+            Scene.bulk_update([p.id for p in products],
+                              {'status': 'unavailable',
+                               'completion_date': datetime.datetime.now(),
+                               'note': reason})
             for p in products:
                 if p.order_attr('order_source') == 'ee':
-                    lta.update_order_status(p.order_attr('ee_order_id'), p.ee_unit_id, 'R')
+                    try:
+                        lta.update_order_status(p.order_attr('ee_order_id'), p.ee_unit_id, 'R')
+                    except Exception, e:
+                        # perhaps this doesn't need to be elevated to 'debug' status
+                        # as its a fairly regular occurrence
+                        logger.debug('Problem updating LTA order: {}'.format(e))
+                        p.update('failed_lta_status_update', 'R')
         except Exception, e:
-            message = "ERR set_products_unavailable failure" \
-                      "\nexceptio: {}\nproduct_ids: {}\nreason: {}".format(e.message, product_ids, reason)
-            raise ProductionProviderException(message)
+            raise ProductionProviderException(e)
 
         return True
 
@@ -711,8 +716,11 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                     status = 'R'
                 else:
                     status = 'I'
-
-                self.update_lta_status(eeorder, s['unit_num'], status, s['sceneid'], order_id)
+                try:
+                    lta.update_order_status(eeorder, s['unit_num'], status)
+                except Exception, e:
+                    logger.debug("Error updating lta for scene: {}\n{}".format(scene.id, e))
+                    scene.update('failed_lta_status_update', status)
             else:
                 # scene insertion was missed initially, add it now
                 missing_scenes.append(s)
@@ -724,36 +732,6 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             order.update('product_opts', json.dumps(Order.get_default_ee_options(ee_scenes)))
 
             self.load_ee_scenes(missing_scenes, order_id, missed=True)
-
-    @staticmethod
-    def update_lta_status(eeorder, unit_num, upd_status, sceneid, order_id):
-        """
-        Update an EE orders, and products status
-        :param eeorder: the EE order id
-        :param unit_num: the EE scene id
-        :param upd_status: the updated status
-        :param sceneid: the scene name
-        :param order_id: the orderid
-        :return:
-        """
-        try:
-            success, msg, status = lta.update_order_status(eeorder, unit_num, upd_status)
-            if not success:
-                log_msg = ('Error updating lta for '
-                           '[eeorder:{} ee_unit_num:{} scene '
-                           'name:{} order:{} to {} status '
-                           'lta return message: {}'
-                           'lta return status code: {}')
-
-                logger.error(log_msg.format(eeorder, unit_num, sceneid,
-                                            order_id, upd_status, msg, status))
-        except Exception as e:
-            message = "ERR in update_lta_status\n eeorder: {}, unit_num: {}, upd_status: {}\n" \
-                      "sceneid: {}, order_id: {}\n exception: {}".format(eeorder, unit_num,
-                                                                         upd_status, sceneid, order_id, e)
-            raise ProductionProviderException(message)
-
-        return True
 
     def handle_retry_products(self):
         """
@@ -1108,6 +1086,22 @@ class ProductionProvider(ProductionProviderInterfaceV0):
 
         return True
 
+    @staticmethod
+    def handle_failed_ee_updates():
+        scenes = Scene.where({'failed_lta_status_update IS NOT': None})
+        for s in scenes:
+            try:
+                lta.update_order_status(s.order_attr('ee_order_id'), s.ee_unit_id,
+                                        s.failed_lta_status_update)
+                s.update('failed_lta_status_update', None)
+            except DBConnectException, e:
+                raise ProductionProviderException('ordering_scene update failed for '
+                                                  'handle_failed_ee_updates: {}'.format(e))
+            except Exception, e:
+                # LTA could still be unavailable, log and it'll be tried again later
+                logger.warn('Failed EE update retry failed again for '
+                            'scene {}\n{}'.format(s.id, e))
+
     def handle_orders(self):
         """
         Logic handler for how we accept orders + products into the system
@@ -1117,6 +1111,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
         self.handle_onorder_landsat_products()
         self.handle_retry_products()
         self.load_ee_orders()
+        self.handle_failed_ee_updates()
         self.handle_submitted_products()
         self.finalize_orders()
 

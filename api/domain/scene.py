@@ -28,7 +28,8 @@ class Scene(object):
                  completion_date=None, log_file_contents=None,
                  ee_unit_id=None, tram_order_id=None, sensor_type=None,
                  job_name=None, retry_after=None, retry_limit=None,
-                 retry_count=None, reported_orphan=None, orphaned=None):
+                 retry_count=None, reported_orphan=None, orphaned=None,
+                 failed_lta_status_update=None):
         """
         Initialize the Scene object with all the information for it
         from the database
@@ -55,6 +56,7 @@ class Scene(object):
         :param retry_count: retry attempts
         :param reported_orphan: time reported missing hadoop
         :param orphaned: missing hadoop job
+        :param failed_lta_status_update: status update not yet delivered to LTA
         """
 
         self.name = name
@@ -77,6 +79,7 @@ class Scene(object):
         self.retry_count = retry_count
         self.reported_orphan = reported_orphan
         self.orphaned = orphaned
+        self.failed_lta_status_update = failed_lta_status_update
 
         if id:
             # no need to query the DB again
