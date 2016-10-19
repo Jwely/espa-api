@@ -77,7 +77,8 @@ REPORTS = {
                      s.processing_location "Machine",
                      s.status "Status",
                      s.note "Note" ,
-                     s.retry_after "Retry After"
+                     s.retry_after "Retry After",
+                     '/ordering/order-status/' || o.orderid || '/' as "Order Link"
                      FROM ordering_scene s
                      JOIN ordering_order o ON
                      o.id = s.order_id
@@ -288,7 +289,15 @@ STATS = {
                      WHERE s.status = 'complete'
                      AND completion_date > now() - interval '24 hours' '''
     },
+    'stat_onorder_depth': {
+        'display_name': 'Products \'onorder\'',
+        'description': 'Current count for products onorder',
+        'query': r'''SELECT COUNT(id) "statistic"
+                     FROM ordering_scene s
+                     WHERE s.status = 'onorder' '''
+    },
 }
+
 
 class ReportingProviderInterfaceV0(object):
     __metaclass__ = abc.ABCMeta

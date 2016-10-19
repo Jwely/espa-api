@@ -15,6 +15,7 @@ import datetime
 import urllib
 import json
 import socket
+import yaml
 
 from cStringIO import StringIO
 
@@ -633,10 +634,19 @@ class ProductionProvider(ProductionProviderInterfaceV0):
             elif isinstance(product, sensor.Modis):
                 sensor_type = 'modis'
 
+            status = 'submitted'
+            note = ''
+            # All EE orders are for SR, require auxiliary data
+            if product.sr_date_restricted():
+                status = 'unavailable'
+                note = 'auxiliary data unavailable for' \
+                       'this scenes acquisition date'
+
             scene_dict = {'name': product.product_id,
                           'sensor_type': sensor_type,
                           'order_id': order_id,
-                          'status': 'submitted',
+                          'status': status,
+                          'note': note,
                           'ee_unit_id': s['unit_num']}
 
             bulk_ls.append(scene_dict)

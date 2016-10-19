@@ -329,7 +329,7 @@ class OrderValidatorV0(validictory.SchemaValidator):
 
 
 class BaseValidationSchema(object):
-    formats = ['gtiff', 'hdf-eos2', 'envi']
+    formats = ['gtiff', 'hdf-eos2', 'envi', 'netcdf']
 
     resampling_methods = ['nn', 'bil', 'cc']
 

@@ -97,8 +97,10 @@ class Reports(Resource):
     decorators = [auth.login_required, whitelist, version_filter]
 
     @staticmethod
-    def get(version, name=None):
-        if 'report' in request.url:
+    def get(version, name=None, group=None, year=None):
+        if 'aux' in request.url:
+            return espa.get_aux_report(group, year)
+        elif 'report' in request.url:
             if name:
                 return espa.get_report(name)
             else:

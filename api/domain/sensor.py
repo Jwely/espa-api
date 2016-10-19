@@ -6,7 +6,14 @@ Author: David V. Hill
 
 import re
 from api import ProductNotImplemented
-from collections import namedtuple
+from api.util import julian_date_check
+import yaml
+
+# Grab details on product restrictions
+# Do it here, vs during object instantiation,
+# to avoid needless repetition
+with open('api/domain/restricted.yaml') as f:
+    restricted = yaml.load(f.read())
 
 
 class SensorProduct(object):
@@ -256,8 +263,17 @@ class Landsat(SensorProduct):
         self.row = product_id[6:9].lstrip('0')
         self.year = product_id[9:13]
         self.doy = product_id[13:16]
+        self.julian = product_id[9:16]
         self.station = product_id[16:19]
         self.version = product_id[19:21]
+
+    # SR based products are not available for those
+    # dates where we are missing auxiliary data
+    def sr_date_restricted(self):
+        if self.sensor_name in restricted:
+            if not julian_date_check(self.julian, restricted[self.sensor_name]['by_date']['sr']):
+                return True
+        return False
 
 
 class LandsatTM(Landsat):
