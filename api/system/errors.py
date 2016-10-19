@@ -266,12 +266,6 @@ class Errors(object):
         extras = self.__add_retry('node_space_errors')
         return self.__find_error(error_message, keys, status, reason, extras)
 
-    def api_response_errors(self, error_message):
-        api_url = 'http://{}:{}/production-api'.format(config.get('landsatds.host'), config.get('landsatds.port'))
-        keys = ['Exception: Received unexpected status code: 500\nfor URL: {}'.format(api_url)]
-        status = 'retry'
-        reason = 'Communication with api failed, retrying'
-
 
 def resolve(error_message, name):
     '''Attempts to automatically determine the disposition of a scene given
