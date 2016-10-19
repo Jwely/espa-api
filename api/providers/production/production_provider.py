@@ -1101,6 +1101,7 @@ class ProductionProvider(ProductionProviderInterfaceV0):
                 # LTA could still be unavailable, log and it'll be tried again later
                 logger.warn('Failed EE update retry failed again for '
                             'scene {}\n{}'.format(s.id, e))
+        return True
 
     def handle_orders(self):
         """

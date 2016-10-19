@@ -1,5 +1,5 @@
 from api.util import chunkify
-from api.domain.scene import Scene
+
 
 def return_update_order_resp(*args, **kwargs):
     class foo(object):
@@ -7,8 +7,10 @@ def return_update_order_resp(*args, **kwargs):
             return True
     return foo()
 
+
 def get_user_name(arg1):
     return 'klsmith@usgs.gov'
+
 
 # product_list is type list, contact_id is type str
 # needs to return a dict of dicts
@@ -22,8 +24,14 @@ def get_download_urls(product_list, contact_id):
         response[item] = item_dict
     return response
 
+
 def update_order_status(ee_order_id, ee_unit_id, something):
     return True, True, True
+
+
+def update_order_status_fail(ee_order_id, ee_unit_id, something):
+    raise Exception('lta comms failed')
+
 
 def order_scenes(product_list, contact_id):
     chunked_list = chunkify(product_list, 3)
@@ -33,6 +41,7 @@ def order_scenes(product_list, contact_id):
     results["invalid"] = [p for p in chunked_list[2]]
     results["lta_order_id"] = "tramorderid1"
     return results
+
 
 def get_available_orders():
     """
@@ -70,10 +79,12 @@ def get_available_orders_partial(partial=False):
 
 
 def sample_tram_order_ids():
-    return ('0611512239617', '0611512239618', '0611512239619')
+    return '0611512239617', '0611512239618', '0611512239619'
+
 
 def sample_scene_names():
-    return ('LC81370432014073LGN00', 'LC81390422014071LGN00', 'LC81370422014073LGN00')
+    return 'LC81370432014073LGN00', 'LC81390422014071LGN00', 'LC81370422014073LGN00'
+
 
 def get_order_status(tramid):
     response = None
