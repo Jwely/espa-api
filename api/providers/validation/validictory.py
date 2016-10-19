@@ -29,6 +29,9 @@ class OrderValidatorV0(validictory.SchemaValidator):
         super(OrderValidatorV0, self).validate(data, schema)
 
     def validate_extents(self, x, fieldname, schema, path, pixel_count=200000000):
+        if 'resize' not in self.data_source and 'image_extents' not in self.data_source:
+            return
+
         calc_args = {'xmax': None,
                      'ymax': None,
                      'xmin': None,
@@ -37,11 +40,12 @@ class OrderValidatorV0(validictory.SchemaValidator):
                      'res_units': None,
                      'res_pixel': None}
 
-        # Potential sources that would affect the extent calculations
         # Since we can't predict which validation methods are called
         # first we need to make sure that all the values are present
         # and are of the correct type, let the other built-in
         # validations handle the actual error output for most failures
+
+        # Potential sources that would affect the extent calculations
         if 'projection' in self.data_source:
             if not self.validate_type_object(self.data_source['projection']):
                 return
@@ -64,8 +68,8 @@ class OrderValidatorV0(validictory.SchemaValidator):
             if self.data_source['resize']['pixel_size'] <= 0:
                 return
 
-            calc_args['res_pixel'] = self.data_source['resize']['pixel_size']
-            calc_args['res_units'] = self.data_source['resize']['pixel_resize_units']
+            calc_args['resize_pixel'] = self.data_source['resize']['pixel_size']
+            calc_args['resize_units'] = self.data_source['resize']['pixel_resize_units']
 
         if 'image_extents' in self.data_source:
             if not self.validate_type_object(self.data_source['image_extents']):
@@ -73,7 +77,7 @@ class OrderValidatorV0(validictory.SchemaValidator):
             if set(self.data_source['image_extents'].keys()).symmetric_difference(
                     {'north', 'south', 'east', 'west', 'units'}):
                 return
-            if 'projection' not in x or not x['projection']:
+            if 'projection' not in self.data_source or not self.data_source['projection']:
                 return
             if not self.validate_type_number(self.data_source['image_extents']['east']):
                 return
@@ -90,19 +94,42 @@ class OrderValidatorV0(validictory.SchemaValidator):
             calc_args['ymax'] = self.data_source['image_extents']['north']
             calc_args['xmin'] = self.data_source['image_extents']['west']
             calc_args['ymin'] = self.data_source['image_extents']['south']
-            calc_args['ext_units'] = self.data_source['image_extents']['units']
+            calc_args['extent_units'] = self.data_source['image_extents']['units']
 
-        count = self.calc_extent(**calc_args)
+        # If any of the calc_args are None, then we need to input some default values
+        # based on the requested inputs
+        count_ls = []
+        if None in calc_args.values():
+            for sensor, sensor_info in sn.SensorCONST.instances.items():
+                if sensor in self.data_source and 'inputs' in self.data_source[sensor]:
+                    sensor_obj = sensor_info[1]
+                    def_res = sensor_obj.default_resolution_m
+                    def_xmax = sensor_obj.default_cols * def_res
+                    def_ymax = sensor_obj.default_rows * def_res
 
-        if count > pixel_count:
+                    # image_extents or resize is missing, can't be both at this stage
+                    # which means we need to substitute default values in
+                    if calc_args['resize_pixel'] is None:
+                        count_ls.append(self.calc_extent(calc_args['xmax'], calc_args['ymax'], calc_args['xmin'],
+                                                         calc_args['ymin'], calc_args['extent_units'], def_res,
+                                                         'meters'))
+                    if calc_args['xmax'] is None:
+                        count_ls.append(self.calc_extent(def_xmax, def_ymax, 0, 0, 'meters', calc_args['resize_pixel'],
+                                                         calc_args['resize_units']))
+        else:
+            count_ls.append(self.calc_extent(**calc_args))
+
+        cmax = max(count_ls)
+        cmin = min(count_ls)
+        if cmax > pixel_count:
             self._error(': pixel count value is greater than maximum size of {} pixels'.format(pixel_count),
-                        count, fieldname, path=path)
-        elif count < 1:
+                        cmax, fieldname, path=path)
+        elif cmin < 1:
             self._error(': pixel count value falls below acceptable threshold, check extent parameters',
-                        count, fieldname, path=path)
+                        cmin, fieldname, path=path)
 
     @staticmethod
-    def calc_extent(xmax, ymax, xmin, ymin, ext_units, res_units, res_pixel):
+    def calc_extent(xmax, ymax, xmin, ymin, extent_units, resize_units, resize_pixel):
         """Calculate a good estimate of the number of pixels contained
          in an extent"""
         max_count = 0
@@ -110,7 +137,7 @@ class OrderValidatorV0(validictory.SchemaValidator):
         xdif = 0
         ydif = 0
 
-        if ext_units == 'dd' and xmin > 170 and -170 > xmax:
+        if extent_units == 'dd' and xmin > 170 and -170 > xmax:
             xdif = 360 - xmin + xmax
         elif xmax > xmin:
             xdif = xmax - xmin
@@ -118,25 +145,15 @@ class OrderValidatorV0(validictory.SchemaValidator):
         if ymax > ymin:
             ydif = ymax - ymin
 
-        # Default values are actually sensor dependant and
-        # should come from sensor.py, but this should be
-        # sufficient for this purpose
-        if not res_units:
-            res_units = ext_units
-            if ext_units == 'dd':
-                res_pixel = 0.0002695
-            else:
-                res_pixel = 30
-
         # This assumes that the only two valid unit options are
         # decimal degrees and meters
-        if res_units != ext_units:
-            if ext_units == 'dd':
-                res_pixel /= 111317.254174397
+        if resize_units != extent_units:
+            if extent_units == 'dd':
+                resize_pixel /= 111317.254174397
             else:
-                res_pixel *= 111317.254174397
+                resize_pixel *= 111317.254174397
 
-        return int(xdif * ydif / res_pixel ** 2)
+        return int(xdif * ydif / resize_pixel ** 2)
 
     def validate_single_obj(self, x, fieldname, schema, path, single=False):
         """Validates that only one dictionary object was passed in"""

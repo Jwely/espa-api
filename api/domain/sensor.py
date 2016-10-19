@@ -392,7 +392,7 @@ class Landsat8OLITIRS(LandsatOLITIRS, Landsat8):
 
 
 class SensorCONST(object):
-    # shortname: regex, class name, sample product name)
+    # shortname: regex, class object, sample product name)
     instances = {
         'tm4': (r'^lt4\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$',
                 Landsat4TM, 'LT42181092013069PFS00'),
