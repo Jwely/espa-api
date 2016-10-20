@@ -9,10 +9,12 @@ from validate_email import validate_email
 from api.domain import format_sql_params
 from api.domain.order import Order
 from api.domain.scene import Scene
-from api.external import lta
+from api.external.ers import ERSApi, ERSApiException
 from api.providers.configuration.configuration_provider import ConfigurationProvider
 from api.system.logger import ilogger as logger
 from api.util.dbconnect import db_instance, DBConnectException
+
+ers = ERSApi()
 
 
 class UserException(Exception):
@@ -75,16 +77,13 @@ class User(object):
         # not create them, and assign self.id
         self.id = User.find_or_create_user(self.username, self.email, self.first_name, self.last_name, self.contactid)
 
-
     @classmethod
     def get(cls, username, password):
-        user_tup = None
-
         if username == 'espa_admin':
             try:
                 cp = ConfigurationProvider()
                 if pbkdf2_sha256.verify(password, cp.espa256):
-                    user_tup = (username, cp.get('apiemailreceive'), 'espa', 'admin', '')
+                    return username, cp.get('apiemailreceive'), 'espa', 'admin', ''
                 else:
                     raise UserException("ERR validating espa_admin, invalid password ")
             except:
@@ -92,15 +91,11 @@ class User(object):
                 raise UserException("ERR validating espa_admin, traceback: {0}".format(traceback.format_exc()))
         else:
             try:
-                lta_user = lta.get_user_info(username, password)
-                contactid = lta.login_user(username, password)
-                user_tup = (str(username), str(lta_user.email), str(lta_user.first_name), str(lta_user.last_name), str(contactid))
-            except:
-                exc_type, exc_val, exc_trace = sys.exc_info()
-                logger.info("ERR retrieving user from lta, username: {0}\n exception {1}".format(username, traceback.format_exc()))
-                raise exc_type, exc_val, exc_trace
-
-        return user_tup
+                eu = ers.get_user_info(username, password)
+                return eu['username'], eu['email'], eu['firstName'], eu['lastName'], eu['contact_id']
+            except ERSApiException, e:
+                raise UserException("Error authenticating user in get() with ERS. "
+                                    "message:{}".format(e.message))
 
     @classmethod
     def find_or_create_user(cls, username, email, first_name, last_name, contactid):
