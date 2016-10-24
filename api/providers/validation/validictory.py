@@ -31,14 +31,16 @@ class OrderValidatorV0(validictory.SchemaValidator):
     def validate_extents(self, x, fieldname, schema, path, pixel_count=200000000):
         if 'resize' not in self.data_source and 'image_extents' not in self.data_source:
             return
+        if not (set(self.data_source.keys()) & set(sn.SensorCONST.instances.keys())):
+            return
 
         calc_args = {'xmax': None,
                      'ymax': None,
                      'xmin': None,
                      'ymin': None,
-                     'ext_units': None,
-                     'res_units': None,
-                     'res_pixel': None}
+                     'extent_units': None,
+                     'resize_units': None,
+                     'resize_pixel': None}
 
         # Since we can't predict which validation methods are called
         # first we need to make sure that all the values are present
@@ -58,10 +60,10 @@ class OrderValidatorV0(validictory.SchemaValidator):
         if 'resize' in self.data_source:
             if not self.validate_type_object(self.data_source['resize']):
                 return
-            if set(self.data_source['image_extents'].keys()).symmetric_difference(
-                    {'pixel_resize_units', 'pixel_size'}):
+            if set(self.data_source['resize'].keys()).symmetric_difference(
+                    {'pixel_size_units', 'pixel_size'}):
                 return
-            if not self.validate_type_string(self.data_source['resize']['pixel_resize_units']):
+            if not self.validate_type_string(self.data_source['resize']['pixel_size_units']):
                 return
             if not self.validate_type_number(self.data_source['resize']['pixel_size']):
                 return
@@ -69,7 +71,7 @@ class OrderValidatorV0(validictory.SchemaValidator):
                 return
 
             calc_args['resize_pixel'] = self.data_source['resize']['pixel_size']
-            calc_args['resize_units'] = self.data_source['resize']['pixel_resize_units']
+            calc_args['resize_units'] = self.data_source['resize']['pixel_size_units']
 
         if 'image_extents' in self.data_source:
             if not self.validate_type_object(self.data_source['image_extents']):
@@ -110,12 +112,14 @@ class OrderValidatorV0(validictory.SchemaValidator):
                     # image_extents or resize is missing, can't be both at this stage
                     # which means we need to substitute default values in
                     if calc_args['resize_pixel'] is None:
-                        count_ls.append(self.calc_extent(calc_args['xmax'], calc_args['ymax'], calc_args['xmin'],
-                                                         calc_args['ymin'], calc_args['extent_units'], def_res,
-                                                         'meters'))
+                        count_ls.append(self.calc_extent(calc_args['xmax'], calc_args['ymax'],
+                                                         calc_args['xmin'], calc_args['ymin'],
+                                                         calc_args['extent_units'], 'meters',
+                                                         def_res))
                     if calc_args['xmax'] is None:
-                        count_ls.append(self.calc_extent(def_xmax, def_ymax, 0, 0, 'meters', calc_args['resize_pixel'],
-                                                         calc_args['resize_units']))
+                        count_ls.append(self.calc_extent(def_xmax, def_ymax, 0, 0, 'meters',
+                                                         calc_args['resize_units'],
+                                                         calc_args['resize_pixel']))
         else:
             count_ls.append(self.calc_extent(**calc_args))
 
