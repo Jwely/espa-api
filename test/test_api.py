@@ -158,6 +158,25 @@ class TestValidation(unittest.TestCase):
             except ValidationException as e:
                 self.fail('Raised ValidationException: {}'.format(e.message))
 
+    def test_modis_resize(self):
+        """
+        Most common issue of orders resizing MODIS to 30m pixels, without setting the extents
+        """
+        modis_order = {'MOD09A1': {'inputs': 'MOD09A1.A2000072.h02v09.005.2008237032813',
+                                   'products': ['l1']},
+                       'resampling_method': 'cc',
+                       'resize': {'pixel_size': 30,
+                                  'pixel_size_units': 'meters'}}
+
+        exc = 'pixel count value is greater than maximum size of'
+
+        try:
+            api.validation(modis_order, self.staffuser.username)
+        except Exception as e:
+            assert(str(exc) in e)
+        else:
+            self.fail('Failed MODIS pixel resize test')
+
     def test_validate_bad_orders(self):
         """
         Build a series of invalid orders to try and catch any potential errors in a
