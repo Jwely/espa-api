@@ -13,7 +13,7 @@ from http_user import Index, VersionInfo, AvailableProducts, ValidationInfo,\
 
 from http_production import ProductionVersion, ProductionConfiguration, ProductionOperations, ProductionManagement
 
-from http_admin import Reports, SystemStatus
+from http_admin import Reports, SystemStatus, OrderResets
 
 config = ConfigurationProvider()
 
@@ -71,13 +71,18 @@ transport_api.add_resource(Reports,
                            '/api/v<version>/reports/',
                            '/api/v<version>/reports/<name>/',
                            '/api/v<version>/statistics/',
-                           '/api/v<version>/statistics/<name>')
+                           '/api/v<version>/statistics/<name>',
+                           '/api/v<version>/aux_report/<group>/',
+                           '/api/v<version>/aux_report/<group>/<year>')
 
 transport_api.add_resource(SystemStatus,
                            '/api/v<version>/system-status',
                            '/api/v<version>/system-status-update',
                            '/api/v<version>/system/config')
 
+transport_api.add_resource(OrderResets,
+                           '/api/v<version>/error_to_submitted/<orderid>',
+                           '/api/v<version>/error_to_unavailable/<orderid>')
 
 # PRODUCTION facing functionality
 transport_api.add_resource(ProductionVersion,

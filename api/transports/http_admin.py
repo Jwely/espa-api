@@ -66,7 +66,7 @@ def unauthorized():
 @auth.verify_password
 def verify_user(username, password):
     try:
-        cache_key = '{}-credentials'.format(username)
+        cache_key = '{}-credentials'.format(username.replace(' ', '_espa_cred_insert_'))
         cache_entry = cache.get(cache_key)
 
         if cache_entry:
@@ -97,8 +97,10 @@ class Reports(Resource):
     decorators = [auth.login_required, whitelist, version_filter]
 
     @staticmethod
-    def get(version, name=None):
-        if 'report' in request.url:
+    def get(version, name=None, group=None, year=None):
+        if 'aux' in request.url:
+            return espa.get_aux_report(group, year)
+        elif 'report' in request.url:
             if name:
                 return espa.get_report(name)
             else:
@@ -142,3 +144,16 @@ class SystemStatus(Resource):
             resp = jsonify(message)
             resp.status_code = 500
             return resp
+
+
+class OrderResets(Resource):
+    decorators = [auth.login_required, whitelist, version_filter]
+
+    @staticmethod
+    def put(version, orderid):
+        # eg 'error_to_unavailable'
+        _to_whole = request.url.split('/')[-2]
+        # eg 'unavailable'
+        _to_state = _to_whole.split('_')[-1]
+        return espa.error_to(orderid, _to_state)
+

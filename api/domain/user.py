@@ -3,18 +3,23 @@ import time
 import traceback
 import datetime
 
-from api.external import lta
-from api.util.dbconnect import db_instance
+from passlib.hash import pbkdf2_sha256
 from validate_email import validate_email
 
+from api.domain import format_sql_params
+from api.domain.order import Order
+from api.domain.scene import Scene
+from api.external.ers import ERSApi, ERSApiException
 from api.providers.configuration.configuration_provider import ConfigurationProvider
-
-from passlib.hash import pbkdf2_sha256
-
 from api.system.logger import ilogger as logger
+from api.util.dbconnect import db_instance, DBConnectException
+
+ers = ERSApi()
+
 
 class UserException(Exception):
     pass
+
 
 class User(object):
 
@@ -72,16 +77,13 @@ class User(object):
         # not create them, and assign self.id
         self.id = User.find_or_create_user(self.username, self.email, self.first_name, self.last_name, self.contactid)
 
-
     @classmethod
     def get(cls, username, password):
-        user_tup = None
-
         if username == 'espa_admin':
             try:
                 cp = ConfigurationProvider()
                 if pbkdf2_sha256.verify(password, cp.espa256):
-                    user_tup = (username, cp.get('apiemailreceive'), 'espa', 'admin', '')
+                    return username, cp.get('apiemailreceive'), 'espa', 'admin', ''
                 else:
                     raise UserException("ERR validating espa_admin, invalid password ")
             except:
@@ -89,15 +91,11 @@ class User(object):
                 raise UserException("ERR validating espa_admin, traceback: {0}".format(traceback.format_exc()))
         else:
             try:
-                lta_user = lta.get_user_info(username, password)
-                contactid = lta.login_user(username, password)
-                user_tup = (str(username), str(lta_user.email), str(lta_user.first_name), str(lta_user.last_name), str(contactid))
-            except:
-                exc_type, exc_val, exc_trace = sys.exc_info()
-                logger.info("ERR retrieving user from lta, username: {0}\n exception {1}".format(username, traceback.format_exc()))
-                raise exc_type, exc_val, exc_trace
-
-        return user_tup
+                eu = ers.get_user_info(username, password)
+                return eu['username'], eu['email'], eu['firstName'], eu['lastName'], eu['contact_id']
+            except ERSApiException, e:
+                raise UserException("Error authenticating user in get() with ERS. "
+                                    "message:{}".format(e.message))
 
     @classmethod
     def find_or_create_user(cls, username, email, first_name, last_name, contactid):
@@ -134,26 +132,79 @@ class User(object):
 
     @classmethod
     def where(cls, params):
-        sql = [str(cls.base_sql)]
-        if isinstance(params, list):
-            param_str = " AND ".join(params)
-            sql.append(param_str)
-        elif isinstance(params, str):
-            sql.append(params)
+        """
+        Query for particular users
+
+        :param params: dictionary of column: value parameters
+        :return: list of matching User objects
+        """
+        if not isinstance(params, dict):
+            raise UserException('Where arguments must be passed as a dictionary')
+
+        sql, values = format_sql_params(cls.base_sql, params)
+
+        ret = []
+        log_sql = ''
+        try:
+            with db_instance() as db:
+                log_sql = db.cursor.mogrify(sql, values)
+                logger.info('user.py where sql: {}'.format(log_sql))
+                db.select(sql, values)
+                for i in db:
+                    obj = User(i["username"], i["email"], i["first_name"],
+                               i["last_name"], i["contactid"])
+                    ret.append(obj)
+        except DBConnectException as e:
+                logger.debug('Error querying for users: {}\n'
+                             'sql: {}'.format(e.message, log_sql))
+                raise UserException(e)
+        return ret
+
+    @classmethod
+    def by_contactid(cls, contactid):
+        try:
+            return cls.where({'contactid': contactid})[0]
+        except IndexError:
+            return None
+
+    @classmethod
+    def by_username(cls, username):
+        try:
+            return cls.where({'username': username})[0]
+        except IndexError:
+            return None
+
+    @classmethod
+    def find(cls, ids):
+        sql = '{} id IN %s;'.format(cls.base_sql)
+        resp = list()
+        if not isinstance(ids, list) and not isinstance(ids, int):
+            raise UserException("a list of integers, or a single integer, "
+                                 "are the only valid arguments for User.find()")
+
+        if isinstance(ids, list):
+            _single = False
+            for item in ids:
+                if not isinstance(item, int):
+                    raise UserException("list members must be of type int for "
+                                         "User.find(): {0} is not an int".format(item))
         else:
-            raise UserException("User.where arg needs to be a list or a str")
+            _single = True
+            ids = [ids]
 
-        sql.append(";")
-        sql = " ".join(sql)
-        sql = sql.replace(",)", ")")
         with db_instance() as db:
-            db.select(sql)
-            returnlist = []
-            for i in db:
-                obj = User(i["username"], i["email"], i["first_name"], i["last_name"], i["contactid"])
-                returnlist.append(obj)
+            db.select(sql, [tuple(ids)])
 
-        return returnlist
+        if db:
+            for i in db:
+                obj = User(i["username"], i["email"], i["first_name"],
+                               i["last_name"], i["contactid"])
+                resp.append(obj)
+
+        if _single:
+            return resp[0]
+        else:
+            return resp
 
     def update(self, att, val):
         self.__setattr__(att, val)
@@ -205,4 +256,8 @@ class User(object):
                 "last_name": self.last_name,
                 "username": self.username,
                 "roles": self.role_list()}
+
+    def active_hadoop_job_names(self):
+        order_ids = tuple([o.id for o in Order.where({'status': 'ordered', 'user_id': self.id})])
+        return [s.job_name for s in Scene.where({'status': ('processing', 'queued'), 'order_id': order_ids})]
 

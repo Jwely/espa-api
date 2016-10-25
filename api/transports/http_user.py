@@ -256,5 +256,6 @@ class ItemStatus(Resource):
 
     @staticmethod
     def get(version, orderid, itemnum='ALL'):
-        return espa.item_status(orderid, itemnum)
+        user = flask.g.user
+        return espa.item_status(orderid, itemnum, user.username)
 

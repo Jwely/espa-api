@@ -205,7 +205,7 @@ class API(object):
 
         return response
 
-    def item_status(self, orderid, itemid='ALL'):
+    def item_status(self, orderid, itemid='ALL', username=None):
         """Shows an individual item status
 
         Args:
@@ -220,7 +220,7 @@ class API(object):
             ItemNotFound if the item did not exist
         """
         try:
-            response = self.ordering.item_status(orderid, itemid)
+            response = self.ordering.item_status(orderid, itemid, username)
         except:
             logger.debug("ERR version1 item_status itemid {0}  orderid: {1}\nexception {2}".format(itemid, orderid, traceback.format_exc()))
             response = default_error_message

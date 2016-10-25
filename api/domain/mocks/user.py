@@ -2,8 +2,10 @@ import os
 from api.domain.user import User
 from api.util.dbconnect import db_instance
 
+
 class MockUserException(Exception):
     pass
+
 
 class MockUser(object):
     ''' class for mocking the User class in unit tests '''
@@ -32,6 +34,6 @@ class MockUser(object):
             db.commit()
 
     @classmethod
-    def get(cls, username, password):
-        user = User.where("id > 0")[0]
+    def get(cls, *args):
+        user = User.where({'username': 'bilbo_baggins'})[0]
         return (user.username, user.email, user.first_name, user.last_name, user.contactid)

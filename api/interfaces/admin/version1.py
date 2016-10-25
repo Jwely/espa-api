@@ -176,3 +176,31 @@ class API(object):
             response = default_error_message
         return response
 
+    def error_to(self, orderid, state):
+        """
+        flip scenes in error for given order to provided state
+        :param orderid: order to work with
+        :param state: value to set to
+        :return: True
+        """
+        try:
+            response = self.admin.error_to(orderid, state)
+        except:
+            logger.debug("ERR failure to reset to {} error scenes for {}\ntrace: {}".format(state, orderid,
+                                                                                            traceback.format_exc()))
+            response = default_error_message
+        return response
+
+    def get_aux_report(self, group, year):
+        """
+        get data on gaps in available auxiliary data
+        :param group: sensor group, L17 or L8
+        :param year: year to report on
+        :return: dict of missing days by year
+        """
+        try:
+            response = self.reporting.missing_auxiliary_data(group, year)
+        except:
+            logger.debug("ERR retrieving auxiliary report for {} group, year {}\ntrace: {}".format(group, year, traceback.format_exc()))
+            response = default_error_message
+        return response

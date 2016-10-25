@@ -32,16 +32,16 @@ class TestAPI(unittest.TestCase):
         self.mock_order = MockOrder()
         user_id = self.mock_user.add_testing_user()
         order_id = self.mock_order.generate_testing_order(user_id)
-        self.order = Order.where({'id': order_id})[0]
-        self.user = User.where("id = {0}".format(user_id))[0]
+        self.order = Order.find(order_id)
+        self.user = User.find(user_id)
         self.product_id = 'LT50150401987120XXX02'
         self.staff_product_id = 'LE70450302003206EDC01'
 
         staff_user_id = self.mock_user.add_testing_user()
-        self.staff_user = User.where("id = {0}".format(staff_user_id))[0]
+        self.staff_user = User.find(staff_user_id)
         self.staff_user.update('is_staff', True)
         staff_order_id = self.mock_order.generate_testing_order(staff_user_id)
-        staff_order = Order.where({'id': staff_order_id})[0]
+        staff_order = Order.find(staff_order_id)
         staff_scene = staff_order.scenes()[0]
         staff_scene.update('name', self.staff_product_id)
         user_scene = self.order.scenes()[0]
@@ -112,15 +112,11 @@ class TestAPI(unittest.TestCase):
 
 class TestValidation(unittest.TestCase):
     def setUp(self):
-        with db_instance() as db:
-            staffusersql = "select username, email, is_staff from auth_user where is_staff = True limit 1;"
-            pubusersql = "select username, email, is_staff from auth_user where is_staff = False limit 1;"
+        os.environ['espa_api_testing'] = 'True'
 
-            db.select(staffusersql)
-            self.staffuser = db[0]['username']
-
-            db.select(pubusersql)
-            self.pubuser = db[0]['username']
+        self.mock_user = MockUser()
+        self.staffuser = User.find(self.mock_user.add_testing_user())
+        self.staffuser.update('is_staff', True)
 
         self.base_order = lowercase_all(testorders.build_base_order())
         self.base_schema = BaseValidationSchema.request_schema
@@ -158,7 +154,7 @@ class TestValidation(unittest.TestCase):
             valid_order['projection'] = {proj: testorders.good_test_projections[proj]}
 
             try:
-                good = api.validation(valid_order, self.staffuser)
+                good = api.validation(valid_order, self.staffuser.username)
             except ValidationException as e:
                 self.fail('Raised ValidationException: {}'.format(e.message))
 
@@ -190,7 +186,7 @@ class TestValidation(unittest.TestCase):
                 with self.assertRaises(exc_type):
                     try:
                         c += 1
-                        api.validation(order, self.staffuser)
+                        api.validation(order, self.staffuser.username)
                     except exc_type as e:
                         if str(exc) in str(e):
                             raise
@@ -202,11 +198,12 @@ class TestValidation(unittest.TestCase):
                         self.fail('\n{} Exception was not raised\n'
                                   '\nExpected exception message:\n{}\n'
                                   '\nUsing test: {}'.format(exc_type, str(exc), test))
-        print c  # For initial debugging
+        #print c  # For initial debugging
 
 
 class TestInventory(unittest.TestCase):
     def setUp(self):
+        os.environ['espa_api_testing'] = 'True'
         self.lta_prod_good = u'LE70290302001200EDC00'
         self.lta_prod_bad = u'LE70290302001200EDC01'
         self.lpdaac_prod_good = u'MOD09A1.A2001209.h10v04.005.2007042201314'
@@ -217,6 +214,8 @@ class TestInventory(unittest.TestCase):
 
         self.lpdaac_order_good = {'mod09a1': {'inputs': [self.lpdaac_prod_good]}}
         self.lpdaac_order_bad = {'mod09a1': {'inputs': [self.lpdaac_prod_bad]}}
+
+
 
     def test_lta_good(self):
         """
