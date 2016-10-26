@@ -380,20 +380,30 @@ class Landsat8OLITIRS(LandsatOLITIRS, Landsat8):
 class SensorCONST(object):
     # shortname: regex, class name, sample product name)
     instances = {
-        'tm4': (r'^lt4\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$',
-                Landsat4TM, 'LT42181092013069PFS00'),
+        'tm4': (r'^lt4\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$', Landsat4TM, 'LT42181092013069PFS00'),
 
-        'tm5': (r'^lt5\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$',
-                Landsat5TM, 'LT52181092013069PFS00'),
+        'tm4_collection': (r'^lt04_{1}\w{4}_{1}[0-9]{6}_{1}[0-9]{8}_{1}[0-9]{8}_{1}[0-9]{2}_{1}\w{2}$',
+                           Landsat4TM, 'lt04_l1tp_042034_20011103_20160706_01_a1'),
 
-        'etm7': (r'^le7\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
-                 Landsat7ETM, 'LE72181092013069PFS00'),
+        'tm5': (r'^lt5\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$', Landsat5TM, 'LT52181092013069PFS00'),
 
-        'olitirs8': (r'^lc8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
-                     Landsat8OLITIRS, 'LC82181092013069PFS00'),
+        'tm5_collection': (r'^lt05_{1}\w{4}_{1}[0-9]{6}_{1}[0-9]{8}_{1}[0-9]{8}_{1}[0-9]{2}_{1}\w{2}$',
+                           Landsat5TM, 'lt05_l1tp_042034_20011103_20160706_01_a1'),
 
-        'oli8': (r'^lo8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
-                 Landsat8OLI, 'LO82181092013069PFS00'),
+        'etm7': (r'^le7\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$', Landsat7ETM, 'LE72181092013069PFS00'),
+
+        'etm7_collection': (r'^le07_{1}\w{4}_{1}[0-9]{6}_{1}[0-9]{8}_{1}[0-9]{8}_{1}[0-9]{2}_{1}\w{2}$',
+                            Landsat7ETM, 'le07_l1tp_042034_20011103_20160706_01_a1'),
+
+        'olitirs8': (r'^lc8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$', Landsat8OLITIRS, 'LC82181092013069PFS00'),
+
+        'olitirs8_collection': (r'^lc08_{1}\w{4}_{1}[0-9]{6}_{1}[0-9]{8}_{1}[0-9]{8}_{1}[0-9]{2}_{1}\w{2}$',
+                                Landsat8OLITIRS, 'lc08_l1tp_042034_20011103_20160706_01_a1'),
+
+        'oli8': (r'^lo8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$', Landsat8OLI, 'LO82181092013069PFS00'),
+
+        'oli8_collection': (r'^lo08_{1}\w{4}_{1}[0-9]{6}_{1}[0-9]{8}_{1}[0-9]{8}_{1}[0-9]{2}_{1}\w{2}$',
+                            Landsat8OLI, 'lo08_l1tp_042034_20011103_20160706_01_a1'),
 
         'mod09a1': (r'^mod09a1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
                     ModisTerra09A1, 'mod09a1.A2000072.h02v09.005.2008237032813'),
@@ -443,15 +453,6 @@ class SensorCONST(object):
         'myd13q1': (r'^myd13q1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
                     ModisAqua13Q1, 'myd13q1.A2000072.h02v09.005.2008237032813')
     }
-
-    LTA_ids = ['tm4', 'tm5', 'etm7', 'olitirs8', 'oli8']
-    LPDAAC_ids = ['mod09a1', 'mod09ga', 'mod09gq', 'mod09q1',
-                    'myd09a1', 'myd09ga', 'myd09gq', 'myd09q1',
-                    'mod13a1', 'mod13a2', 'mod13a3', 'mod13q1',
-                    'myd13a1', 'myd13a2', 'myd13a3', 'myd13q1']
-
-    def __setattr__(self, key, value):
-        pass
 
 
 def instance(product_id):

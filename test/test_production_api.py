@@ -54,7 +54,7 @@ class TestProductionAPI(unittest.TestCase):
     def test_fetch_production_products_landsat(self):
         order_id = self.mock_order.generate_testing_order(self.user_id)
         # need scenes with statuses of 'processing' and 'ordered'
-        self.mock_order.update_scenes(order_id, 'status', ['processing','ordered','oncache'])
+        self.mock_order.update_scenes(order_id, 'status', ['processing','oncache','ordered'])
         user = User.find(self.user_id)
         params = {'for_user': user.username, 'product_types': ['landsat']}
         response = api.fetch_production_products(params)
@@ -155,7 +155,7 @@ class TestProductionAPI(unittest.TestCase):
         production_provider.update_product('set_product_error',
                                            name=scene.name, orderid=order.orderid,
                                            processing_loc="L8SRLEXAMPLE",
-                                           error='GDAL Warp failed to transform')
+                                           error='problems yo')
         self.assertTrue(Scene.find(scene.id).status == 'error')
 
     @patch('api.external.lta.update_order_status', lta.update_order_status)
