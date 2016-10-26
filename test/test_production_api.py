@@ -171,6 +171,7 @@ class TestProductionAPI(unittest.TestCase):
 
     @patch('api.external.lta.update_order_status', lta.update_order_status)
     @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
+    @patch('os.path.getsize', lambda y: 999)
     def test_update_product_details_mark_product_complete(self):
         order = Order.find(self.mock_order.generate_testing_order(self.user_id))
         scene = order.scenes()[0]
@@ -186,6 +187,7 @@ class TestProductionAPI(unittest.TestCase):
 
     @patch('api.external.lta.update_order_status', lta.update_order_status_fail)
     @patch('api.providers.production.production_provider.ProductionProvider.set_product_retry', mock_production_provider.set_product_retry)
+    @patch('os.path.getsize', lambda y: 999)
     def test_update_product_details_fail_lta_mark_product_complete(self):
         order = Order.find(self.mock_order.generate_testing_order(self.user_id))
         scene = order.scenes()[1]
