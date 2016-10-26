@@ -37,7 +37,10 @@ class SensorProduct(object):
     # last 5 for LANDSAT, collection # for MODIS
     version = None
 
-    default_pixel_size = {}
+    default_resolution_m = None
+    default_resolution_dd = None
+    default_rows = None
+    default_cols = None
 
     def __init__(self, product_id):
         """Constructor for the SensorProduct base class
@@ -97,42 +100,66 @@ class Aqua(Modis):
 
 class Modis09A1(Modis):
     """models modis 09A1"""
-    default_pixel_size = {'meters': 500, 'dd': 0.00449155}
+    default_resolution_m = 500
+    default_resolution_dd = 0.00449155
+    default_rows = 2400
+    default_cols = 2400
 
 
 class Modis09GA(Modis):
     """models modis 09GA"""
-    default_pixel_size = {'meters': 500, 'dd': 0.00449155}
+    default_resolution_m = 1000
+    default_resolution_dd = 0.0089831
+    default_rows = 1200
+    default_cols = 1200
 
 
 class Modis09GQ(Modis):
     """models modis 09GQ"""
-    default_pixel_size = {'meters': 250, 'dd': 0.002245775}
+    default_resolution_m = 250
+    default_resolution_dd = 0.002245775
+    default_rows = 4800
+    default_cols = 4800
 
 
 class Modis09Q1(Modis):
     """models modis 09Q1"""
-    default_pixel_size = {'meters': 250, 'dd': 0.002245775}
+    default_resolution_m = 250
+    default_resolution_dd = 0.002245775
+    default_rows = 4800
+    default_cols = 4800
 
 
 class Modis13A1(Modis):
     """models modis 13A1"""
-    default_pixel_size = {'meters': 1000, 'dd': 0.0089831}
+    default_resolution_m = 500
+    default_resolution_dd = 0.00449155
+    default_rows = 2400
+    default_cols = 2400
 
 
 class Modis13A2(Modis):
     """models modis 13A2"""
-    default_pixel_size = {'meters': 1000, 'dd': 0.0089831}
+    default_resolution_m = 1000
+    default_resolution_dd = 0.0089831
+    default_rows = 1200
+    default_cols = 1200
 
 
 class Modis13A3(Modis):
     """models modis 13A3"""
-    default_pixel_size = {'meters': 1000, 'dd': 0.0089831}
+    default_resolution_m = 1000
+    default_resolution_dd = 0.0089831
+    default_rows = 1200
+    default_cols = 1200
 
 
 class Modis13Q1(Modis):
     """models modis 13Q1"""
-    default_pixel_size = {'meters': 250, 'dd': 0.002245775}
+    default_resolution_m = 250
+    default_resolution_dd = 0.002245775
+    default_rows = 4800
+    default_cols = 4800
 
 
 class ModisTerra09A1(Terra, Modis09A1):
@@ -221,7 +248,10 @@ class Landsat(SensorProduct):
     row = None
     station = None
     lta_product_code = None
-    default_pixel_size = {'meters': 30, 'dd': 0.0002695}
+    default_resolution_m = 30
+    default_resolution_dd = 0.0002695
+    default_rows = 11000
+    default_cols = 11000
     input_filename_extension = '.tar.gz'
     l1_provider = 'lta'
 
@@ -378,7 +408,7 @@ class Landsat8OLITIRS(LandsatOLITIRS, Landsat8):
 
 
 class SensorCONST(object):
-    # shortname: regex, class name, sample product name)
+    # shortname: regex, class object, sample product name)
     instances = {
         'tm4': (r'^lt4\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$', Landsat4TM, 'LT42181092013069PFS00'),
 
