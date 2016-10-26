@@ -2,16 +2,14 @@ import datetime
 
 from api.domain import sensor
 from api.domain.order import Order
-from api.domain.scene import Scene
 from api.domain.user import User
-from api.util.dbconnect import db_instance, DBConnectException
+from api.util.dbconnect import db_instance
 from api.util import julian_date_check
 from api.providers.ordering import ProviderInterfaceV0
 from api.providers.configuration.configuration_provider import ConfigurationProvider
 from api.providers.caching.caching_provider import CachingProvider
 
 import copy
-import json
 import yaml
 
 cache = CachingProvider()
@@ -295,12 +293,3 @@ class OrderingProvider(ProviderInterfaceV0):
                     'display_system_message': resp_dict['system.display_system_message']}
         else:
             return {'system_message_body': None, 'system_message_title': None}
-
-    def mark_product_download(self, orderid, filename, headers, remote_addr):
-        # ordering_downloads (scene_id, ipaddress, byte_start, byte_end, time)
-        scene = Scene.where({'filename': filename})[0]
-        now = datetime.datetime.now()
-        print "** headers: {}".format(headers)
-        print "** remote_addr: {}".format(remote_addr)
-        print "** now: {}".format(now)
-        print "** scene: {}".format(scene.name)

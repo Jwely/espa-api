@@ -29,7 +29,7 @@ class Scene(object):
                  ee_unit_id=None, tram_order_id=None, sensor_type=None,
                  job_name=None, retry_after=None, retry_limit=None,
                  retry_count=None, reported_orphan=None, orphaned=None,
-                 download_size=None):
+                 download_size=None, failed_lta_status_update=None):
         """
         Initialize the Scene object with all the information for it
         from the database
@@ -56,7 +56,8 @@ class Scene(object):
         :param retry_count: retry attempts
         :param reported_orphan: time reported missing hadoop
         :param orphaned: missing hadoop job
-        :param download_size: product download file size
+        :param download_size: size of final product download
+        :param failed_lta_status_update: status update not yet delivered to LTA
         """
 
         self.name = name
@@ -80,6 +81,7 @@ class Scene(object):
         self.reported_orphan = reported_orphan
         self.orphaned = orphaned
         self.download_size = download_size
+        self.failed_lta_status_update = failed_lta_status_update
 
         if id:
             # no need to query the DB again
@@ -352,7 +354,8 @@ class Scene(object):
                     'product_dload_url', 'tram_order_id',
                     'completion_date', 'ee_unit_id', 'retry_limit',
                     'cksum_distro_location', 'product_distro_location',
-                    'reported_orphan', 'orphaned')
+                    'reported_orphan', 'orphaned', 'failed_lta_status_update',
+                    'download_size')
 
         vals = tuple(self.__getattribute__(v) for v in attr_tup)
         cols = '({})'.format(','.join(attr_tup))

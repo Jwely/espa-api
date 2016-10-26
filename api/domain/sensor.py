@@ -37,7 +37,10 @@ class SensorProduct(object):
     # last 5 for LANDSAT, collection # for MODIS
     version = None
 
-    default_pixel_size = {}
+    default_resolution_m = None
+    default_resolution_dd = None
+    default_rows = None
+    default_cols = None
 
     def __init__(self, product_id):
         """Constructor for the SensorProduct base class
@@ -97,42 +100,66 @@ class Aqua(Modis):
 
 class Modis09A1(Modis):
     """models modis 09A1"""
-    default_pixel_size = {'meters': 500, 'dd': 0.00449155}
+    default_resolution_m = 500
+    default_resolution_dd = 0.00449155
+    default_rows = 2400
+    default_cols = 2400
 
 
 class Modis09GA(Modis):
     """models modis 09GA"""
-    default_pixel_size = {'meters': 500, 'dd': 0.00449155}
+    default_resolution_m = 1000
+    default_resolution_dd = 0.0089831
+    default_rows = 1200
+    default_cols = 1200
 
 
 class Modis09GQ(Modis):
     """models modis 09GQ"""
-    default_pixel_size = {'meters': 250, 'dd': 0.002245775}
+    default_resolution_m = 250
+    default_resolution_dd = 0.002245775
+    default_rows = 4800
+    default_cols = 4800
 
 
 class Modis09Q1(Modis):
     """models modis 09Q1"""
-    default_pixel_size = {'meters': 250, 'dd': 0.002245775}
+    default_resolution_m = 250
+    default_resolution_dd = 0.002245775
+    default_rows = 4800
+    default_cols = 4800
 
 
 class Modis13A1(Modis):
     """models modis 13A1"""
-    default_pixel_size = {'meters': 1000, 'dd': 0.0089831}
+    default_resolution_m = 500
+    default_resolution_dd = 0.00449155
+    default_rows = 2400
+    default_cols = 2400
 
 
 class Modis13A2(Modis):
     """models modis 13A2"""
-    default_pixel_size = {'meters': 1000, 'dd': 0.0089831}
+    default_resolution_m = 1000
+    default_resolution_dd = 0.0089831
+    default_rows = 1200
+    default_cols = 1200
 
 
 class Modis13A3(Modis):
     """models modis 13A3"""
-    default_pixel_size = {'meters': 1000, 'dd': 0.0089831}
+    default_resolution_m = 1000
+    default_resolution_dd = 0.0089831
+    default_rows = 1200
+    default_cols = 1200
 
 
 class Modis13Q1(Modis):
     """models modis 13Q1"""
-    default_pixel_size = {'meters': 250, 'dd': 0.002245775}
+    default_resolution_m = 250
+    default_resolution_dd = 0.002245775
+    default_rows = 4800
+    default_cols = 4800
 
 
 class ModisTerra09A1(Terra, Modis09A1):
@@ -221,7 +248,10 @@ class Landsat(SensorProduct):
     row = None
     station = None
     lta_product_code = None
-    default_pixel_size = {'meters': 30, 'dd': 0.0002695}
+    default_resolution_m = 30
+    default_resolution_dd = 0.0002695
+    default_rows = 11000
+    default_cols = 11000
     input_filename_extension = '.tar.gz'
     l1_provider = 'lta'
 
@@ -378,22 +408,32 @@ class Landsat8OLITIRS(LandsatOLITIRS, Landsat8):
 
 
 class SensorCONST(object):
-    # shortname: regex, class name, sample product name)
+    # shortname: regex, class object, sample product name)
     instances = {
-        'tm4': (r'^lt4\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$',
-                Landsat4TM, 'LT42181092013069PFS00'),
+        'tm4': (r'^lt4\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$', Landsat4TM, 'LT42181092013069PFS00'),
 
-        'tm5': (r'^lt5\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$',
-                Landsat5TM, 'LT52181092013069PFS00'),
+        'tm4_collection': (r'^lt04_{1}\w{4}_{1}[0-9]{6}_{1}[0-9]{8}_{1}[0-9]{8}_{1}[0-9]{2}_{1}\w{2}$',
+                           Landsat4TM, 'lt04_l1tp_042034_20011103_20160706_01_a1'),
 
-        'etm7': (r'^le7\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
-                 Landsat7ETM, 'LE72181092013069PFS00'),
+        'tm5': (r'^lt5\d{3}\d{3}\d{4}\d{3}[a-z]{3}[a-z0-9]{2}$', Landsat5TM, 'LT52181092013069PFS00'),
 
-        'olitirs8': (r'^lc8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
-                     Landsat8OLITIRS, 'LC82181092013069PFS00'),
+        'tm5_collection': (r'^lt05_{1}\w{4}_{1}[0-9]{6}_{1}[0-9]{8}_{1}[0-9]{8}_{1}[0-9]{2}_{1}\w{2}$',
+                           Landsat5TM, 'lt05_l1tp_042034_20011103_20160706_01_a1'),
 
-        'oli8': (r'^lo8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$',
-                 Landsat8OLI, 'LO82181092013069PFS00'),
+        'etm7': (r'^le7\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$', Landsat7ETM, 'LE72181092013069PFS00'),
+
+        'etm7_collection': (r'^le07_{1}\w{4}_{1}[0-9]{6}_{1}[0-9]{8}_{1}[0-9]{8}_{1}[0-9]{2}_{1}\w{2}$',
+                            Landsat7ETM, 'le07_l1tp_042034_20011103_20160706_01_a1'),
+
+        'olitirs8': (r'^lc8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$', Landsat8OLITIRS, 'LC82181092013069PFS00'),
+
+        'olitirs8_collection': (r'^lc08_{1}\w{4}_{1}[0-9]{6}_{1}[0-9]{8}_{1}[0-9]{8}_{1}[0-9]{2}_{1}\w{2}$',
+                                Landsat8OLITIRS, 'lc08_l1tp_042034_20011103_20160706_01_a1'),
+
+        'oli8': (r'^lo8\d{3}\d{3}\d{4}\d{3}\w{3}.{2}$', Landsat8OLI, 'LO82181092013069PFS00'),
+
+        'oli8_collection': (r'^lo08_{1}\w{4}_{1}[0-9]{6}_{1}[0-9]{8}_{1}[0-9]{8}_{1}[0-9]{2}_{1}\w{2}$',
+                            Landsat8OLI, 'lo08_l1tp_042034_20011103_20160706_01_a1'),
 
         'mod09a1': (r'^mod09a1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
                     ModisTerra09A1, 'mod09a1.A2000072.h02v09.005.2008237032813'),
@@ -443,15 +483,6 @@ class SensorCONST(object):
         'myd13q1': (r'^myd13q1\.a\d{7}\.h\d{2}v\d{2}\.005\.\d{13}$',
                     ModisAqua13Q1, 'myd13q1.A2000072.h02v09.005.2008237032813')
     }
-
-    LTA_ids = ['tm4', 'tm5', 'etm7', 'olitirs8', 'oli8']
-    LPDAAC_ids = ['mod09a1', 'mod09ga', 'mod09gq', 'mod09q1',
-                    'myd09a1', 'myd09ga', 'myd09gq', 'myd09q1',
-                    'mod13a1', 'mod13a2', 'mod13a3', 'mod13q1',
-                    'myd13a1', 'myd13a2', 'myd13a3', 'myd13q1']
-
-    def __setattr__(self, key, value):
-        pass
 
 
 def instance(product_id):

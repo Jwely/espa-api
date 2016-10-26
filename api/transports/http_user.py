@@ -9,16 +9,12 @@ from api.system.logger import ilogger as logger
 from api.util import api_cfg
 from api.util import lowercase_all
 from api.domain.user import User
-from api.providers.configuration.configuration_provider import ConfigurationProvider
 
 from flask import jsonify
 from flask import make_response
 from flask import request
-from flask import redirect
 from flask.ext.httpauth import HTTPBasicAuth
 from flask.ext.restful import Resource
-
-from threading import Thread
 
 from werkzeug.exceptions import BadRequest
 
@@ -27,7 +23,6 @@ from functools import wraps
 espa = APIv1()
 auth = HTTPBasicAuth()
 cache = memcache.Client(['127.0.0.1:11211'], debug=0)
-config = ConfigurationProvider()
 
 
 def greylist(func):
@@ -263,24 +258,3 @@ class ItemStatus(Resource):
     def get(version, orderid, itemnum='ALL'):
         user = flask.g.user
         return espa.item_status(orderid, itemnum, user.username)
-
-
-def mark_scene_download(orderid, filename, headers, remote_addr):
-    espa.mark_scene_download(orderid, filename, headers, remote_addr)
-    return
-
-
-class Downloads(Resource):
-    @staticmethod
-    def get(orderid, filename):
-        if 'X-Forwarded-For' in request.headers:
-            remote_addr = request.headers.getlist('X-Forwarded-For')[0].rpartition(' ')[-1]
-        else:
-            remote_addr = request.remote_addr or 'untrackable'
-
-        espa.mark_scene_download(orderid, filename, request.headers, remote_addr)
-
-        #thread = Thread(target=mark_scene_download, args=(orderid, filename, request.headers, remote_addr))
-        #thread.start()
-        return {'boom': 'you made it'}
-        #return redirect('%s/%s/%s'.format(config.url_for('distribution.cache'), orderid, filename))

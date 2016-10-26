@@ -138,19 +138,28 @@ class ConfigurationProvider(ConfigurationProviderInterfaceV0):
         print "****\nWARNING:\nSwitching backend EE/LTA service environments " \
               "from {} to {}\n****\n".format(self.mode, environment)
 
+        def up_vals(key, val):
+            print key + ' to: ' + val
+            resp = self.put(key, val)
+            if resp == {_up_key: _up_val}:
+                print 'update successful'
+            else:
+                print 'there was a problem, return value was: {}'.format(_resp)
+
         try:
             with open(self.explorer_yaml) as f:
                 _edict = yaml.load(f.read())
 
-            for key in _edict['env_urls']:
-                _up_key = 'url.' + self.mode + '.' + key
-                _up_val = _edict['env_urls'][key][environment]
-                print _up_key + ' to: ' + _up_val
-                _resp = self.put(_up_key, _up_val)
-                if _resp == {_up_key: _up_val}:
-                    print 'update successful'
-                else:
-                    print 'there was a problem, return value was: {}'.format(_resp)
+            for grp in _edict:
+                for key in _edict[grp]:
+                    if '_urls' in grp:
+                        _up_key = 'url.' + self.mode + '.' + key
+                    else:
+                        _kl = key.split('_')
+                        _up_key = '.'.join((_kl[0], self.mode, _kl[1]))
+                    _up_val = _edict[grp][key][environment]
+                    up_vals(_up_key, _up_val)
+            return True
         except AttributeError as e:
             raise ConfigurationProviderException("explorer_yaml not defined in .cfgnfo")
         except IOError as e:

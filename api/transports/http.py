@@ -9,7 +9,7 @@ from api.providers.configuration.configuration_provider import ConfigurationProv
 from api.util import api_cfg
 
 from http_user import Index, VersionInfo, AvailableProducts, ValidationInfo,\
-    ListOrders, Ordering, UserInfo, ItemStatus, Downloads
+    ListOrders, Ordering, UserInfo, ItemStatus
 
 from http_production import ProductionVersion, ProductionConfiguration, ProductionOperations, ProductionManagement
 
@@ -28,9 +28,6 @@ transport_api = Api(app, errors=errors, catch_all_404s=True)
 # USER facing functionality
 
 transport_api.add_resource(Index, '/')
-
-transport_api.add_resource(Downloads,
-                           '/api/v<version>/download/<orderid>/<filename>')
 
 transport_api.add_resource(VersionInfo,
                            '/api',
