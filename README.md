@@ -501,7 +501,7 @@ Accepts requests for process from an HTTP POST with a JSON body.  The body is va
 ```json
 
 curl --user username:password -d '{"olitirs8": {
-                                                    "inputs": ["LC8027029201533LGN00"], 
+                                                    "inputs": ["LC80270292015233LGN00"], 
                                                     "products": ["sr"]
                                                  }, 
                                      "format": "gtiff", 
